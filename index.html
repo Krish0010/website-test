@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FOODSTORYTVC - Discover the Best Eats</title>
+    <!-- Load Tailwind CSS --><script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom Tailwind Configuration: Reverting to original green and beige/grey theme --><script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#4CAF50', // Emerald Green (similar to original screenshot buttons)
+                        'secondary': '#16A34A', // Darker Emerald Green
+                        'accent-bg': '#f5f5f4', // Stone-100 (Light Beige/Grey for background, matches screenshots 2&3)
+                        'form-bg': '#EAEAEA', // Custom lighter beige/grey for form panel, matches screenshot 3
+                        'text-dark': '#1f2937', // Dark gray for main text
+                        'header-bg': 'rgba(0,0,0,0.6)', // Semi-transparent dark for header over hero
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Use Inter font for a modern look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+        /* Smooth scroll for anchor links */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Hero Image/Overlay Styles - Using the original image provided in the first screenshot */
+        .hero-background {
+            /* Using the original screenshot image URL */
+            background-image: url('https://i.ibb.co/MDYvqMh5/landing-page.png'); 
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        /* Dark overlay for text readability */
+        .hero-background::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            /* Adjusting overlay slightly to ensure text readability over the specific image */
+            background: rgba(0, 0, 0, 0.4); 
+        }
+
+        /* Ensure content is above the overlay */
+        .hero-content {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Custom styles for section backgrounds from screenshots */
+        .custom-section-bg {
+            background-color: #f5f5f4; /* Stone-100 */
+        }
+        
+        /* Custom form panel background color */
+        .custom-form-bg {
+            background-color: #EAEAEA;
+        }
+    </style>
+    <!-- Removed EmailJS SDK Import -->
+</head>
+<body class="font-sans text-text-dark bg-accent-bg">
+
+    <!-- Header & Navigation - Adjusted to match original screenshot look --><header class="bg-transparent absolute w-full z-20 top-0">
+    <div class="w-full">
+        <div class="flex justify-between items-center h-20 px-4 sm:px-8 lg:px-12">
+            <!-- Logo -->
+            <a href="#hero" class="text-3xl font-extrabold text-white tracking-wider">
+                FOODSTORYTVC
+            </a>
+
+            <!-- Navigation -->
+            <nav class="hidden md:flex space-x-8 items-center">
+                <a href="#about-us" class="text-white hover:text-primary transition duration-150 font-medium text-lg">About</a>
+                <a href="#contact" class="px-5 py-2 text-white bg-primary rounded-lg shadow-lg hover:bg-secondary transition duration-150 font-medium text-lg">Contact</a>
+            </nav>
+
+            <!-- Mobile Menu Button -->
+            <button id="menu-button" class="md:hidden p-2 rounded-lg text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+        <!-- Mobile Navigation (Hidden by default) --><div id="mobile-menu" class="hidden md:hidden bg-gray-900 border-t border-gray-700">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#about-us" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-gray-800">About</a>
+                <a href="#social" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-gray-800">Social</a>
+                <a href="#contact" class="block px-3 py-2 rounded-md text-base font-medium text-white bg-primary hover:bg-secondary transition duration-150 text-center">Contact Us</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section (ID: hero) - Matches Screenshot 1 --><section id="hero" class="hero-background min-h-screen flex items-center pt-20 pb-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-60 text-center hero-content">
+                <h1 class="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight mb-2 text-white leading-tight text-outline">
+                    Discover the Best Eats in Town
+
+                </h1>
+                <p class="text-sm sm:text-base mb-40 text-gray-200 max-w-5xl mx-auto font-medium text-outline">
+                    From scroll to plate — we help you discover what real foodies are loving. Powered by authentic reviews, curated social content, and our exclusive <strong>IMPACT</strong> system, we spotlight top dishes and dining spots — so every bite is smarter, more satisfying, and truly worth it.
+                </p>
+<style>
+.text-outline {
+  color: white;
+  text-shadow:
+    -1px -1px 0 #000,
+     1px -1px 0 #000,
+    -1px  1px 0 #000,
+     1px  1px 0 #000;
+}
+</style>
+
+                <div class="space-x-4">
+                    <a href="#about-us" class="inline-flex items-center justify-center mt-40 px-10 py-3 text-outlineborder border-transparent text-sm rounded-full text-white bg-primary shadow-2xl hover:bg-secondary transition duration-300 transform hover:scale-105">
+                        LEARN MORE
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Us Section (ID: about-us) - Matches the provided text & style --><section id="about-us" class="py-20 custom-section-bg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <!-- Text Content --><div class="lg:pr-10">
+                        <h2 class="text-6xl font-extrabold text-gray-900 mb-8 tracking-tighter">
+                            Who we are
+                        </h2>
+                        <div class="space-y-6 text-lg text-gray-700 max-w-xl">
+                            <p>
+                                We’re Foodstorytvc — a passionate crew helping people to eat better and restaurants to treat customers better.
+                            </p>
+                            <p>
+                                Our platform highlights the top dishes loved by real guests, making dining choices simple and rewarding. Every review adds value, and every bit of feedback earns you something back — a win for eaters and eateries alike.
+                            </p>
+                            <p>
+                                Across social media, we bring this journey to life visually — through reels, snapshots, and design-rich storytelling that celebrates food, flavor, and customer joy. From iconic favourites to hidden local gems tucked away in alleys and quiet corners, we spotlight dishes that tell a story — cherished by real people in real places
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Image (Placeholder reflecting the provided image) --><div class="flex justify-center lg:justify-end">
+                        <div class="w-full max-w-md bg-white rounded-xl shadow-2xl overflow-hidden aspect-square">
+                            <!-- Using a placeholder that resembles the original screenshot's image style --><img 
+                                src="https://i.ibb.co/Xx2hfF5j/foostroytvc-logo-new.jpg" 
+                                alt="Gourmet dessert arrangement on a white plate with edible flowers and berries." 
+                                class="w-full h-full object-cover"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+       <!-- Social Section (ID: social) -->
+<section id="social" class="py-20 custom-section-bg">
+  <div class="max-w-7xl mx-auto px-10 sm:px-6 lg:px-8">
+    <div class="text-center mb-16">
+      <h2 class="text-5xl font-extrabold text-gray-900 mb-2">Follow us on social</h2>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8 md:gap-12">
+
+      <!-- Social Link 1: Facebook -->
+      <div class="text-center transform hover:scale-[1.02] transition duration-300">
+        <a href="https://www.facebook.com/share/1DVTrziAMk/" target="_blank" class="block group">
+          <img 
+            src="https://i.ibb.co/x8HyZH73/Screenshot-2025-10-21-174755.png" 
+            alt="Elegantly plated dish on a wooden table with soft lighting" 
+            class="w-full h-auto object-contain rounded-xl shadow-xl mb-6""/>
+          <span class="inline-block w-2/3 px-6 py-3 text-white bg-primary rounded-full font-semibold hover:bg-secondary transition duration-150">
+            FACEBOOK
+          </span>
+        </a>
+      </div>
+
+      <!-- Social Link 2: Instagram -->
+      <div class="text-center transform hover:scale-[1.02] transition duration-300">
+        <a href="https://www.instagram.com/foodstorytvc?igsh=aDhheXBobGJ0MGpq" target="_blank" class="block group">
+          <img 
+            src="https://i.ibb.co/6ctN2wht/Screenshot-2025-10-21-174725.png" 
+            alt="Wine bottle and glass with red wine in moody lighting" 
+            class="w-full h-auto object-contain rounded-xl shadow-xl mb-6""/>
+          <span class="inline-block w-2/3 px-6 py-3 text-white bg-primary rounded-full font-semibold hover:bg-secondary transition duration-150">
+            INSTAGRAM
+          </span>
+        </a>
+      </div>
+
+      <!-- Social Link 3: YouTube -->
+      <div class="text-center transform hover:scale-[1.02] transition duration-300">
+        <a href="https://www.youtube.com/@FOODSTORYTVC" target="_blank" class="block group">
+          <img 
+            src="https://i.ibb.co/S73PfbL0/Screenshot-2025-10-21-174741.png" 
+            alt="Single gourmet appetizer dish on a white plate" 
+            class="w-full h-auto object-contain rounded-xl shadow-xl mb-6""/>
+          <span class="inline-block w-2/3 px-6 py-3 text-white bg-primary rounded-full font-semibold hover:bg-secondary transition duration-150">
+            YOUTUBE
+          </span>
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+        <!-- Contact Us Section (ID: contact) - Matches Screenshot 3 --><section id="contact" class="py-20 custom-section-bg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <!-- Contact Text --><div class="pb-10 lg:pb-0">
+                        <h2 class="text-6xl font-extrabold text-gray-900 mb-4">Contact Us</h2>
+                        <p class="text-xl text-gray-700 max-w-lg mb-6">
+                            Interested in working together? Fill out some info and we will be in touch shortly. We can't wait to hear from you!
+                        </p>
+                        <!-- ADDED: Display Email Address -->
+                        <p class="text-lg text-gray-800 font-semibold">
+                             Email : 
+                            <a href="mailto:FEEDBACK@FOODSTORYTVC.COM" class="text-primary hover:text-secondary underline transition duration-150 break-words">
+                                FEEDBACK@FOODSTORYTVC.COM
+                            </a>
+                        </p>
+                    </div>
+
+                    <!-- Contact Form Container --><div class="p-8 rounded-2xl shadow-2xl custom-form-bg">
+                        <!-- Restored Mailto logic. Form fields no longer need 'name' attributes. --><form id="contact-form" class="space-y-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <!-- First Name --><div>
+                                    <label for="first-name" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                                    <input type="text" id="first-name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                                </div>
+                                <!-- Last Name --><div>
+                                    <label for="last-name" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                                    <input type="text" id="last-name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                                </div>
+                            </div>
+
+                            <!-- Email --><div>
+                                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email <span class="text-red-500">*required</span></label>
+                                <input type="email" id="email" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary">
+                            </div>
+
+                            <!-- Message --><div>
+                                <label for="message" class="block text-sm font-medium text-gray-700 mb-1">Message <span class="text-red-500">*required</span></label>
+                                <textarea id="message" rows="5" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"></textarea>
+                            </div>
+
+                            <!-- Submission/Error Message --><p id="form-message-error" class="text-sm font-medium text-red-500 hidden">Please fill out all required fields (Email and Message).</p>
+                            <!-- UPDATED SUCCESS MESSAGE for clarity on mailto link --><p id="form-message-success" class="text-base font-medium text-primary hidden bg-green-100 p-3 rounded-lg mt-4">
+                                Your message is ready! Please click 'Send' in your email client to complete sending it.
+                            </p>
+                            <!-- Removed Loading Indicator --><!-- Send Button - Text changed from SEND to EMAIL US, and added hint text --><div>
+                                <button type="submit" id="send-button" class="w-full sm:w-32 inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-semibold rounded-full text-white bg-primary shadow-lg hover:bg-secondary transition duration-150">
+                                    EMAIL US
+                                </button>
+                                <p class="text-sm text-gray-600 mt-2">
+                                    (Clicking 'Email Us' will open your default email program)
+                                </p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer --><footer class="bg-gray-900 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-gray-400 mb-2">© 2024 FOODSTORYTVC. All rights reserved.</p>
+            <p class="text-sm text-gray-500">
+                <a href="#" class="hover:text-primary transition duration-150">Privacy Policy</a> |
+                <a href="#" class="hover:text-primary transition duration-150">Terms of Service</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript for Mobile Menu Toggle and Mailto Form Submission (Restored Logic) --><script>
+        const menuButton = document.getElementById('menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const contactForm = document.getElementById('contact-form');
+        const formMessageError = document.getElementById('form-message-error');
+        const formMessageSuccess = document.getElementById('form-message-success');
+        const sendButton = document.getElementById('send-button'); // Keep this if we want to update the text/state
+
+        // --- Mobile Menu Logic ---
+        menuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Close menu when a link is clicked on mobile
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (!mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.add('hidden');
+                }
+            });
+        });
+
+
+        // --- Contact Form Mailto Logic ---
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault(); // Stop default form submission
+            
+            // Clear previous messages and ensure loading is hidden
+            formMessageError.classList.add('hidden');
+            formMessageSuccess.classList.add('hidden');
+
+            const firstName = document.getElementById('first-name').value;
+            const lastName = document.getElementById('last-name').value;
+            const email = document.getElementById('email').value;
+            const message = document.getElementById('message').value;
+
+            // Simple validation for required fields
+            if (!email || !message) {
+                formMessageError.classList.remove('hidden');
+                return;
+            }
+
+            // The designated recipient email address.
+            const yourRecipientEmail = 'FEEDBACK@FOODSTORYTVC.COM'; 
+            const fullName = `${firstName} ${lastName}`.trim();
+            
+            // Construct Subject
+            // Include sender email in the subject to make it easier to see in the inbox
+            const subject = encodeURIComponent(`New Inquiry from ${fullName || 'Website Visitor'} (${email})`);
+
+            // Construct Body
+            let body = `Sender Name: ${fullName || 'N/A'}\n`;
+            body += `Sender Email: ${email}\n\n`;
+            body += `Message:\n${message}`;
+            const encodedBody = encodeURIComponent(body);
+
+            // Create the mailto URL
+            const mailtoLink = `mailto:${yourRecipientEmail}?subject=${subject}&body=${encodedBody}`;
+
+            // 1. Open the user's default email client
+            window.location.href = mailtoLink;
+
+            // 2. Show success message to confirm the action
+            formMessageSuccess.classList.remove('hidden');
+
+            // 3. Reset the form for a better user experience
+            // Note: We don't want to reset the form immediately if the mailto link fails to open. 
+            // We'll rely on the user seeing the mail client and completing the action.
+            
+            // 4. Hide the success message after a few seconds
+            setTimeout(() => {
+                formMessageSuccess.classList.add('hidden');
+            }, 5000);
+        });
+    </script>
+</body>
+</html>
