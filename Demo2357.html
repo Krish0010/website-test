@@ -10,12 +10,9 @@
             theme: {
                 extend: {
                     colors: {
-                        'brand-base-black': '#050505',
-                        'brand-accent-champagne': '#ddc47b',
+                        'brand-base-black': '#050505', 
+                        'brand-accent-champagne': '#ddc47b', 
                     },
-                    backgroundImage: {
-                        'brand-textured-black': 'linear-gradient(rgba(5, 5, 5, 0.95), rgba(5, 5, 5, 0.95)), url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'0 0 100 100\'%3E%3Cdefs%3E%3Cpattern id=\'brushed\' width=\'50\' height=\'50\' patternUnits=\'userSpaceOnUse\'%3E%3Cpath d=\'M 0 0 L 50 50\' stroke=\'%23ddc47b08\' stroke-width=\'0.2\'/%3E%3Cpath d=\'M 50 0 L 0 50\' stroke=\'%23ddc47b08\' stroke-width=\'0.2\'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\'100%25\' height=\'100%25\' fill=\'url(%23brushed)\'/%3E%3C/svg%3E")',
-                    }
                 },
             },
         }
@@ -23,10 +20,11 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #050505; color: #ddc47b; }
+        /* Premium subtle texture overlay */
         .page-textured-overlay {
             background-image: linear-gradient(rgba(5, 5, 5, 0.95), rgba(5, 5, 5, 0.95)), url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='brushed' width='50' height='50' patternUnits='userSpaceOnUse'%3E%3Cpath d='M 0 0 L 50 50' stroke='%23ddc47b08' stroke-width='0.2'/%3E%3Cpath d='M 50 0 L 0 50' stroke='%23ddc47b08' stroke-width='0.2'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23brushed)'/%3E%3C/svg%3E");
         }
-        .loader { border: 4px solid #ddc47b20; border-top: 4px solid #ddc47b; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: inline-block; }
+        .loader { border: 4px solid #ddc47b20; border-top: 4px solid #ddc47b; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -43,8 +41,8 @@
         <div id="redemption-section" class="p-5 sm:p-8">
             <label for="discount-code" class="block text-xs sm:text-sm font-semibold text-brand-accent-champagne mb-2">Enter Customer Code</label>
             <div class="flex items-stretch w-full">
-                <span class="flex items-center px-3 sm:px-6 bg-brand-base-black/60 border-2 border-r-0 border-brand-accent-champagne/20 rounded-l-2xl text-brand-accent-champagne/80 font-extrabold text-sm sm:text-lg select-none">
-                    IMPACT
+                <span class="flex items-center px-3 sm:px-5 bg-brand-base-black/60 border-2 border-r-0 border-brand-accent-champagne/20 rounded-l-2xl text-brand-accent-champagne/80 font-extrabold text-sm sm:text-lg select-none">
+                    IMPACT |
                 </span>
                 <input type="text" id="discount-code" placeholder="A1B2C" class="flex-1 px-3 sm:px-5 py-3 sm:py-4 text-base sm:text-lg font-bold border-2 border-brand-accent-champagne/20 bg-brand-base-black text-brand-accent-champagne rounded-r-2xl focus:ring-brand-accent-champagne focus:border-brand-accent-champagne uppercase transition-colors placeholder:text-brand-accent-champagne/30" autocomplete="off">
             </div>
@@ -77,15 +75,16 @@
 
     <script>
         // ==========================================
-        // 🚨 1. PASTE YOUR GOOGLE SCRIPT URL BELOW 🚨
+        // 🚨 1. PASTE YOUR GOOGLE SCRIPT URL BELOW 
         // ==========================================
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx0acoXgeikwZdmF4JNFC1KEDJTpOKTw4Gzg7RZdynQ4N6dIE3I0i7L_Vs-g2POwnpppg/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyeuOI9M-8uSyinsShfSx09Ii2djMuXsd0oDO1W72TPH7H771IK3EsLMXA45JhqknDEjA/exec"; 
         
         // ==========================================
-        // 🚨 2. TYPE THE RESTAURANT NAME EXACTLY AS IT APPEARS IN THE SPREADSHEET 🚨
+        // 🚨 2. TYPE THE RESTAURANT NAME EXACTLY AS IT APPEARS IN THE SPREADSHEET
         // ==========================================
         const RESTAURANT_NAME = "Demo Resto"; 
 
+        
         // --- System Logic Below (No need to edit) ---
         let currentlyVerifiedCode = "";
 
@@ -94,12 +93,14 @@
         });
 
         async function verifyCode() {
+            // Grab only the raw 5-character string the user types
             const rawInput = document.getElementById('discount-code').value.trim();
             const errorMsg = document.getElementById('error-message');
             const resultCard = document.getElementById('result-card');
             
             if (!rawInput) return;
 
+            // Secretly glue "IMPACT-" to the front before sending it to the Bouncer!
             const codeInput = "IMPACT-" + rawInput.toUpperCase();
 
             errorMsg.classList.add('hidden');
