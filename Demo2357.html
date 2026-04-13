@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IMPACT Partner Portal | FOODSTORYTVC | Sleek High-End Aesthetic</title>
+    <title>IMPACT Partner Portal | FOODSTORYTVC</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        'brand-base-black': '#050505', // Ultra-deep, matte base black
-                        'brand-accent-champagne': '#ddc47b', // Refined, sophisticated matte-brushed champagne
+                        'brand-base-black': '#050505',
+                        'brand-accent-champagne': '#ddc47b',
                     },
                     backgroundImage: {
-                        'brand-textured-black': 'linear-gradient(rgba(5, 5, 5, 0.95), rgba(5, 5, 5, 0.95)), url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'0 0 100 100\'%3E%3Cdefs%3E%3Cpattern id=\'brushed\' width=\'50\' height=\'50\' patternUnits=\'userSpaceOnUse\'%3E%3Cpath d=\'M 0 0 L 50 50\' stroke=\'%23ddc47b08\' stroke-width=\'0.2\'/%3E%3Cpath d=\'M 50 0 L 0 50\' stroke=\'%23ddc47b08\' stroke-width=\'0.2\'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\'100%25\' height=\'100%25\' fill=\'url(%23brushed)\'/%3E%3C/svg%3E")', // Unique SVG patterned textured black
+                        'brand-textured-black': 'linear-gradient(rgba(5, 5, 5, 0.95), rgba(5, 5, 5, 0.95)), url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'0 0 100 100\'%3E%3Cdefs%3E%3Cpattern id=\'brushed\' width=\'50\' height=\'50\' patternUnits=\'userSpaceOnUse\'%3E%3Cpath d=\'M 0 0 L 50 50\' stroke=\'%23ddc47b08\' stroke-width=\'0.2\'/%3E%3Cpath d=\'M 50 0 L 0 50\' stroke=\'%23ddc47b08\' stroke-width=\'0.2\'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\'100%25\' height=\'100%25\' fill=\'url(%23brushed)\'/%3E%3C/svg%3E")',
                     }
                 },
             },
@@ -23,7 +23,6 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #050505; color: #ddc47b; }
-        /* Subtle texture overlay */
         .page-textured-overlay {
             background-image: linear-gradient(rgba(5, 5, 5, 0.95), rgba(5, 5, 5, 0.95)), url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='brushed' width='50' height='50' patternUnits='userSpaceOnUse'%3E%3Cpath d='M 0 0 L 50 50' stroke='%23ddc47b08' stroke-width='0.2'/%3E%3Cpath d='M 50 0 L 0 50' stroke='%23ddc47b08' stroke-width='0.2'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23brushed)'/%3E%3C/svg%3E");
         }
@@ -35,40 +34,40 @@
 
     <div class="w-full max-w-md bg-brand-base-black rounded-3xl shadow-2xl overflow-hidden border border-brand-accent-champagne/10">
         
-        <div class="p-8 text-center bg-brand-base-black/70 border-b border-brand-accent-champagne/10">
-            <h1 class="text-3xl font-extrabold tracking-widest mb-1 text-brand-accent-champagne">FOODSTORYTVC</h1>
-            <p class="text-xs font-semibold tracking-widest uppercase text-brand-accent-champagne">IMPACT PARTNER PORTAL</p>
-            <p id="restaurant-name-display" class="mt-5 text-gray-300 font-medium"></p>
+        <div class="p-6 sm:p-8 text-center bg-brand-base-black/70 border-b border-brand-accent-champagne/10">
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-widest mb-1 text-brand-accent-champagne">FOODSTORYTVC</h1>
+            <p class="text-[10px] sm:text-xs font-semibold tracking-widest uppercase text-brand-accent-champagne">IMPACT PARTNER PORTAL</p>
+            <p id="restaurant-name-display" class="mt-3 sm:mt-5 text-gray-300 font-medium text-sm sm:text-base"></p>
         </div>
 
-        <div id="redemption-section" class="p-8">
-            <label for="discount-code" class="block text-sm font-semibold text-brand-accent-champagne mb-2">Enter Customer Code</label>
+        <div id="redemption-section" class="p-5 sm:p-8">
+            <label for="discount-code" class="block text-xs sm:text-sm font-semibold text-brand-accent-champagne mb-2">Enter Customer Code</label>
             <div class="flex items-stretch w-full">
-                <span class="flex items-center px-6 bg-brand-base-black/60 border-2 border-r-0 border-brand-accent-champagne/20 rounded-l-2xl text-brand-accent-champagne/80 font-extrabold text-lg select-none">
+                <span class="flex items-center px-3 sm:px-6 bg-brand-base-black/60 border-2 border-r-0 border-brand-accent-champagne/20 rounded-l-2xl text-brand-accent-champagne/80 font-extrabold text-sm sm:text-lg select-none">
                     IMPACT
                 </span>
-                <input type="text" id="discount-code" placeholder="A1B2C" class="flex-1 px-5 py-4 text-lg font-bold border-2 border-brand-accent-champagne/20 bg-brand-base-black text-brand-accent-champagne rounded-r-2xl focus:ring-brand-accent-champagne focus:border-brand-accent-champagne uppercase transition-colors placeholder:text-brand-accent-champagne/30" autocomplete="off">
+                <input type="text" id="discount-code" placeholder="A1B2C" class="flex-1 px-3 sm:px-5 py-3 sm:py-4 text-base sm:text-lg font-bold border-2 border-brand-accent-champagne/20 bg-brand-base-black text-brand-accent-champagne rounded-r-2xl focus:ring-brand-accent-champagne focus:border-brand-accent-champagne uppercase transition-colors placeholder:text-brand-accent-champagne/30" autocomplete="off">
             </div>
             
-            <button id="verify-btn" onclick="verifyCode()" class="mt-5 w-full bg-brand-accent-champagne text-brand-base-black font-bold py-4 px-5 rounded-2xl hover:bg-brand-accent-champagne/90 transition duration-200 flex justify-center items-center h-14 shadow-lg">
+            <button id="verify-btn" onclick="verifyCode()" class="mt-4 sm:mt-5 w-full bg-brand-accent-champagne text-brand-base-black font-bold py-3 sm:py-4 px-4 sm:px-5 rounded-2xl hover:bg-brand-accent-champagne/90 transition duration-200 flex justify-center items-center h-12 sm:h-14 shadow-lg text-sm sm:text-base">
                 <span id="verify-text">Verify Code</span>
                 <span id="verify-loader" class="loader hidden" style="border-color: #0a0a0a20; border-top-color: #0a0a0a;"></span>
             </button>
 
-            <div id="error-message" class="hidden mt-5 p-5 bg-red-950 text-red-300 rounded-2xl text-sm font-medium border border-red-900"></div>
+            <div id="error-message" class="hidden mt-4 sm:mt-5 p-4 sm:p-5 bg-red-950 text-red-300 rounded-2xl text-xs sm:text-sm font-medium border border-red-900"></div>
             
-            <div id="result-card" class="hidden mt-8 border-t border-brand-accent-champagne/10 pt-8">
-                <div class="flex justify-between items-start mb-6">
+            <div id="result-card" class="hidden mt-6 sm:mt-8 border-t border-brand-accent-champagne/10 pt-6 sm:pt-8">
+                <div class="flex justify-between items-start mb-4 sm:mb-6">
                     <div>
-                        <p class="text-xs text-brand-accent-champagne/60 uppercase font-bold tracking-wider mb-2">Customer Offer</p>
-                        <p id="result-offer" class="text-xl font-extrabold text-brand-accent-champagne"></p>
+                        <p class="text-[10px] sm:text-xs text-brand-accent-champagne/60 uppercase font-bold tracking-wider mb-1 sm:mb-2">Customer Offer</p>
+                        <p id="result-offer" class="text-lg sm:text-xl font-extrabold text-brand-accent-champagne"></p>
                     </div>
-                    <span id="result-badge" class="px-4 py-1.5 rounded-full text-xs font-bold shadow-md"></span>
+                    <span id="result-badge" class="px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold shadow-md"></span>
                 </div>
                 
-                <p class="text-sm text-gray-300 mb-8">Customer Email: <span id="result-customer" class="font-semibold text-brand-accent-champagne"></span></p>
+                <p class="text-xs sm:text-sm text-gray-300 mb-6 sm:mb-8">Customer Email: <span id="result-customer" class="font-semibold text-brand-accent-champagne break-all"></span></p>
                 
-                <button id="redeem-btn" onclick="redeemCode()" class="w-full bg-brand-accent-champagne text-brand-base-black font-bold py-4 px-5 rounded-2xl shadow-lg hover:bg-brand-accent-champagne/90 transition duration-200 flex justify-center items-center h-14">
+                <button id="redeem-btn" onclick="redeemCode()" class="w-full bg-brand-accent-champagne text-brand-base-black font-bold py-3 sm:py-4 px-4 sm:px-5 rounded-2xl shadow-lg hover:bg-brand-accent-champagne/90 transition duration-200 flex justify-center items-center h-12 sm:h-14 text-sm sm:text-base">
                     <span id="redeem-text">Mark as Redeemed</span>
                     <span id="redeem-loader" class="loader hidden" style="border-color: #0a0a0a20; border-top-color: #0a0a0a;"></span>
                 </button>
@@ -80,14 +79,13 @@
         // ==========================================
         // 🚨 1. PASTE YOUR GOOGLE SCRIPT URL BELOW 🚨
         // ==========================================
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyeuOI9M-8uSyinsShfSx09Ii2djMuXsd0oDO1W72TPH7H771IK3EsLMXA45JhqknDEjA/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx0acoXgeikwZdmF4JNFC1KEDJTpOKTw4Gzg7RZdynQ4N6dIE3I0i7L_Vs-g2POwnpppg/exec"; 
         
         // ==========================================
         // 🚨 2. TYPE THE RESTAURANT NAME EXACTLY AS IT APPEARS IN THE SPREADSHEET 🚨
         // ==========================================
         const RESTAURANT_NAME = "Demo Resto"; 
 
-        
         // --- System Logic Below (No need to edit) ---
         let currentlyVerifiedCode = "";
 
@@ -102,7 +100,6 @@
             
             if (!rawInput) return;
 
-            // functional concatenates "IMPACT-" to the front before sending it!
             const codeInput = "IMPACT-" + rawInput.toUpperCase();
 
             errorMsg.classList.add('hidden');
@@ -110,7 +107,6 @@
             toggleLoading('verify-btn', 'verify-text', 'verify-loader', true);
 
             try {
-                // Sends the hardcoded RESTAURANT_NAME to the Bouncer
                 const response = await fetch(`${SCRIPT_URL}?code=${codeInput}&restaurant=${RESTAURANT_NAME}&action=verify`);
                 const data = await response.json();
 
@@ -138,9 +134,8 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // Update UI to standard sophisticated redeemed palette
                     document.getElementById('result-badge').innerText = "REDEEMED";
-                    document.getElementById('result-badge').className = "px-4 py-1.5 rounded-full text-xs font-bold border border-brand-accent-champagne/30 text-brand-accent-champagne/50 shadow-md";
+                    document.getElementById('result-badge').className = "px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold border border-brand-accent-champagne/30 text-brand-accent-champagne/50 shadow-md";
                     document.getElementById('redeem-btn').style.display = 'none'; 
                     alert("Success! Code has been marked as redeemed.");
                     document.getElementById('discount-code').value = '';
@@ -162,20 +157,17 @@
             const badge = document.getElementById('result-badge');
             const redeemBtn = document.getElementById('redeem-btn');
             
-            // Standard palette badges for high-end look
             if (data.status.toLowerCase() === 'valid') {
                 badge.innerText = "VALID";
-                // Distinct with deep sophisticated green elements border and font
-                badge.className = "px-4 py-1.5 rounded-full text-xs font-bold border-2 bg-brand-base-black border-green-700 text-green-300 shadow-md";
+                badge.className = "px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold border-2 bg-brand-base-black border-green-700 text-green-300 shadow-md";
                 redeemBtn.style.display = 'flex'; 
             } else if (data.status.toLowerCase() === 'redeemed') {
                 badge.innerText = "ALREADY REDEEMED";
-                badge.className = "px-4 py-1.5 rounded-full text-xs font-bold border-2 bg-brand-base-black border-gray-600 text-gray-400 shadow-md";
+                badge.className = "px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold border-2 bg-brand-base-black border-gray-600 text-gray-400 shadow-md";
                 redeemBtn.style.display = 'none'; 
             } else {
                 badge.innerText = "EXPIRED";
-                // Distinct sophisticated crimson tones
-                badge.className = "px-4 py-1.5 rounded-full text-xs font-bold border-2 bg-brand-base-black border-red-900 text-red-400 shadow-md";
+                badge.className = "px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold border-2 bg-brand-base-black border-red-900 text-red-400 shadow-md";
                 redeemBtn.style.display = 'none'; 
             }
 
