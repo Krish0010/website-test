@@ -19,7 +19,7 @@
 </head>
 <body class="flex items-center justify-center min-h-screen p-4 sm:p-6">
 
-    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100 relative z-10">
         
         <div class="bg-gray-900 text-white p-6 sm:p-8 text-center">
             <h1 class="text-xl sm:text-2xl font-extrabold tracking-widest mb-1">FOODSTORYTVC</h1>
@@ -72,6 +72,23 @@
         </div>
     </div>
 
+    <div id="success-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center">
+            <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-6">
+                <svg class="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+            
+            <h3 class="text-2xl font-extrabold text-gray-900 mb-2 tracking-tight">Success!</h3>
+            <p class="text-sm text-gray-500 font-medium mb-8">The customer's offer has been securely redeemed and recorded.</p>
+            
+            <button onclick="closeModal()" class="w-full bg-gray-900 text-white font-bold py-4 px-4 rounded-xl hover:bg-black active:scale-[0.98] transition-all tracking-wider uppercase text-sm">
+                Done
+            </button>
+        </div>
+    </div>
+
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJb1WEYtv2YK_WU9ADvslOOZCYXPV191zA0sHs34pxtipYtOfSwjsyJyNqppBeaWMpsA/exec"; 
         const RESTAURANT_NAME = "Demo Resto"; 
@@ -81,6 +98,34 @@
         document.addEventListener("DOMContentLoaded", () => {
             document.getElementById('restaurant-name-display').innerText = RESTAURANT_NAME;
         });
+
+        // Modal Control Functions
+        function showSuccessModal() {
+            const modal = document.getElementById('success-modal');
+            const modalBox = modal.querySelector('div');
+            
+            modal.classList.remove('hidden');
+            // Small delay to allow display block to apply before animating opacity
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalBox.classList.remove('scale-90');
+                modalBox.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('success-modal');
+            const modalBox = modal.querySelector('div');
+            
+            modal.classList.add('opacity-0');
+            modalBox.classList.remove('scale-100');
+            modalBox.classList.add('scale-90');
+            
+            // Hide after animation finishes
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
 
         async function verifyCode() {
             const rawInput = document.getElementById('discount-code').value.trim();
@@ -127,7 +172,10 @@
                     document.getElementById('result-badge').innerText = "REDEEMED";
                     document.getElementById('result-badge').className = "px-3 py-1 rounded-lg text-[10px] font-black bg-gray-200 text-gray-500";
                     document.getElementById('redeem-btn').style.display = 'none'; 
-                    alert("Success! Offer Redeemed.");
+                    
+                    // Trigger the new custom modal instead of alert()
+                    showSuccessModal();
+                    
                     document.getElementById('discount-code').value = '';
                 } else {
                     showError(data.message);
