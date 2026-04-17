@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Customer Favorites | FOODSTORYTVC</title>
+    <meta name="title" content="Foodstorytvc | Eat Better">
+    <meta name="description" content="Taste beyond the guesswork. Discover the highest-rated dishes in town and help restaurants serve you better. Eat Better With Foodstorytvc.">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.foodstorytvc.com/">
+    <meta property="og:title" content="Foodstorytvc | Eat Better">
+    <meta property="og:description" content="Taste beyond the guesswork. Discover the highest-rated dishes in town and help restaurants serve you better. Eat Better With Foodstorytvc.">
+    <meta property="og:image" content="https://i.ibb.co/Xx2hfF5j/foostroytvc-logo-new.jpg">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-base-black': '#0a0a0a', 
+                        'brand-card-black': '#141414',
+                        'brand-gold': '#e8c064',       
+                        'brand-gold-muted': '#e8c06440',
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; color: #e8c064; }
+        .tagline-font { font-family: 'Playfair Display', serif; }
+        
+        .page-textured-overlay { background-image: linear-gradient(rgba(10, 10, 10, 0.95), rgba(10, 10, 10, 0.95)), url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"); }
+        table { border-collapse: separate; border-spacing: 0; width: 100%; }
+        th { color: #e8c064; font-weight: 800; text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em; border-bottom: 1px solid #e8c06440; padding: 16px 12px; text-align: left; transition: color 0.2s; cursor: pointer;}
+        td { padding: 16px 12px; font-size: 14px; font-weight: 600; border-bottom: 1px solid #e8c06415;}
+        tr:hover td { background-color: #1a1a1a; }
+        .rating-badge { background-color: #143314; color: #4ade80; border: 1px solid #166534; padding: 4px 8px; border-radius: 6px; font-weight: 800; }
+        .loading-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        input[type="text"] { background-color: #0d0d0d; border: 1px solid #e8c06440; color: #e8c064; outline: none; transition: border-color 0.3s; }
+        input[type="text"]:focus { border-color: #e8c064; }
+    </style>
+</head>
+<body class="min-h-screen p-4 sm:p-8 page-textured-overlay flex flex-col items-center overflow-x-hidden">
+
+    <div class="w-full max-w-6xl flex flex-col justify-between items-center mb-10 gap-2 text-center">
+        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-widest mb-1 text-brand-gold">FOODSTORYTVC</h1>
+        <p class="text-[10px] sm:text-xs font-bold tracking-[0.2em] uppercase text-brand-gold/70">Customer Favorites at Demo Resto</p>
+    </div>
+
+    <div id="loading-screen" class="w-full max-w-6xl flex flex-col items-center justify-center py-20">
+        <div class="w-12 h-12 border-4 border-[#141414] border-t-brand-gold rounded-full animate-spin mb-4"></div>
+        <p class="text-brand-gold/70 font-bold tracking-widest uppercase text-sm loading-pulse">Syncing Live Data...</p>
+    </div>
+
+    <div id="dashboard-content" class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 hidden animate-in fade-in duration-500">
+        
+        <div class="bg-brand-card-black rounded-3xl shadow-2xl border border-brand-gold-muted p-6">
+            <div class="flex items-center gap-2 mb-6">
+                <span class="text-xl">🔥</span>
+                <h2 class="text-lg font-extrabold text-gray-200">Top Rated Dishes</h2>
+            </div>
+            <div class="relative h-[300px] w-full">
+                <canvas id="topRatedChart"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-brand-card-black rounded-3xl shadow-2xl border border-brand-gold-muted p-6">
+            <div class="flex items-center gap-2 mb-6">
+                <span class="text-xl">✨</span>
+                <h2 class="text-lg font-extrabold text-gray-200">Dish Popularity By Likes (⭐ 4+)</h2>
+            </div>
+            <div class="relative h-[300px] w-full flex justify-center">
+                <canvas id="popularityChart"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-[#141414] to-[#1a1a1a] rounded-3xl shadow-2xl border border-brand-gold p-6 flex flex-col justify-center items-center text-center lg:col-span-2">
+            <p class="text-[10px] text-brand-gold uppercase font-black tracking-widest mb-2">💎 Hidden Gem Discovered By Voters</p>
+            <div id="hidden-gem-container" class="flex flex-col items-center justify-center">
+                <h3 class="text-xl sm:text-2xl font-extrabold text-white mb-1">Loading...</h3>
+            </div>
+        </div>
+
+        <div class="bg-brand-card-black rounded-3xl shadow-2xl border border-brand-gold-muted p-6 lg:col-span-2">
+            <div class="flex items-center gap-2 mb-6">
+                <span class="text-xl">🔍</span>
+                <h2 class="text-lg font-extrabold text-gray-200">Most Improved Dishes This Week 🚀</h2>
+            </div>
+            <div class="relative h-[350px] w-full">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-brand-card-black rounded-3xl shadow-2xl border border-brand-gold-muted p-6 lg:col-span-2 overflow-hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">📢</span>
+                    <h2 class="text-lg font-extrabold text-gray-200">Live Customer Reviews</h2>
+                </div>
+                
+                <div class="w-full sm:w-auto flex flex-col items-end gap-2">
+                    <input type="text" id="searchInput" placeholder="Search for a dish..." class="w-full sm:w-64 px-4 py-2 rounded-xl text-sm placeholder:text-gray-600 shadow-inner" oninput="renderTable()">
+                    
+                    <div class="flex sm:hidden items-center gap-2 text-brand-gold font-black text-[10px] uppercase tracking-widest animate-pulse pr-2">
+                        <span>Swipe table for Smart Order</span> <span class="text-base leading-none pb-[2px]">👉</span>
+                    </div>
+                </div>
+
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th onclick="handleSort('name')" class="hover:text-white select-none group leading-snug align-bottom">
+                                Dish Name <span class="text-gray-600 group-hover:text-brand-gold">↕</span>
+                            </th>
+                            <th onclick="handleSort('likedPct')" class="hover:text-white select-none group leading-snug align-bottom text-center">
+                                %<br>Liked <span class="text-gray-600 group-hover:text-brand-gold">↕</span>
+                            </th>
+                            <th onclick="handleSort('rating')" class="hover:text-white select-none group leading-snug align-bottom text-center">
+                                Avg<br>Rating <span class="text-gray-600 group-hover:text-brand-gold">↕</span>
+                            </th>
+                            <th onclick="handleSort('reviews')" class="hover:text-white select-none group leading-snug align-bottom text-center">
+                                Total<br>Votes <span class="text-gray-600 group-hover:text-brand-gold">↕</span>
+                            </th>
+                            <th class="w-10 text-center align-bottom pb-4">Add</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 mt-2 flex flex-col items-center justify-center w-full">
+            
+            <a href="https://sites.google.com/foodstorytvc.com/demorestomenugallery/home" target="_blank" rel="noopener noreferrer" class="inline-block px-4 py-3 md:px-8 md:py-4 bg-[#10b981] text-white rounded-full font-black uppercase tracking-widest text-[10px] md:text-sm hover:bg-white hover:text-[#10b981] hover:scale-105 transition-all duration-300 shadow-[0_0_20px_rgba(16,185,129,0.3)] mb-8 md:mb-12 text-center">
+                📸 Click here to see Dish Pictures
+            </a>
+
+            <div class="w-screen h-[1px] bg-gradient-to-r from-transparent via-brand-gold/60 to-transparent"></div>
+
+            <div class="flex flex-col items-center gap-3 mt-8">
+                <p class="tagline-font text-white text-lg tracking-wide opacity-90">
+                    Eat Better With Foodstorytvc
+                </p>
+
+                <img src="https://i.ibb.co/Xx2hfF5j/foostroytvc-logo-new.jpg" alt="FOODSTORYTVC Logo" class="w-20 h-20 rounded-full border-2 border-brand-gold object-cover shadow-[0_0_15px_rgba(232,192,100,0.2)]">
+                
+                <a href="https://www.foodstorytvc.com" target="_blank" class="text-brand-gold font-bold tracking-widest uppercase text-sm hover:text-white transition-colors duration-300 mt-6 mb-8">
+                    www.foodstorytvc.com
+                </a>
+            </div>
+
+            <div class="w-screen h-[1px] bg-gradient-to-r from-transparent via-brand-gold/60 to-transparent mb-24 sm:mb-24"></div>
+
+        </div>
+    </div>
+
+    <div id="smart-order-panel" class="fixed bottom-6 right-6 sm:bottom-10 sm:right-10 bg-[#0d0d0d] border border-brand-gold/50 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] z-50 w-[calc(100%-3rem)] sm:w-80 transition-transform duration-300 translate-y-[150%] hidden flex-col max-h-[70vh]">
+        
+        <div onclick="toggleCart()" class="p-4 border-b border-brand-gold/20 flex justify-between items-center bg-[#141414] rounded-t-2xl cursor-pointer hover:bg-[#1a1a1a] transition-colors">
+            <h3 class="font-bold text-brand-gold flex items-center gap-2">
+                <span>📝</span> <span id="cart-title">Smart Order</span>
+            </h3>
+            <span id="cart-toggle-icon" class="text-brand-gold text-xs transition-transform duration-300">▼</span>
+        </div>
+        
+        <div id="cart-body" class="flex flex-col overflow-hidden transition-all duration-300">
+            
+            <div id="cart-items" class="p-4 overflow-y-auto flex flex-col gap-3 max-h-[40vh]">
+                </div>
+
+            <div class="p-3 text-[10px] text-gray-400 bg-[#101010] border-t border-gray-800 leading-relaxed">
+                ⭐ <strong class="text-brand-gold">Group Note:</strong> Smart Order helps groups avoid ordering confusion. Add everyone's dishes to this list, then simply read it to your waiter to place the order
+            </div>
+            
+            <div class="p-3 border-t border-gray-800 bg-[#0a0a0a] rounded-b-2xl flex justify-center">
+                <button onclick="clearCart(event)" class="text-gray-500 hover:text-red-400 text-[10px] uppercase tracking-widest font-bold transition-colors py-2 px-4 rounded-full border border-transparent hover:border-red-900/50 hover:bg-red-950/20">
+                    Clear Entire Order
+                </button>
+            </div>
+            
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 🚨 PASTE YOUR APPS SCRIPT URL HERE 🚨
+        // ==========================================
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwLmhaPpC-LzyMPUAk2_nRrL4nuTIFvXwq21cvgUnpuqVvSHZup4cS1Uhxr7iV_Dqas/exec"; 
+
+        Chart.defaults.color = '#9CA3AF';
+        Chart.defaults.font.family = 'Inter';
+        Chart.defaults.font.weight = '600';
+
+        let topRatedChartInstance = null;
+        let popularityChartInstance = null;
+        let trendChartInstance = null;
+        
+        let globalTableData = [];
+        let currentSort = { column: 'rating', direction: 'desc' };
+
+        // ==========================================
+        // SMART ORDER NOTEPAD LOGIC
+        // ==========================================
+        let smartCart = {};
+        let isCartOpen = true; 
+
+        function toggleCart() {
+            isCartOpen = !isCartOpen;
+            const body = document.getElementById('cart-body');
+            const icon = document.getElementById('cart-toggle-icon');
+            
+            if (isCartOpen) {
+                body.style.display = 'flex';
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                body.style.display = 'none';
+                icon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        function addToCart(dishName) {
+            if(smartCart[dishName]) {
+                smartCart[dishName]++;
+            } else {
+                smartCart[dishName] = 1;
+            }
+            updateCartUI();
+        }
+
+        function removeFromCart(dishName) {
+            if(smartCart[dishName]) {
+                smartCart[dishName]--;
+                if(smartCart[dishName] <= 0) delete smartCart[dishName];
+            }
+            updateCartUI();
+        }
+
+        function clearCart(event) {
+            if(event) event.stopPropagation(); // Stops the click from hitting the minimize header
+            smartCart = {};
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const panel = document.getElementById('smart-order-panel');
+            const itemsContainer = document.getElementById('cart-items');
+            const title = document.getElementById('cart-title');
+            const body = document.getElementById('cart-body');
+            const icon = document.getElementById('cart-toggle-icon');
+            const dishNames = Object.keys(smartCart);
+            
+            const totalItems = Object.values(smartCart).reduce((a, b) => a + b, 0);
+            
+            if(dishNames.length === 0) {
+                // Reverted back to bottom-up slide
+                panel.classList.add('translate-y-[150%]');
+                setTimeout(() => panel.classList.add('hidden'), 300);
+                panel.classList.remove('flex');
+                
+                // Reset state so it's open next time
+                isCartOpen = true; 
+                body.style.display = 'flex';
+                icon.style.transform = 'rotate(0deg)';
+                return;
+            }
+
+            panel.classList.remove('hidden');
+            panel.classList.add('flex');
+            title.innerText = `Smart Order (${totalItems})`;
+            // Reverted back to bottom-up slide
+            setTimeout(() => panel.classList.remove('translate-y-[150%]'), 10);
+
+            itemsContainer.innerHTML = dishNames.map(name => `
+                <div class="flex justify-between items-center bg-[#141414] p-2 sm:p-3 rounded-lg border border-gray-800 shadow-sm">
+                    <span class="text-sm sm:text-base text-gray-200 truncate pr-2 font-semibold" title="${name}">${name}</span>
+                    <div class="flex items-center gap-3 shrink-0 bg-[#0a0a0a] rounded-full px-2 py-1 border border-brand-gold/20">
+                        <button onclick="removeFromCart('${name.replace(/'/g, "\\'")}')" class="text-brand-gold hover:text-white w-6 h-6 flex items-center justify-center font-bold text-lg">-</button>
+                        <span class="text-white text-sm font-bold w-4 text-center">${smartCart[name]}</span>
+                        <button onclick="addToCart('${name.replace(/'/g, "\\'")}')" class="text-brand-gold hover:text-white w-6 h-6 flex items-center justify-center font-bold text-lg">+</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ==========================================
+        // MAIN DASHBOARD LOGIC
+        // ==========================================
+        async function fetchDashboardData() {
+            try {
+                const response = await fetch(SCRIPT_URL);
+                const data = await response.json();
+                
+                if(data.success) {
+                    processData(data.data);
+                } else {
+                    alert("Error loading data: " + data.message);
+                }
+            } catch (err) {
+                console.error("Fetch Error:", err);
+                alert("Failed to connect to the database.");
+            }
+        }
+
+        function processData(data) {
+            const dishes = data.dishes;
+            const preFilteredTopDishes = data.topDishes; 
+            const trends = data.trends || [];
+
+            renderBarChart(preFilteredTopDishes);
+
+            const mostLiked = [...dishes]
+                .filter(d => d.reviews > 1 && d.likes > 0)
+                .sort((a, b) => b.likes - a.likes)
+                .slice(0, 10); 
+            renderPieChart(mostLiked);
+
+            const gemRaw = data.hiddenGem || "Not enough data yet";
+            const gemContainer = document.getElementById('hidden-gem-container');
+
+            if (gemRaw !== "Not enough data yet" && gemRaw.includes('(')) {
+                const splitIndex = gemRaw.indexOf('(');
+                const dishName = gemRaw.substring(0, splitIndex).trim();
+                const details = gemRaw.substring(splitIndex).replace('(', '').replace(')', '').trim();
+
+                gemContainer.innerHTML = `
+                    <h3 class="text-xl sm:text-2xl font-extrabold text-white mb-2">${dishName}</h3>
+                    <span class="px-5 py-2 rounded-full bg-[#0d0d0d] border border-brand-gold-muted text-brand-gold text-xs sm:text-sm font-bold tracking-wide shadow-inner">${details}</span>
+                `;
+            } else {
+                gemContainer.innerHTML = `<h3 class="text-xl sm:text-2xl font-extrabold text-white mb-1">${gemRaw}</h3>`;
+            }
+
+            const topImprovements = [...trends]
+                .sort((a, b) => b.change - a.change) 
+                .slice(0, 10);
+            renderTrendChart(topImprovements);
+
+            globalTableData = [...dishes].filter(d => d.reviews >= 2);
+            renderTable();
+
+            document.getElementById('loading-screen').classList.add('hidden');
+            document.getElementById('dashboard-content').classList.remove('hidden');
+        }
+
+        function handleSort(column) {
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.direction = 'desc'; 
+            }
+            renderTable();
+        }
+
+        function renderTable() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const tableBody = document.getElementById('table-body');
+            
+            let displayData = globalTableData.filter(d => d.name.toLowerCase().includes(query));
+
+            displayData.sort((a, b) => {
+                let valA = a[currentSort.column];
+                let valB = b[currentSort.column];
+
+                if (currentSort.column === 'likedPct') {
+                    valA = parseFloat(valA.toString().replace('%', '')) || 0;
+                    valB = parseFloat(valB.toString().replace('%', '')) || 0;
+                }
+                
+                if (currentSort.column === 'name') {
+                    if (currentSort.direction === 'asc') return valA.localeCompare(valB);
+                    return valB.localeCompare(valA);
+                }
+
+                if (currentSort.direction === 'asc') return valA - valB;
+                return valB - valA;
+            });
+            
+            if (displayData.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-gray-500 py-8">No dishes match your criteria.</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = displayData.map(d => `
+                <tr>
+                    <td class="leading-tight pr-2 min-w-[120px] text-white">${d.name}</td>
+                    <td class="text-center text-white">${d.likedPct}</td>
+                    <td class="text-center"><span class="rating-badge">${d.rating.toFixed(2)}</span></td>
+                    <td class="text-center text-white">${d.reviews}</td>
+                    <td class="text-center pl-2">
+                        <button onclick="addToCart('${d.name.replace(/'/g, "\\'")}')" class="w-8 h-8 rounded-full bg-brand-card-black border border-brand-gold/50 text-brand-gold hover:bg-brand-gold hover:text-black transition-colors font-black text-lg leading-none shadow-lg">+</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderBarChart(topRated) {
+            const ctx = document.getElementById('topRatedChart').getContext('2d');
+            if(topRatedChartInstance) topRatedChartInstance.destroy();
+            
+            topRatedChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: topRated.map(d => d.name),
+                    datasets: [{
+                        label: 'Avg Rating',
+                        data: topRated.map(d => d.rating),
+                        backgroundColor: '#4ade80', 
+                        borderRadius: 6,
+                    }]
+                },
+                plugins: [ChartDataLabels], 
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false },
+                        datalabels: {
+                            display: true,
+                            color: '#0a0a0a', 
+                            font: { weight: '800', size: 12, family: 'Inter' },
+                            anchor: 'end',
+                            align: 'start',
+                            offset: 6,
+                            formatter: (value) => value.toFixed(2)
+                        }
+                    },
+                    scales: {
+                        y: { max: 5, grid: { color: '#e8c06415' }, border: { display: false } },
+                        x: { grid: { display: false }, border: { display: false }, ticks: { font: {size: 11} } }
+                    }
+                }
+            });
+        }
+
+        function renderPieChart(mostLiked) {
+            const ctx = document.getElementById('popularityChart').getContext('2d');
+            if(popularityChartInstance) popularityChartInstance.destroy();
+
+            const premiumColors = ['#3b82f6', '#f97316', '#a855f7', '#84cc16', '#06b6d4', '#eab308', '#ec4899', '#6366f1', '#d946ef', '#14b8a6'];
+
+            popularityChartInstance = new Chart(ctx, {
+                type: 'pie', 
+                data: {
+                    labels: mostLiked.map(d => d.name),
+                    datasets: [{
+                        data: mostLiked.map(d => d.likes),
+                        backgroundColor: premiumColors.slice(0, mostLiked.length),
+                        borderWidth: 2,
+                        borderColor: '#141414',
+                        hoverOffset: 12 
+                    }]
+                },
+                plugins: [ChartDataLabels],
+                options: {
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 10, font: {size: 11, family: 'Inter'}, color: '#d1d5db' } },
+                        tooltip: { 
+                            enabled: true,
+                            backgroundColor: 'rgba(20, 20, 20, 0.95)',
+                            titleFont: { size: 13, family: 'Inter' },
+                            bodyFont: { size: 14, weight: 'bold', family: 'Inter' },
+                            padding: 12,
+                            borderColor: '#e8c06440',
+                            borderWidth: 1,
+                            callbacks: { label: function(context) { return ` ${context.raw} Likes`; } } 
+                        },
+                        datalabels: {
+                            color: '#ffffff',
+                            textStrokeColor: 'rgba(0, 0, 0, 0.7)',
+                            textStrokeWidth: 3,
+                            anchor: 'center', 
+                            align: 'center',
+                            
+                            font: function(context) {
+                                const value = context.dataset.data[context.dataIndex];
+                                const total = context.chart._metasets[context.datasetIndex].total;
+                                const percentage = (value / total) * 100;
+                                
+                                return {
+                                    weight: '800',
+                                    family: 'Inter',
+                                    size: (percentage >= 5 && percentage < 10) ? 4 : 10
+                                };
+                            },
+                            
+                            formatter: (value, context) => {
+                                const total = context.chart._metasets[context.datasetIndex].total;
+                                const percentage = (value / total) * 100;
+                                return percentage >= 4 ? value : ''; 
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderTrendChart(trends) {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            if(trendChartInstance) trendChartInstance.destroy();
+
+            trendChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: trends.map(d => d.name),
+                    datasets: [
+                        {
+                            label: 'Last Week Avg Rating',
+                            data: trends.map(d => d.lastWeek),
+                            backgroundColor: '#4ade80', 
+                            borderSkipped: false,
+                            borderRadius: { bottomLeft: 6, bottomRight: 6, topLeft: 0, topRight: 0 }
+                        },
+                        {
+                            label: 'Change From Last Week',
+                            data: trends.map(d => d.change),
+                            backgroundColor: '#e8c064', 
+                            borderSkipped: false,
+                            borderRadius: { bottomLeft: 0, bottomRight: 0, topLeft: 6, topRight: 6 }
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true, grid: { display: false }, border: { display: false }, ticks: { font: {size: 11} } },
+                        y: { stacked: true, max: 5, grid: { color: '#e8c06415' }, border: { display: false } }
+                    },
+                    plugins: {
+                        legend: { position: 'top', labels: { boxWidth: 12, font: {size: 12, family: 'Inter'}, color: '#d1d5db' } },
+                        datalabels: { display: false } 
+                    }
+                }
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", fetchDashboardData);
+    </script>
+</body>
+</html>
