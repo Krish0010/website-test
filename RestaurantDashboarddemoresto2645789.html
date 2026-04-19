@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IMPACT Analytics | FOODSTORYTVC</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-base-black': '#0a0a0a', 
+                        'brand-card-black': '#141414',
+                        'brand-gold': '#e8c064',
+                        'danger-red': '#ef4444',
+                        'success-green': '#4ade80'
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; color: #e8c064; -webkit-font-smoothing: antialiased; }
+        .tagline-font { font-family: 'Playfair Display', serif; }
+        .page-textured-overlay { background-image: linear-gradient(rgba(10, 10, 10, 0.95), rgba(10, 10, 10, 0.95)), url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"); }
+        table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+        .gauge-path { transition: stroke-dasharray 1.5s ease-out; }
+        th { cursor: pointer; user-select: none; transition: background 0.2s; }
+        th:hover { background-color: rgba(232, 192, 100, 0.1); }
+
+        .target-tooltip {
+            position: absolute;
+            background: #0a0a0a;
+            border: 1px solid #e8c064;
+            color: #e8c064;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 900;
+            pointer-events: none;
+            display: none;
+            white-space: nowrap;
+            z-index: 100;
+            box-shadow: 0 0 15px rgba(232,192,100,0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #timeTrendsChart {
+            touch-action: pan-y !important;
+        }
+        
+        .comment-scroll::-webkit-scrollbar { width: 4px; }
+        .comment-scroll::-webkit-scrollbar-track { background: transparent; }
+        .comment-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    </style>
+</head>
+<body class="min-h-screen p-3 sm:p-6 lg:p-8 page-textured-overlay flex flex-col items-center overflow-x-hidden">
+
+    <div id="target-popup" class="target-tooltip">Target Value 3.5</div>
+
+    <div class="w-full max-w-5xl flex flex-col items-center mb-8 sm:mb-10 gap-2 text-center border-b border-brand-gold/20 pb-6 sm:pb-8 mt-2 sm:mt-0">
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-widest mb-1 text-white uppercase leading-tight">
+            <span class="text-brand-gold">IMPACT</span> ANALYTICS
+        </h1>
+        <p class="text-[9px] sm:text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase text-gray-400">Monthly Performance & Trend Dashboard</p>
+    </div>
+
+    <div id="loading-screen" class="w-full max-w-5xl flex flex-col items-center justify-center py-20">
+        <div class="w-12 h-12 border-4 border-[#141414] border-t-brand-gold rounded-full animate-spin mb-4"></div>
+        <p class="text-brand-gold/70 font-bold tracking-widest uppercase text-xs sm:text-sm animate-pulse">Syncing Live Data...</p>
+    </div>
+
+    <div id="dashboard-content" class="w-full max-w-5xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 sm:gap-6 hidden animate-in fade-in duration-500">
+        
+        <div class="bg-brand-card-black border border-brand-gold/30 rounded-2xl p-5 sm:p-6 shadow-xl sm:col-span-2 lg:col-span-3 flex flex-col justify-center relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-brand-gold/5 rounded-full blur-3xl -mr-8 -mt-8 sm:-mr-10 sm:-mt-10"></div>
+            <div class="text-gray-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-2 sm:mb-3">🏆 Top Performing Dish</div>
+            <div id="metric-top-dish" class="text-xl sm:text-2xl md:text-4xl font-black text-brand-gold">--</div>
+        </div>
+
+        <div class="bg-brand-card-black border border-danger-red/30 rounded-2xl p-5 sm:p-6 shadow-xl sm:col-span-2 lg:col-span-3 flex flex-col justify-center relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-danger-red/5 rounded-full blur-3xl -mr-8 -mt-8 sm:-mr-10 sm:-mt-10"></div>
+            <div class="text-gray-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-2 sm:mb-3">🚩 Action Required</div>
+            <div id="metric-low-dish" class="text-xl sm:text-2xl md:text-4xl font-black text-danger-red">--</div>
+        </div>
+
+        <div class="col-span-1 sm:col-span-2 lg:col-span-6 grid grid-cols-3 gap-2 sm:gap-6">
+            <div class="bg-brand-card-black border border-gray-800 rounded-xl sm:rounded-2xl p-3 sm:p-6 flex flex-col justify-between text-center sm:text-left">
+                <div class="text-gray-400 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.05em] sm:tracking-widest mb-1 sm:mb-2">
+                    <span class="sm:hidden">👥 <br>Customers</span><span class="hidden sm:inline">👥 Customers</span>
+                </div>
+                <div id="metric-customers" class="text-xl sm:text-4xl font-black text-white mt-1">--</div>
+            </div>
+            <div class="bg-brand-card-black border border-gray-800 rounded-xl sm:rounded-2xl p-3 sm:p-6 flex flex-col justify-between text-center sm:text-left">
+                <div class="text-gray-400 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.05em] sm:tracking-widest mb-1 sm:mb-2">
+                    <span class="sm:hidden">📝 <br>Responses</span><span class="hidden sm:inline">📝 Submissions</span>
+                </div>
+                <div id="metric-entries" class="text-xl sm:text-4xl font-black text-white mt-1">--</div>
+            </div>
+            <div class="bg-brand-card-black border border-gray-800 rounded-xl sm:rounded-2xl p-3 sm:p-6 flex flex-col justify-between text-center sm:text-left">
+                <div class="text-gray-400 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.05em] sm:tracking-widest mb-1 sm:mb-2">
+                    <span class="sm:hidden">📋 <br>Tot. Ratings</span><span class="hidden sm:inline">📋 Total Ratings</span>
+                </div>
+                <div id="metric-votes" class="text-xl sm:text-4xl font-black text-white mt-1">--</div>
+            </div>
+        </div>
+
+        <div class="col-span-1 sm:col-span-2 lg:col-span-6 grid grid-cols-2 gap-2 sm:gap-6">
+            <div class="bg-[#0f1f14] border border-success-green/20 rounded-xl sm:rounded-2xl p-3 sm:p-6 flex flex-col items-center sm:items-start justify-between">
+                <div class="text-success-green/80 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-1 sm:mb-2 text-center sm:text-left">
+                    <span class="sm:hidden">👍<br>Likes</span><span class="hidden sm:inline">👍 Total Likes</span>
+                </div>
+                <div id="metric-likes" class="text-2xl sm:text-4xl font-black text-success-green mt-1">--</div>
+            </div>
+            <div class="bg-[#1f0f0f] border border-danger-red/20 rounded-xl sm:rounded-2xl p-3 sm:p-6 flex flex-col items-center sm:items-start justify-between">
+                <div class="text-danger-red/80 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-1 sm:mb-2 text-center sm:text-left">
+                    <span class="sm:hidden">👎<br>Dislikes</span><span class="hidden sm:inline">👎 Total Dislikes</span>
+                </div>
+                <div id="metric-dislikes" class="text-2xl sm:text-4xl font-black text-danger-red mt-1">--</div>
+            </div>
+        </div>
+
+        <div class="bg-brand-card-black border border-gray-800 rounded-2xl p-6 sm:p-8 lg:col-span-6 flex flex-col items-center justify-center relative shadow-xl mt-2 sm:mt-4">
+            <div class="text-white text-xs sm:text-sm font-bold tracking-widest uppercase mb-6 sm:mb-8 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-center">
+                <div><span class="text-brand-gold">⚡</span> Monthly Performance</div> 
+                <span class="text-[9px] sm:text-[10px] text-gray-500 font-normal lowercase">(last 30 days)</span>
+            </div>
+            <div class="relative w-full max-w-[350px] sm:max-w-[420px] aspect-[1.8/1] flex justify-center">
+                <div id="svg-gauge-container" class="w-full h-full relative"></div>
+                <div class="absolute bottom-4 sm:bottom-6 left-0 right-0 flex flex-col items-center justify-end pb-2">
+                    <span class="text-gray-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest">Avg Rating</span>
+                    <span id="gauge-score" class="text-4xl sm:text-5xl font-black text-white leading-none mt-1 sm:mt-2">--</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-brand-card-black border border-gray-800 rounded-2xl p-5 sm:p-8 lg:col-span-6 shadow-xl">
+            <div class="text-white text-xs sm:text-sm font-bold tracking-widest uppercase mb-4 sm:mb-6 flex flex-col sm:flex-row items-center sm:items-start gap-1 sm:gap-2 text-center sm:text-left leading-snug">
+                <div><span class="text-brand-gold">📈</span> Customer Satisfaction Trend</div>
+                <span class="text-[9px] sm:text-[10px] text-gray-500 font-normal lowercase">(3-day avg)</span>
+            </div>
+            <div style="height: 300px; sm:height: 350px; position: relative; width: 100%;">
+                <canvas id="timeTrendsChart"></canvas>
+            </div>
+            <div class="text-center text-[9px] text-brand-gold/60 uppercase tracking-widest mt-4">
+                <span class="sm:hidden">↔ Drag to explore • 🔍 Pinch to zoom</span>
+                <span class="hidden sm:inline">↔ Drag to explore • 🔍 Scroll to zoom</span>
+            </div>
+        </div>
+
+        <div class="lg:col-span-6 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-2">
+            <div class="bg-brand-card-black border border-gray-800 rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col">
+                <div class="text-white text-xs sm:text-sm font-bold tracking-widest uppercase mb-4 text-center leading-snug">
+                    <span class="text-success-green text-sm mr-1">🚀</span> Most Improved Dishes
+                </div>
+                <div class="flex justify-center gap-4 mb-4 text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                    <div class="flex items-center gap-1"><div class="w-3 h-3 bg-[#4ade80] rounded-sm"></div> Last Week</div>
+                    <div class="flex items-center gap-1"><div class="w-3 h-3 bg-[#e8c064] rounded-sm"></div> Change</div>
+                </div>
+                <div style="height: 250px; position: relative; width: 100%;">
+                    <canvas id="improvedChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-brand-card-black border border-gray-800 rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col">
+                <div class="text-white text-xs sm:text-sm font-bold tracking-widest uppercase mb-4 text-center leading-snug">
+                    <span class="text-danger-red text-sm mr-1">🔻</span> Dishes That Declined
+                </div>
+                <div class="flex justify-center gap-4 mb-4 text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                    <div class="flex items-center gap-1"><div class="w-3 h-3 bg-[#4ade80] rounded-sm"></div> This Week</div>
+                    <div class="flex items-center gap-1"><div class="w-3 h-3 bg-[#ef4444] rounded-sm"></div> Decline</div>
+                </div>
+                <div style="height: 250px; position: relative; width: 100%;">
+                    <canvas id="declinedChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-brand-card-black border border-gray-800 rounded-2xl p-5 sm:p-8 lg:col-span-6 shadow-xl mt-2">
+            <div class="text-white text-xs sm:text-sm font-bold tracking-widest uppercase mb-6 flex items-center gap-2">
+                <span class="text-brand-gold">🗣️</span> Customer Voice (Latest Comments)
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="bg-[#0a0a0a] border border-success-green/30 rounded-xl p-4">
+                    <div class="text-[10px] font-bold text-success-green uppercase tracking-widest mb-1">Top Rated</div>
+                    <div id="comment-top-name" class="text-white font-bold mb-3 truncate">--</div>
+                    <ul id="comment-top-list" class="text-gray-300 text-xs space-y-2 max-h-48 overflow-y-auto comment-scroll pr-2">
+                        <li class="italic text-gray-600">Loading comments...</li>
+                    </ul>
+                </div>
+
+                <div class="bg-[#0a0a0a] border border-danger-red/30 rounded-xl p-4">
+                    <div class="text-[10px] font-bold text-danger-red uppercase tracking-widest mb-1">Underperforming</div>
+                    <div id="comment-low-name" class="text-white font-bold mb-3 truncate">--</div>
+                    <ul id="comment-low-list" class="text-gray-300 text-xs space-y-2 max-h-48 overflow-y-auto comment-scroll pr-2">
+                        <li class="italic text-gray-600">Loading comments...</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="relative w-full max-w-md mx-auto mb-4">
+                <input type="text" id="comment-search" placeholder="Search for a dish to read all comments..." 
+                       class="w-full bg-[#0a0a0a] border border-gray-800 text-white rounded-full px-5 py-3 text-xs sm:text-sm focus:outline-none focus:border-brand-gold/50 transition-all placeholder-gray-600">
+                <span class="absolute right-5 top-3.5 opacity-30 text-sm">🔍</span>
+            </div>
+            
+            <div id="comment-search-results" class="hidden bg-[#0a0a0a] border border-brand-gold/30 rounded-xl p-4 max-w-2xl mx-auto">
+                <div id="comment-search-name" class="text-brand-gold font-bold mb-3 truncate">--</div>
+                <ul id="comment-search-list" class="text-gray-300 text-xs space-y-2 max-h-60 overflow-y-auto comment-scroll pr-2"></ul>
+            </div>
+        </div>
+
+        <div class="lg:col-span-6 mt-2 sm:mt-4 px-2 sm:px-0">
+            <div class="relative w-full max-w-md mx-auto">
+                <input type="text" id="dish-search" placeholder="Filter tables by dish name..." 
+                       class="w-full bg-brand-card-black border border-gray-800 text-white rounded-full px-5 py-3 sm:px-6 sm:py-3 text-xs sm:text-sm focus:outline-none focus:border-brand-gold/50 transition-all placeholder-gray-600 shadow-lg">
+                <span class="absolute right-5 top-3 opacity-30 text-sm sm:text-base">🔍</span>
+            </div>
+        </div>
+
+        <div class="lg:col-span-6 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-2">
+            
+            <div class="bg-brand-card-black rounded-2xl p-4 sm:p-6 shadow-2xl border border-gray-800 flex flex-col">
+                <h2 class="text-base sm:text-lg font-bold text-white mb-4 sm:mb-6 text-center">Top-Performing Dishes</h2>
+                <div class="rounded-lg border border-gray-800/50 overflow-hidden">
+                    <table class="w-full text-left text-sm table-fixed">
+                        <thead>
+                            <tr class="text-[9px] sm:text-[10px] uppercase tracking-tighter text-gray-500 border-b border-gray-800 bg-[#111]">
+                                <th class="py-3 pl-2 sm:pl-4 w-[45%]" onclick="sortData('top', 'name')">Dish Name ↕</th>
+                                <th class="py-3 text-center w-[15%]" onclick="sortData('top', 'likedPct')">% Liked  ↕</th>
+                                <th class="py-3 text-center w-[20%]" onclick="sortData('top', 'rating')">Avg ↕</th>
+                                <th class="py-3 text-center pr-2 w-[20%]" onclick="sortData('top', 'reviews')">Votes ↕</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-dishes-table"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-brand-card-black rounded-2xl p-4 sm:p-6 shadow-2xl border border-gray-800 flex flex-col">
+                <h2 class="text-base sm:text-lg font-bold text-white mb-4 sm:mb-6 text-center flex items-center justify-center gap-2">
+                    <span class="text-danger-red text-sm">🔻</span> Least Liked Dishes
+                </h2>
+                <div class="rounded-lg border border-gray-800/50 overflow-hidden">
+                    <table class="w-full text-left text-sm table-fixed">
+                        <thead>
+                            <tr class="text-[9px] sm:text-[10px] uppercase tracking-tighter text-gray-500 border-b border-gray-800 bg-[#111]">
+                                <th class="py-3 pl-2 sm:pl-4 w-[45%]" onclick="sortData('bottom', 'name')">Dish Name ↕</th>
+                                <th class="py-3 text-center w-[15%]" onclick="sortData('bottom', 'likedPct')">% Liked ↕</th>
+                                <th class="py-3 text-center w-[20%]" onclick="sortData('bottom', 'rating')">Avg ↕</th>
+                                <th class="py-3 text-center pr-2 w-[20%]" onclick="sortData('bottom', 'reviews')">Votes ↕</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bottom-dishes-table"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="comment-modal" class="fixed inset-0 bg-black/80 z-[200] hidden flex flex-col items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300 opacity-0" style="transition: opacity 0.3s ease;">
+        <div class="bg-brand-card-black border border-brand-gold/50 rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-2xl relative transform transition-transform duration-300 scale-95" id="comment-modal-content">
+            <button onclick="closeCommentModal()" class="absolute top-3 right-4 text-gray-500 hover:text-white text-2xl font-bold">&times;</button>
+            <div class="text-brand-gold/40 text-4xl sm:text-5xl font-serif leading-none absolute -top-1 left-3">"</div>
+            <p id="comment-modal-text" class="text-gray-200 text-sm sm:text-base leading-relaxed pt-6 pb-2 relative z-10 font-medium"></p>
+            <div class="text-brand-gold/40 text-4xl sm:text-5xl font-serif leading-none absolute bottom-0 right-4 rotate-180">"</div>
+        </div>
+    </div>
+
+    <div class="w-full mt-12 sm:mt-16 flex flex-col items-center justify-center">
+        <div class="w-screen h-[1px] bg-gradient-to-r from-transparent via-brand-gold/60 to-transparent"></div>
+
+        <div class="flex flex-col items-center gap-3 mt-8">
+            <p class="tagline-font text-white text-lg tracking-wide opacity-90">
+                Treat Better With Foodstorytvc
+            </p>
+
+            <img src="https://i.ibb.co/Xx2hfF5j/foostroytvc-logo-new.jpg" alt="FOODSTORYTVC Logo" class="w-20 h-20 rounded-full border-2 border-brand-gold object-cover shadow-[0_0_15px_rgba(232,192,100,0.2)]">
+            
+            <a href="https://www.foodstorytvc.com" target="_blank" class="text-brand-gold font-bold tracking-widest uppercase text-sm hover:text-white transition-colors duration-300 mt-6 mb-8">
+                www.foodstorytvc.com
+            </a>
+            
+            <p class="text-[9px] sm:text-[10px] font-bold tracking-widest uppercase text-gray-500 mb-6">Understand • Engage • Grow
+</p>
+        </div>
+
+        <div class="w-screen h-[1px] bg-gradient-to-r from-transparent via-brand-gold/60 to-transparent mb-10"></div>
+    </div>
+
+    <script>
+        const OWNER_API_URL = "https://script.google.com/macros/s/AKfycby9p8kThb5O2P3ecDX_GnmIELNOySK9neoNrjpoN_QCCyLYloX3bJ5jtpl3IdMptNCq3Q/exec"; 
+        
+        let timeChart = null;
+        let allDishesGlobal = [];
+        let originalTopDishes = [];
+        let originalBottomDishes = [];
+        let sortDirections = { top: {}, bottom: {} };
+
+        // Global Target Popup State
+        let isPopupFixed = false;
+        const popup = document.getElementById('target-popup');
+
+        async function loadDashboard() {
+            try {
+                if (typeof Chart === 'undefined') { setTimeout(loadDashboard, 200); return; }
+                const response = await fetch(OWNER_API_URL);
+                const result = await response.json();
+                if (!result.success) throw new Error(result.message);
+
+                const data = result.data;
+                document.getElementById('metric-top-dish').innerText = data.topDishName || data.topDish;
+                document.getElementById('metric-low-dish').innerText = data.underperformingDishName || data.underperformingDish;
+                document.getElementById('metric-customers').innerText = data.totalCustomers;
+                document.getElementById('metric-entries').innerText = data.totalSubmissions;
+                document.getElementById('metric-votes').innerText = data.totalVotes;
+                document.getElementById('metric-likes').innerText = data.totalLikes;
+                document.getElementById('metric-dislikes').innerText = data.totalDislikes;
+                document.getElementById('gauge-score').innerText = data.monthlyRating.toFixed(1);
+
+                renderCustomGauge(data.monthlyRating);
+                if (data.timeData && data.timeData.length > 0) renderTimeChart(data.timeData);
+                
+                // Populate Comments
+                if (data.topDishName) {
+                    document.getElementById('comment-top-name').innerText = data.topDishName;
+                    renderCommentList('comment-top-list', data.topDishComments ? data.topDishComments.slice(-5) : []);
+                    
+                    document.getElementById('comment-low-name').innerText = data.underperformingDishName;
+                    renderCommentList('comment-low-list', data.underperformingDishComments ? data.underperformingDishComments.slice(-5) : []);
+                }
+
+                // Prepare Table Data
+                allDishesGlobal = data.allDishes.map(d => ({ 
+                    ...d, 
+                    likedPct: d.reviews > 0 ? Math.round((d.likes / d.reviews) * 100) : 0 
+                }));
+
+                originalTopDishes = allDishesGlobal.filter(d => d.rating >= 3.7 && d.reviews >= 3).sort((a,b)=>b.rating-a.rating);
+                originalBottomDishes = allDishesGlobal.filter(d => d.rating < 3.7 && d.reviews >= 3).sort((a,b)=>a.rating-b.rating);
+
+                renderTable('top-dishes-table', originalTopDishes);
+                renderTable('bottom-dishes-table', originalBottomDishes);
+                
+                // Filter Trend Data (Only >= 0.5 or <= -0.5 change, Max 8 items)
+                const significantImproving = (data.improvingDishes || [])
+                    .filter(d => d.change >= 0.5)
+                    .sort((a, b) => b.change - a.change)
+                    .slice(0, 8);
+
+                const significantDeclining = (data.decliningDishes || [])
+                    .filter(d => d.change < -0.5)
+                    .sort((a, b) => a.change - b.change)
+                    .slice(0, 8);
+
+                // Render Weekly Trend Charts
+                createImprovedChart(significantImproving);
+                createDeclinedChart(significantDeclining);
+
+                document.getElementById('loading-screen').classList.add('hidden');
+                document.getElementById('dashboard-content').classList.remove('hidden');
+
+                // Table Search
+                document.getElementById('dish-search').addEventListener('input', (e) => {
+                    const term = e.target.value.toLowerCase();
+                    renderTable('top-dishes-table', originalTopDishes.filter(d => d.name.toLowerCase().includes(term)));
+                    renderTable('bottom-dishes-table', originalBottomDishes.filter(d => d.name.toLowerCase().includes(term)));
+                });
+
+                // Comment Search
+                document.getElementById('comment-search').addEventListener('input', (e) => {
+                    const term = e.target.value.toLowerCase();
+                    const resultsContainer = document.getElementById('comment-search-results');
+                    
+                    if (term.length < 2) { 
+                        resultsContainer.classList.add('hidden'); 
+                        return; 
+                    }
+                    
+                    const foundDish = allDishesGlobal.find(d => d.name.toLowerCase().includes(term));
+                    
+                    if (foundDish) {
+                        resultsContainer.classList.remove('hidden');
+                        document.getElementById('comment-search-name').innerText = foundDish.name;
+                        renderCommentList('comment-search-list', foundDish.comments); 
+                    } else {
+                        resultsContainer.classList.add('hidden');
+                    }
+                });
+
+            } catch (err) { alert("Dashboard Error: " + err.message); }
+        }
+
+        // ==========================================
+        // COMMENT MODAL & RENDERING LOGIC
+        // ==========================================
+        function renderCommentList(elementId, comments) {
+            const listEl = document.getElementById(elementId);
+            if (!comments || comments.length === 0) {
+                listEl.innerHTML = `<li class="italic text-gray-600 p-2">No written comments yet.</li>`;
+                return;
+            }
+            listEl.innerHTML = comments.map(c => {
+                const safeComment = c.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                if (c.length > 75) {
+                    const shortText = c.substring(0, 75) + '...';
+                    return `
+                    <li class="bg-[#141414] p-3 rounded-lg border border-gray-800 cursor-pointer hover:border-brand-gold/50 transition-colors" onclick="openCommentModal('${safeComment}')">
+                        <span class="text-brand-gold opacity-50 mr-1">"</span>${shortText}
+                        <span class="text-brand-gold font-bold text-[10px] ml-1 underline uppercase tracking-wider">Read more</span>
+                    </li>`;
+                } else {
+                    return `
+                    <li class="bg-[#141414] p-3 rounded-lg border border-gray-800">
+                        <span class="text-brand-gold opacity-50 mr-1">"</span>${c}<span class="text-brand-gold opacity-50 ml-1">"</span>
+                    </li>`;
+                }
+            }).join('');
+        }
+
+        function openCommentModal(text) {
+            const modal = document.getElementById('comment-modal');
+            const modalContent = document.getElementById('comment-modal-content');
+            document.getElementById('comment-modal-text').innerText = text;
+            
+            modal.classList.remove('hidden');
+            void modal.offsetWidth; 
+            modal.classList.remove('opacity-0');
+            modalContent.classList.remove('scale-95');
+            modalContent.classList.add('scale-100');
+        }
+
+        function closeCommentModal() {
+            const modal = document.getElementById('comment-modal');
+            const modalContent = document.getElementById('comment-modal-content');
+            
+            modal.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+
+        document.getElementById('comment-modal').addEventListener('click', function(e) {
+            if (e.target === this) { closeCommentModal(); }
+        });
+
+        // ==========================================
+        // TABLE LOGIC
+        // ==========================================
+        function sortData(type, key) {
+            const list = type === 'top' ? originalTopDishes : originalBottomDishes;
+            sortDirections[type][key] = !sortDirections[type][key];
+            const dir = sortDirections[type][key] ? 1 : -1;
+            list.sort((a, b) => (a[key] < b[key] ? -1 * dir : a[key] > b[key] ? 1 * dir : 0));
+            renderTable(type === 'top' ? 'top-dishes-table' : 'bottom-dishes-table', list);
+        }
+
+        function renderTable(tableId, dishes) {
+            const tbody = document.getElementById(tableId);
+            if (!dishes.length) { tbody.innerHTML = `<tr><td colspan="4" class="text-center text-gray-500 py-8 text-xs">No dishes match this criteria.</td></tr>`; return; }
+            const maxR = Math.max(...dishes.map(d => d.reviews));
+            tbody.innerHTML = dishes.map((d, index) => {
+                const ratingBg = d.rating >= 3.7 ? 'bg-[#16a34a]' : 'bg-[#dc2626]';
+                return `
+                <tr class="border-b border-gray-800 hover:bg-[#1a1a1a] transition-colors">
+                    <td class="py-2 sm:py-3 pl-2 sm:pl-4 text-white font-bold text-[10px] sm:text-xs leading-tight whitespace-normal break-words">
+                        <span class="text-gray-500 mr-1 sm:mr-2">${index + 1}.</span> ${d.name}
+                    </td>
+                    <td class="py-2 sm:py-3 text-center text-white font-semibold text-[10px] sm:text-xs whitespace-nowrap">${d.likedPct}%</td>
+                    <td class="py-2 sm:py-3 text-center font-bold text-white text-[10px] sm:text-xs ${ratingBg}">${d.rating.toFixed(1)}</td>
+                    <td class="py-2 sm:py-3 text-center font-bold text-white text-[10px] sm:text-xs whitespace-nowrap pr-2" style="background-color: rgba(8, 145, 178, ${Math.max(0.2, d.reviews / maxR)})">${d.reviews}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        // ==========================================
+        // CHART RENDERING (TRENDS & BAR CHARTS)
+        // ==========================================
+        function renderTimeChart(data) {
+            const ctx = document.getElementById('timeTrendsChart').getContext('2d');
+            Chart.getChart("timeTrendsChart")?.destroy();
+            
+            const formatAxisDate = (ds) => { const d = new Date(ds); return `${d.getDate().toString().padStart(2,'0')}-${d.toLocaleString('default',{month:'short'})}`; };
+            const formatTooltipDate = (ds) => { const d = new Date(ds); return `${d.getDate().toString().padStart(2,'0')}-${d.toLocaleString('default',{month:'short'})}-${d.getFullYear().toString().slice(-2)}`; };
+
+            const isMobile = window.innerWidth < 640;
+            const maxVisible = isMobile ? 20 : Math.min(data.length, 45); 
+            const startIndex = Math.max(0, data.length - maxVisible);
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(i => i.date),
+                    datasets: [{
+                        data: data.map(i => i.value),
+                        borderColor: '#e8c064',
+                        backgroundColor: 'rgba(232, 192, 100, 0.08)',
+                        borderWidth: 3,
+                        tension: 0.15, 
+                        fill: true,
+                        pointRadius: 0, 
+                        pointHitRadius: 25, 
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#e8c064',
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false },
+                        zoom: { pan: { enabled: true, mode: 'x' }, zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' } },
+                        tooltip: { backgroundColor: '#141414', titleColor: '#e8c064', borderColor: '#e8c064', borderWidth: 1, padding: 12, titleFont: { size: 11 }, bodyFont: { size: 12, weight: 'bold' }, callbacks: { title: (ctxs) => formatTooltipDate(ctxs[0].label), label: (c) => `3-Day Avg: ${c.raw}` } }
+                    },
+                    scales: {
+                        y: { min: 2.5, max: 5.0, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', font: { size: 10 } } },
+                        x: { min: data[startIndex]?.date, max: data[data.length - 1]?.date, grid: { display: false }, ticks: { color: '#6b7280', maxRotation: 45, font: { size: 9 }, callback: function(v) { return formatAxisDate(this.getLabelForValue(v)); } } }
+                    }
+                }
+            });
+        }
+
+        // NEW: Rocket-style Stacked Bar Chart for Improvements
+        function createImprovedChart(data) {
+            const canvas = document.getElementById('improvedChart');
+            const ctx = canvas.getContext('2d');
+            Chart.getChart("improvedChart")?.destroy(); // Clear old chart
+            
+            // Graceful fallback if no dishes meet the 0.5 threshold
+            if (!data || data.length === 0) { 
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.font = "bold 12px Inter";
+                ctx.fillStyle = "#6b7280";
+                ctx.textAlign = "center";
+                ctx.fillText("No dishes improved by 0.5+ this week.", canvas.clientWidth / 2, canvas.clientHeight / 2);
+                return; 
+            }
+            
+            const isMobile = window.innerWidth < 640;
+            const labels = data.map(d => d.name);
+            const lastWkData = data.map(d => d.lastWeek);
+            const changeData = data.map(d => d.change);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: "Last Week's Avg", data: lastWkData, backgroundColor: '#4ade80', stack: 'Stack 0', barThickness: isMobile ? 18 : 30 },
+                        { label: "Improvement", data: changeData, backgroundColor: '#e8c064', stack: 'Stack 0', borderRadius: { topLeft: 4, topRight: 4 }, barThickness: isMobile ? 18 : 30 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: { backgroundColor: '#141414', titleColor: '#e8c064', borderColor: '#e8c064', borderWidth: 1, padding: 12, callbacks: { label: function(c) { const i = c.dataIndex; return [`This Week: ${(lastWkData[i] + changeData[i]).toFixed(2)}`, `Change: +${changeData[i].toFixed(2)}`, `Last Week: ${lastWkData[i].toFixed(2)}`]; } } }
+                    },
+                    scales: {
+                        x: { stacked: true, grid: { display: false }, ticks: { color: '#6b7280', font: { size: 9 } } },
+                        y: { stacked: true, min: 0, max: 5.0, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        // NEW: Dual-Axis Bar Chart for Declines
+        function createDeclinedChart(data) {
+            const canvas = document.getElementById('declinedChart');
+            const ctx = canvas.getContext('2d');
+            Chart.getChart("declinedChart")?.destroy();
+            
+            // Graceful fallback if no dishes meet the -0.5 threshold
+            if (!data || data.length === 0) { 
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.font = "bold 12px Inter";
+                ctx.fillStyle = "#6b7280";
+                ctx.textAlign = "center";
+                ctx.fillText("No dishes declined by 0.5+ this week.", canvas.clientWidth / 2, canvas.clientHeight / 2);
+                return; 
+            }
+            
+            const isMobile = window.innerWidth < 640;
+            const labels = data.map(d => d.name);
+            const thisWkData = data.map(d => d.thisWeek);
+            const changeData = data.map(d => d.change); 
+            const lastWkData = data.map(d => d.lastWeek);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: "This Week's Rating", data: thisWkData, backgroundColor: '#4ade80', stack: 'Stack 0', barThickness: isMobile ? 18 : 30 },
+                        { label: "Decline", data: changeData, backgroundColor: '#ef4444', stack: 'Stack 0', borderRadius: { bottomLeft: 4, bottomRight: 4 }, barThickness: isMobile ? 18 : 30 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: { backgroundColor: '#141414', titleColor: '#ef4444', borderColor: '#ef4444', borderWidth: 1, padding: 12, callbacks: { label: function(c) { const i = c.dataIndex; return [`Last Week: ${lastWkData[i].toFixed(2)}`, `Change: ${changeData[i].toFixed(2)}`, `This Week: ${thisWkData[i].toFixed(2)}`]; } } }
+                    },
+                    scales: {
+                        x: { stacked: true, grid: { display: false }, ticks: { color: '#6b7280', font: { size: 9 } } },
+                        y: { stacked: true, suggestedMin: -1.0, max: 5.0, grid: { color: 'rgba(255,255,255,0.03)', zeroLineColor: '#6b7280' }, ticks: { color: '#6b7280', font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        // ==========================================
+        // GAUGE RENDERING
+        // ==========================================
+        function polarToCartesian(cx, cy, r, angleDeg) { let angleRad = angleDeg * Math.PI / 180.0; return { x: cx + (r * Math.cos(angleRad)), y: cy - (r * Math.sin(angleRad)) }; }
+        function describeArc(cx, cy, r, startAngle, endAngle) { let start = polarToCartesian(cx, cy, r, startAngle); let end = polarToCartesian(cx, cy, r, endAngle); let largeArcFlag = Math.abs(endAngle - startAngle) <= 180 ? "0" : "1"; return ["M", start.x, start.y, "A", r, r, 0, largeArcFlag, 1, end.x, end.y].join(" "); }
+
+        function renderCustomGauge(score) {
+            const container = document.getElementById('svg-gauge-container');
+            const cx = 100, cy = 110, r = 85; 
+            const ranges = [ { start: 0, end: 1.5, color: '#e06666' }, { start: 1.5, end: 3.0, color: '#f4cccc' }, { start: 3.0, end: 4.5, color: '#b6d7a8' }, { start: 4.5, end: 5.0, color: '#fce5cd' } ];
+            let svg = `<svg viewBox="0 0 200 135" class="w-full h-full overflow-visible drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">`;
+            ranges.forEach(rng => svg += `<path d="${describeArc(cx, cy, r, 180-(rng.start/5)*180, 180-(rng.end/5)*180)}" stroke="${rng.color}" stroke-width="28" fill="none" />`);
+            svg += `<path d="${describeArc(cx, cy, r, 180, 180-(score/5)*180)}" stroke="#38761d" stroke-width="12" fill="none" class="gauge-path" />`;
+            
+            let tS = polarToCartesian(100, 110, 70, 180 - (3.5 / 5) * 180), tE = polarToCartesian(100, 110, 100, 180 - (3.5 / 5) * 180);   
+            svg += `<line id="target-line" x1="${tS.x}" y1="${tS.y}" x2="${tE.x}" y2="${tE.y}" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round" style="cursor:pointer;" />`;
+
+            const sP = polarToCartesian(100, 110, 85, 180), eP = polarToCartesian(100, 110, 85, 0);     
+            svg += `<text x="${sP.x}" y="${sP.y + 22}" font-size="11" font-weight="bold" fill="#6b7280" text-anchor="middle">0</text>`;
+            svg += `<text x="${eP.x}" y="${eP.y + 22}" font-size="11" font-weight="bold" fill="#6b7280" text-anchor="middle">5</text></svg>`;
+            container.innerHTML = svg;
+
+            const line = document.getElementById('target-line');
+            const updatePopupPosition = (pageX, pageY, clientX) => {
+                popup.style.display = 'block'; const rect = popup.getBoundingClientRect(); let leftPos = pageX + 15;
+                if (clientX + 15 + rect.width > window.innerWidth - 10) { leftPos = pageX - rect.width - 15; }
+                popup.style.left = leftPos + 'px'; popup.style.top = (pageY - 35) + 'px';
+            };
+            line.addEventListener('mouseenter', (e) => { if(!isPopupFixed) updatePopupPosition(e.pageX, e.pageY, e.clientX); });
+            line.addEventListener('mousemove', (e) => { if(!isPopupFixed) updatePopupPosition(e.pageX, e.pageY, e.clientX); });
+            line.addEventListener('mouseleave', () => { if(!isPopupFixed) popup.style.display = 'none'; });
+            const lockPopup = (e) => { e.preventDefault(); e.stopPropagation(); isPopupFixed = true; let pageX = e.touches ? e.touches[0].pageX : e.pageX; let pageY = e.touches ? e.touches[0].pageY : e.pageY; let clientX = e.touches ? e.touches[0].clientX : e.clientX; updatePopupPosition(pageX, pageY, clientX); };
+            line.addEventListener('click', lockPopup); line.addEventListener('touchstart', lockPopup, {passive: false});
+        }
+
+        const dismissPopup = (e) => { if (e.target.id !== 'target-line' && popup.style.display === 'block') { popup.style.display = 'none'; isPopupFixed = false; } };
+        document.addEventListener('click', dismissPopup); document.addEventListener('touchstart', dismissPopup);
+
+        window.onload = loadDashboard;
+    </script>
+</body>
+</html>
