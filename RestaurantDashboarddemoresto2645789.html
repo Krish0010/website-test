@@ -410,18 +410,23 @@
                 return;
             }
             listEl.innerHTML = comments.map(c => {
-                const safeComment = c.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                if (c.length > 75) {
-                    const shortText = c.substring(0, 75) + '...';
+                // 1. Sanitize HTML tags to prevent XSS attacks
+                const cleanHTML = c.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                
+                // 2. Make it safe to pass into the Javascript onclick function
+                const safeForJS = cleanHTML.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                
+                if (cleanHTML.length > 75) {
+                    const shortText = cleanHTML.substring(0, 75) + '...';
                     return `
-                    <li class="bg-[#141414] p-3 rounded-lg border border-gray-800 cursor-pointer hover:border-brand-gold/50 transition-colors" onclick="openCommentModal('${safeComment}')">
+                    <li class="bg-[#141414] p-3 rounded-lg border border-gray-800 cursor-pointer hover:border-brand-gold/50 transition-colors" onclick="openCommentModal('${safeForJS}')">
                         <span class="text-brand-gold opacity-50 mr-1">"</span>${shortText}
                         <span class="text-brand-gold font-bold text-[10px] ml-1 underline uppercase tracking-wider">Read more</span>
                     </li>`;
                 } else {
                     return `
                     <li class="bg-[#141414] p-3 rounded-lg border border-gray-800">
-                        <span class="text-brand-gold opacity-50 mr-1">"</span>${c}<span class="text-brand-gold opacity-50 ml-1">"</span>
+                        <span class="text-brand-gold opacity-50 mr-1">"</span>${cleanHTML}<span class="text-brand-gold opacity-50 ml-1">"</span>
                     </li>`;
                 }
             }).join('');
