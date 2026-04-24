@@ -93,7 +93,7 @@
             </div>
         </div>
 
-        <div class="bg-brand-card-black rounded-3xl shadow-2xl border border-brand-gold-muted p-6 lg:col-span-2">
+        <div id="trendChartContainer" class="bg-brand-card-black rounded-3xl shadow-2xl border border-brand-gold-muted p-6 lg:col-span-2 hidden">
             <div class="flex items-center gap-2 mb-6">
                 <span class="text-xl">🔍</span>
                 <h2 class="text-lg font-extrabold text-gray-200">Most Improved Dishes This Week 🚀</h2>
@@ -353,7 +353,15 @@
             const topImprovements = [...trends]
                 .sort((a, b) => b.change - a.change) 
                 .slice(0, 10);
-            renderTrendChart(topImprovements);
+            
+            // Check if there are actually any improving dishes
+            const trendContainer = document.getElementById('trendChartContainer');
+            if (topImprovements.length > 0) {
+                trendContainer.classList.remove('hidden'); // Un-hide the box
+                renderTrendChart(topImprovements);         // Draw the chart
+            } else {
+                trendContainer.classList.add('hidden');    // Keep it hidden
+            }
 
             globalTableData = [...dishes].filter(d => d.reviews >= 2);
             renderTable();
