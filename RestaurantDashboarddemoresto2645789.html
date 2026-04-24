@@ -589,22 +589,28 @@
             if (!data || data.length === 0) { 
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle"; // Ensures perfect vertical centering
+                
                 // Draw a nice big celebration emoji
                 ctx.font = "40px Inter";
-                ctx.textAlign = "center";
-                ctx.fillText("🎉", canvas.clientWidth / 2, (canvas.clientHeight / 2) - 15);
+                ctx.fillText("🎉", centerX, centerY - 5);
                 
                 // Draw the All Good text
-                ctx.font = "bold 14px Inter";
+                ctx.font = "bold 16px Inter";
                 ctx.fillStyle = "#4ade80"; // Success Green
-                ctx.fillText("All Good!", canvas.clientWidth / 2, (canvas.clientHeight / 2) + 15);
+                ctx.fillText("All Good!", centerX, centerY + 35);
                 
                 // Draw the subtext
-                ctx.font = "11px Inter";
+                ctx.font = "10px Inter";
                 ctx.fillStyle = "#6b7280";
-                ctx.fillText("No negative trends detected this week.", canvas.clientWidth / 2, (canvas.clientHeight / 2) + 35);
+                ctx.fillText("No negative trends detected this week.", centerX, centerY + 55);
                 return; 
             }
+
             
             const isMobile = window.innerWidth < 640;
             const labels = data.map(d => d.name);
