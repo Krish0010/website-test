@@ -300,7 +300,7 @@
     </div>
 
     <script>
-        const OWNER_API_URL = "https://script.google.com/macros/s/AKfycbwAxtcCud-UJk9Sq6F486z3jv9OF8ILrvU0loO3TPPJW8LRnXNjkIqL0GzhIMPp6aYpEg/exec"; 
+        const OWNER_API_URL = "https://script.google.com/macros/s/AKfycbzPKIje61r5Obh4CrZA3WilSre29pZGDiweHCsIlZPB9OaXdbSKEZ57NFyrWJSfyxkhjA/exec"; 
         
         let timeChart = null;
         let allDishesGlobal = [];
@@ -585,13 +585,24 @@
             const ctx = canvas.getContext('2d');
             Chart.getChart("declinedChart")?.destroy();
             
-            // Graceful fallback if no dishes meet the -0.5 threshold
+            // "ALL GOOD" Fallback if no dishes are actively declining with high vote volume
             if (!data || data.length === 0) { 
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.font = "bold 12px Inter";
-                ctx.fillStyle = "#6b7280";
+                
+                // Draw a nice big celebration emoji
+                ctx.font = "40px Inter";
                 ctx.textAlign = "center";
-                ctx.fillText("No dishes declined by 0.5+ this week.", canvas.clientWidth / 2, canvas.clientHeight / 2);
+                ctx.fillText("🎉", canvas.clientWidth / 2, (canvas.clientHeight / 2) - 15);
+                
+                // Draw the All Good text
+                ctx.font = "bold 14px Inter";
+                ctx.fillStyle = "#4ade80"; // Success Green
+                ctx.fillText("All Good!", canvas.clientWidth / 2, (canvas.clientHeight / 2) + 15);
+                
+                // Draw the subtext
+                ctx.font = "11px Inter";
+                ctx.fillStyle = "#6b7280";
+                ctx.fillText("No negative trends detected this week.", canvas.clientWidth / 2, (canvas.clientHeight / 2) + 35);
                 return; 
             }
             
