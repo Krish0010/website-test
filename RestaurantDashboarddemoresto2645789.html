@@ -541,13 +541,26 @@
             const ctx = canvas.getContext('2d');
             Chart.getChart("improvedChart")?.destroy(); // Clear old chart
             
-            // Graceful fallback if no dishes meet the 0.5 threshold
+           // Graceful fallback perfectly centered for all screens
             if (!data || data.length === 0) { 
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.font = "bold 12px Inter";
-                ctx.fillStyle = "#6b7280";
+                
+                // Let the canvas naturally find its mathematical center
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
                 ctx.textAlign = "center";
-                ctx.fillText("No dishes improved by 0.5+ this week.", canvas.clientWidth / 2, canvas.clientHeight / 2);
+                ctx.textBaseline = "middle"; // Ensures perfect vertical centering
+                
+                // Draw a simple, clean status text (No +55 offset!)
+                ctx.font = "bold 14px Inter";
+                ctx.fillStyle = "#6b7280"; 
+                ctx.fillText("Let's Aim Big Next Week 🚀", centerX, centerY + 30);
+                
+                // Draw the subtext (No +55 offset!)
+                ctx.font = "11px Inter";
+                ctx.fillStyle = "#4b5563"; 
+                ctx.fillText("No big improvements this week.", centerX, centerY + 50);
                 return; 
             }
             
