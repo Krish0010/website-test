@@ -50,6 +50,7 @@
             
             <div id="result-card" class="hidden mt-6 border-t border-gray-100 pt-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                 <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                    
                     <div class="flex justify-between items-start mb-4">
                         <div>
                             <p class="text-[10px] text-gray-400 uppercase font-black tracking-widest mb-1">Customer Offer</p>
@@ -58,15 +59,43 @@
                         <span id="result-badge" class="px-3 py-1 rounded-lg text-[10px] font-black tracking-tighter"></span>
                     </div>
                     
-                    <div class="mb-6">
-                        <p class="text-[10px] text-gray-400 uppercase font-black tracking-widest mb-1">Customer Details</p>
-                        <p id="result-customer" class="text-sm font-semibold text-gray-700 break-all"></p>
+                    <div class="mb-6 space-y-4">
+                        <div>
+                            <p class="text-[10px] text-gray-400 uppercase font-black tracking-widest mb-1">Customer Email</p>
+                            <p id="result-customer" class="text-sm font-semibold text-gray-700 break-all"></p>
+                        </div>
+                        
+                        <div class="bg-gray-200/50 p-3 rounded-xl border border-gray-200 flex justify-between items-center">
+                            <div>
+                                <p class="text-[9px] text-gray-500 uppercase font-bold tracking-wider mb-1">Bill Number Check</p>
+                                <p id="result-bill" class="text-base font-black text-gray-900"></p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[9px] text-gray-500 uppercase font-bold tracking-wider mb-1">Submitted On</p>
+                                <p id="result-date" class="text-xs font-semibold text-gray-600"></p>
+                            </div>
+                        </div>
                     </div>
                     
-                    <button id="redeem-btn" onclick="redeemCode()" class="w-full bg-green-600 text-white font-bold py-4 px-4 rounded-xl shadow-md hover:bg-green-700 active:scale-[0.98] transition-all flex justify-center items-center">
-                        <span id="redeem-text">Confirm Redemption</span>
-                        <span id="redeem-loader" class="loader hidden" style="border-top-color: white;"></span>
-                    </button>
+                    <div id="action-buttons" class="mt-6 flex flex-col items-center gap-4">
+                        <button id="redeem-btn" onclick="redeemCode()" class="w-full bg-green-600 text-white font-bold py-4 px-4 rounded-xl shadow-md hover:bg-green-700 active:scale-[0.98] transition-all flex justify-center items-center">
+                            <span id="redeem-text">Confirm Redemption</span>
+                            <span id="redeem-loader" class="loader hidden" style="border-top-color: white;"></span>
+                        </button>
+
+                        <button id="spam-btn" onclick="markAsSpam()" class="text-[10px] font-bold text-gray-400 hover:text-red-500 uppercase tracking-widest transition-colors flex items-center gap-2">
+                            <span id="spam-text">Flag as Fake / Spam</span>
+                        </button>
+                    </div>
+
+                    <div id="undo-container" class="mt-6 hidden text-center bg-gray-50 border border-gray-200 rounded-xl p-4">
+                        <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-3">Code killed & User Blacklisted.</p>
+                        <button id="undo-btn" onclick="undoSpam()" class="bg-gray-900 text-white text-xs font-bold py-3 px-6 rounded-lg hover:bg-gray-800 transition-all flex justify-center items-center mx-auto shadow-md">
+                            <span id="undo-text">Undo (<span id="undo-timer">60</span>s)</span>
+                            <span id="undo-loader" class="loader hidden" style="border-top-color: white; width: 12px; height: 12px; border-width: 2px;"></span>
+                        </button>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -89,23 +118,48 @@
         </div>
     </div>
 
+    <div id="warning-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center">
+            
+            <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-red-100 mb-6 border-4 border-red-50">
+                <svg class="h-10 w-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            
+            <h3 class="text-xl font-extrabold text-gray-900 mb-2 tracking-tight">Wait, are you sure?</h3>
+            <p class="text-xs text-gray-500 font-medium mb-8">This will permanently kill the code and delete this customer's ratings from the impact dashboard.</p>
+            
+            <div class="flex gap-3">
+                <button onclick="closeWarningModal()" class="w-1/2 bg-gray-100 text-gray-700 font-bold py-3 px-4 rounded-xl hover:bg-gray-200 active:scale-[0.98] transition-all tracking-wider text-sm">
+                    Cancel
+                </button>
+                <button id="confirm-spam-btn" onclick="executeSpamAction()" class="w-1/2 bg-red-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-red-700 active:scale-[0.98] transition-all tracking-wider text-sm flex justify-center items-center shadow-md">
+                    <span id="confirm-spam-text">Kill Code</span>
+                    <span id="confirm-spam-loader" class="loader hidden" style="border-top-color: white; width: 16px; height: 16px; border-width: 2px;"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Your specific API Details
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJb1WEYtv2YK_WU9ADvslOOZCYXPV191zA0sHs34pxtipYtOfSwjsyJyNqppBeaWMpsA/exec"; 
-        const RESTAURANT_NAME = "Demo Resto"; 
+        const RESTAURANT_NAME = "IMPACT Resto"; 
 
         let currentlyVerifiedCode = "";
+        let undoInterval; // Timer variable for the undo countdown
 
         document.addEventListener("DOMContentLoaded", () => {
             document.getElementById('restaurant-name-display').innerText = RESTAURANT_NAME;
         });
 
-        // Modal Control Functions
+        // --- SUCCESS MODAL CONTROL ---
         function showSuccessModal() {
             const modal = document.getElementById('success-modal');
             const modalBox = modal.querySelector('div');
             
             modal.classList.remove('hidden');
-            // Small delay to allow display block to apply before animating opacity
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
                 modalBox.classList.remove('scale-90');
@@ -121,12 +175,12 @@
             modalBox.classList.remove('scale-100');
             modalBox.classList.add('scale-90');
             
-            // Hide after animation finishes
             setTimeout(() => {
                 modal.classList.add('hidden');
             }, 300);
         }
 
+        // --- CORE LOGIC ---
         async function verifyCode() {
             const rawInput = document.getElementById('discount-code').value.trim();
             const errorMsg = document.getElementById('error-message');
@@ -134,7 +188,6 @@
             
             if (!rawInput) return;
 
-            // Automatically prepend IMPACT- to the input value for the API call
             const fullCode = "IMPACT-" + rawInput.toUpperCase();
 
             errorMsg.classList.add('hidden');
@@ -171,11 +224,9 @@
                 if (data.success) {
                     document.getElementById('result-badge').innerText = "REDEEMED";
                     document.getElementById('result-badge').className = "px-3 py-1 rounded-lg text-[10px] font-black bg-gray-200 text-gray-500";
-                    document.getElementById('redeem-btn').style.display = 'none'; 
+                    document.getElementById('action-buttons').classList.add('hidden'); 
                     
-                    // Trigger the new custom modal instead of alert()
                     showSuccessModal();
-                    
                     document.getElementById('discount-code').value = '';
                 } else {
                     showError(data.message);
@@ -187,28 +238,159 @@
             }
         }
 
+        // --- SPAM & WARNING MODAL LOGIC ---
+        function markAsSpam() {
+            if (!currentlyVerifiedCode) return;
+            const modal = document.getElementById('warning-modal');
+            const modalBox = modal.querySelector('div');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalBox.classList.remove('scale-90');
+                modalBox.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeWarningModal() {
+            const modal = document.getElementById('warning-modal');
+            const modalBox = modal.querySelector('div');
+            
+            modal.classList.add('opacity-0');
+            modalBox.classList.remove('scale-100');
+            modalBox.classList.add('scale-90');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        async function executeSpamAction() {
+            const errorMsg = document.getElementById('error-message');
+            toggleLoading('confirm-spam-btn', 'confirm-spam-text', 'confirm-spam-loader', true);
+            errorMsg.classList.add('hidden');
+
+            try {
+                const response = await fetch(`${SCRIPT_URL}?code=${currentlyVerifiedCode}&restaurant=${RESTAURANT_NAME}&action=spam`);
+                const data = await response.json();
+
+                if (data.success) {
+                    closeWarningModal();
+                    
+                    const badge = document.getElementById('result-badge');
+                    badge.innerText = "FLAGGED AS SPAM";
+                    badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-red-900 text-red-100 border border-red-950";
+                    
+                    document.getElementById('action-buttons').classList.add('hidden'); 
+                    startUndoTimer(); 
+                } else {
+                    closeWarningModal();
+                    showError(data.message);
+                }
+            } catch (err) {
+                closeWarningModal();
+                showError("Network error.");
+            } finally {
+                toggleLoading('confirm-spam-btn', 'confirm-spam-text', 'confirm-spam-loader', false);
+            }
+        }
+
+        function startUndoTimer() {
+            const undoContainer = document.getElementById('undo-container');
+            const undoTimerSpan = document.getElementById('undo-timer');
+            undoContainer.classList.remove('hidden'); 
+            
+            let timeLeft = 60;
+            undoTimerSpan.innerText = timeLeft;
+
+            clearInterval(undoInterval);
+            undoInterval = setInterval(() => {
+                timeLeft--;
+                undoTimerSpan.innerText = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(undoInterval);
+                    undoContainer.classList.add('hidden'); 
+                }
+            }, 1000);
+        }
+
+        async function undoSpam() {
+            if (!currentlyVerifiedCode) return;
+            
+            clearInterval(undoInterval); 
+            toggleLoading('undo-btn', 'undo-text', 'undo-loader', true);
+            
+            try {
+                const response = await fetch(`${SCRIPT_URL}?code=${currentlyVerifiedCode}&restaurant=${RESTAURANT_NAME}&action=undo_spam`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const badge = document.getElementById('result-badge');
+                    badge.innerText = "VALID OFFER";
+                    badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-green-100 text-green-700 border border-green-200";
+                    
+                    document.getElementById('undo-container').classList.add('hidden'); 
+                    document.getElementById('action-buttons').classList.remove('hidden'); 
+                } else {
+                    showError(data.message);
+                    startUndoTimer(); 
+                }
+            } catch (err) {
+                showError("Network error.");
+                startUndoTimer(); 
+            } finally {
+                toggleLoading('undo-btn', 'undo-text', 'undo-loader', false);
+            }
+        }
+        // -----------------------------
+
         function showResultCard(data, code) {
             currentlyVerifiedCode = code;
             document.getElementById('result-offer').innerText = data.offer;
             document.getElementById('result-customer').innerText = data.customer;
             
+            // Inject the Bill Number
+            document.getElementById('result-bill').innerText = data.billNumber && data.billNumber !== "N/A" ? "#" + data.billNumber : "N/A";
+            
+            // Format the Date beautifully
+            let formattedDate = "N/A";
+            if (data.dateSubmitted && data.dateSubmitted !== "N/A") {
+                const d = new Date(data.dateSubmitted);
+                if (!isNaN(d.getTime())) {
+                    formattedDate = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                } else {
+                    formattedDate = data.dateSubmitted;
+                }
+            }
+            document.getElementById('result-date').innerText = formattedDate;
+            
             const badge = document.getElementById('result-badge');
-            const redeemBtn = document.getElementById('redeem-btn');
+            const actionButtons = document.getElementById('action-buttons');
             
             const status = data.status.toLowerCase();
             if (status === 'valid') {
                 badge.innerText = "VALID OFFER";
                 badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-green-100 text-green-700 border border-green-200";
-                redeemBtn.style.display = 'flex'; 
+                actionButtons.classList.remove('hidden'); 
             } else if (status === 'redeemed') {
                 badge.innerText = "USED ALREADY";
                 badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-gray-100 text-gray-500 border border-gray-200";
-                redeemBtn.style.display = 'none'; 
+                actionButtons.classList.add('hidden'); 
+            } else if (status === 'spam') {
+                badge.innerText = "FLAGGED AS SPAM";
+                badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-red-900 text-red-100 border border-red-950";
+                actionButtons.classList.add('hidden');
             } else {
                 badge.innerText = "EXPIRED";
                 badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-red-100 text-red-700 border border-red-200";
-                redeemBtn.style.display = 'none'; 
+                actionButtons.classList.add('hidden'); 
             }
+
+            // Always clear undo timer and warning modal when loading a new card
+            clearInterval(undoInterval);
+            document.getElementById('undo-container').classList.add('hidden');
+            document.getElementById('warning-modal').classList.add('hidden');
 
             document.getElementById('result-card').classList.remove('hidden');
         }
