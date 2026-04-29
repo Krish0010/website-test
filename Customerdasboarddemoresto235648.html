@@ -50,13 +50,56 @@
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
         input[type="text"] { background-color: #0d0d0d; border: 1px solid #e8c06440; color: #e8c064; outline: none; transition: border-color 0.3s; }
         input[type="text"]:focus { border-color: #e8c064; }
+
+        .tooltip-container { position: relative; display: inline-flex; cursor: pointer;}
+        
+        .tooltip-text {
+            visibility: hidden;
+            width: max-content;
+            max-width: 200px;
+            background-color: #1a1a1a;
+            color: #e8c064;
+            text-align: center;
+            border: 1px solid #e8c06440;
+            border-radius: 12px;
+            padding: 8px 12px;
+            position: absolute;
+            z-index: 60;
+            bottom: 125%; 
+            left: 0; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            font-size: 11px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            line-height: 1.4;
+            letter-spacing: 0.02em;
+            opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s, visibility 0.3s;
+        }
+
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 20px; 
+            border-width: 6px;
+            border-style: solid;
+            border-color: #e8c06440 transparent transparent transparent;
+        }
+
+        .tooltip-container:hover .tooltip-text,
+        .tooltip-container.active .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+            bottom: 140%;
+        }
     </style>
 </head>
 <body class="min-h-screen p-4 sm:p-8 page-textured-overlay flex flex-col items-center overflow-x-hidden">
 
     <div class="w-full max-w-6xl flex flex-col justify-between items-center mb-10 gap-2 text-center">
         <h1 class="text-3xl sm:text-4xl font-extrabold tracking-widest mb-1 text-white">FOODSTORYTVC</h1>
-        <p class="text-[10px] sm:text-xs font-bold tracking-[0.2em] uppercase text-brand-gold-400">Customer Favorites at Demo Resto</p>
+        <p class="text-[10px] sm:text-xs font-bold tracking-[0.2em] uppercase text-brand-gold-400">Customer Favorites at IMPACT Resto</p>
     </div>
 
     <div id="loading-screen" class="w-full max-w-6xl flex flex-col items-center justify-center py-20">
@@ -81,7 +124,7 @@
                 <span class="text-xl">✨</span>
                 <h2 class="text-lg font-extrabold text-gray-200">Dish Popularity By Likes (⭐ 4+)</h2>
             </div>
-            <div class="relative h-[300px] w-full flex justify-center">
+            <div class="relative h-[350px] sm:h-[400px] w-full flex justify-center">
                 <canvas id="popularityChart"></canvas>
             </div>
         </div>
@@ -103,7 +146,7 @@
             </div>
         </div>
 
-        <div class="bg-brand-card-black rounded-3xl shadow-2xl border border-brand-gold-muted p-6 lg:col-span-2 overflow-hidden">
+        <div class="bg-brand-card-black rounded-3xl shadow-2xl border border-brand-gold-muted p-6 lg:col-span-2">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div class="flex items-center gap-2">
                     <span class="text-xl">📢</span>
@@ -124,7 +167,7 @@
                 <table class="w-full">
                     <thead>
                         <tr>
-                            <th onclick="handleSort('name')" class="hover:text-white select-none group leading-snug align-bottom">
+                            <th onclick="handleSort('name')" class="hover:text-white select-none group leading-snug align-bottom pl-0">
                                 Dish Name <span class="text-gray-600 group-hover:text-brand-gold">↕</span>
                             </th>
                             <th onclick="handleSort('likedPct')" class="hover:text-white select-none group leading-snug align-bottom text-center">
@@ -136,7 +179,7 @@
                             <th onclick="handleSort('reviews')" class="hover:text-white select-none group leading-snug align-bottom text-center">
                                 Total<br>Votes <span class="text-gray-600 group-hover:text-brand-gold">↕</span>
                             </th>
-                            <th class="w-10 text-center align-bottom pb-4">Add</th>
+                            <th class="w-10 text-center align-bottom pb-4 pr-0">Add</th>
                         </tr>
                     </thead>
                     <tbody id="table-body">
@@ -146,11 +189,6 @@
         </div>
 
         <div class="lg:col-span-2 mt-2 flex flex-col items-center justify-center w-full">
-            
-            <a href="https://sites.google.com/foodstorytvc.com/demorestomenugallery/home" target="_blank" rel="noopener noreferrer" class="inline-block px-4 py-3 md:px-8 md:py-4 bg-[#10b981] text-white rounded-full font-black uppercase tracking-widest text-[10px] md:text-sm hover:bg-white hover:text-[#10b981] hover:scale-105 transition-all duration-300 shadow-[0_0_20px_rgba(16,185,129,0.3)] mb-8 md:mb-12 text-center">
-                📸 Click here to see Dish Pictures
-            </a>
-
             <div class="w-screen h-[1px] bg-gradient-to-r from-transparent via-brand-gold/60 to-transparent"></div>
 
             <div class="flex flex-col items-center gap-3 mt-8">
@@ -167,7 +205,6 @@
                 <a href="https://www.foodstorytvc.com" target="_blank" class="text-brand-gold font-bold tracking-widest uppercase text-sm hover:text-white transition-colors duration-300 mt-1 mb-8">
                     www.foodstorytvc.com
                 </a>
-            
 
             <div class="w-screen h-[1px] bg-gradient-to-r from-transparent via-brand-gold/60 to-transparent mb-24 sm:mb-24"></div>
 
@@ -184,9 +221,7 @@
         </div>
         
         <div id="cart-body" class="flex flex-col overflow-hidden transition-all duration-300">
-            
-            <div id="cart-items" class="p-4 overflow-y-auto flex flex-col gap-3 max-h-[40vh]">
-                </div>
+            <div id="cart-items" class="p-4 overflow-y-auto flex flex-col gap-3 max-h-[40vh]"></div>
 
             <div class="p-3 text-[10px] text-gray-400 bg-[#101010] border-t border-gray-800 leading-relaxed">
                 ⭐ <strong class="text-brand-gold">Group Note:</strong> Smart Order helps groups avoid ordering confusion. Add everyone's dishes to this list, then simply read it to your waiter to place the order
@@ -197,15 +232,27 @@
                     Clear Entire Order
                 </button>
             </div>
-            
+        </div>
+    </div>
+
+    <div id="image-modal" class="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md hidden flex-col justify-center items-center p-4 opacity-0 transition-opacity duration-300" onclick="closeImageModal()">
+        <button onclick="closeImageModal()" class="absolute top-6 right-6 w-10 h-10 bg-[#141414] border border-brand-gold/50 rounded-full text-brand-gold font-bold text-xl hover:bg-brand-gold hover:text-black transition-colors z-[101]">✕</button>
+        <div class="relative w-full max-w-lg aspect-square sm:aspect-[4/3] rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(232,192,100,0.15)] border border-brand-gold/30" onclick="event.stopPropagation()">
+            <img id="modal-image" src="" alt="Dish Photo" class="w-full h-full object-cover">
+            <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent p-6 pt-16 flex flex-col gap-1">
+                <h3 id="modal-title" class="text-2xl font-extrabold text-white tracking-wide"></h3>
+                <p class="text-[8px] sm:text-xs text-gray-400 italic tracking-wider opacity-80">
+                    *Image for illustrative purposes only. Actual plating and portion size may vary.
+                </p>
+            </div>
         </div>
     </div>
 
     <script>
         // ==========================================
-        // 🚨 SCRIP HERE 🚨
+        // 🚨 SCRIPT HERE 🚨
         // ==========================================
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-F8hu0VewWfaKEBGCnGN5B8woguUF42EjNa-9az8rV7WrykhZCu6cfH-5OqecvFj35g/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyRbPQ4U26l9Tc1fALvPxbtV9-7-Yba8uQhityZTSHb4hYLpOQekzlgQaqk7ULh7FFV7g/exec"; 
 
         Chart.defaults.color = '#9CA3AF';
         Chart.defaults.font.family = 'Inter';
@@ -217,6 +264,29 @@
         
         let globalTableData = [];
         let currentSort = { column: 'rating', direction: 'desc' };
+
+        // ==========================================
+        // IMAGE MODAL LOGIC
+        // ==========================================
+        function openImageModal(imgUrl, dishName) {
+            const modal = document.getElementById('image-modal');
+            document.getElementById('modal-image').src = imgUrl;
+            document.getElementById('modal-title').innerText = dishName;
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => modal.classList.remove('opacity-0'), 10); 
+        }
+
+        function closeImageModal() {
+            const modal = document.getElementById('image-modal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+                document.getElementById('modal-image').src = ''; 
+            }, 300);
+        }
 
         // ==========================================
         // SMART ORDER NOTEPAD LOGIC
@@ -256,7 +326,7 @@
         }
 
         function clearCart(event) {
-            if(event) event.stopPropagation(); // Stops the click from hitting the minimize header
+            if(event) event.stopPropagation(); 
             smartCart = {};
             updateCartUI();
         }
@@ -272,12 +342,10 @@
             const totalItems = Object.values(smartCart).reduce((a, b) => a + b, 0);
             
             if(dishNames.length === 0) {
-                // Reverted back to bottom-up slide
                 panel.classList.add('translate-y-[150%]');
                 setTimeout(() => panel.classList.add('hidden'), 300);
                 panel.classList.remove('flex');
                 
-                // Reset state so it's open next time
                 isCartOpen = true; 
                 body.style.display = 'flex';
                 icon.style.transform = 'rotate(0deg)';
@@ -287,7 +355,6 @@
             panel.classList.remove('hidden');
             panel.classList.add('flex');
             title.innerText = `Smart Order (${totalItems})`;
-            // Reverted back to bottom-up slide
             setTimeout(() => panel.classList.remove('translate-y-[150%]'), 10);
 
             itemsContainer.innerHTML = dishNames.map(name => `
@@ -329,7 +396,7 @@
             renderBarChart(preFilteredTopDishes);
 
             const mostLiked = [...dishes]
-                .filter(d => d.reviews > 1 && d.likes > 0)
+                .filter(d => d.reviews > 1 && d.likes > 0 && parseFloat(d.likedPct) >= 50)
                 .sort((a, b) => b.likes - a.likes)
                 .slice(0, 10); 
             renderPieChart(mostLiked);
@@ -354,13 +421,12 @@
                 .sort((a, b) => b.change - a.change) 
                 .slice(0, 10);
             
-            // Check if there are actually any improving dishes
             const trendContainer = document.getElementById('trendChartContainer');
             if (topImprovements.length > 0) {
-                trendContainer.classList.remove('hidden'); // Un-hide the box
-                renderTrendChart(topImprovements);         // Draw the chart
+                trendContainer.classList.remove('hidden'); 
+                renderTrendChart(topImprovements);         
             } else {
-                trendContainer.classList.add('hidden');    // Keep it hidden
+                trendContainer.classList.add('hidden');    
             }
 
             globalTableData = [...dishes].filter(d => d.reviews >= 2);
@@ -405,22 +471,109 @@
             });
             
             if (displayData.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-gray-500 py-8">No dishes match your criteria.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-gray-500 py-8 pl-0 pr-0">No dishes match your criteria.</td></tr>`;
                 return;
             }
 
-            tableBody.innerHTML = displayData.map(d => `
+            tableBody.innerHTML = displayData.map((d, index) => {
+                const safeId = `safe-${index}`;
+                const trendId = `trend-${index}`;
+                
+                const isSafeBet = (d.likedPct === '100%' && d.reviews >= 3);
+                const safeBetHtml = isSafeBet 
+                    ? `
+                    <div id="${safeId}" class="tooltip-container" onclick="toggleDishTooltip('${safeId}', event)">
+                        <span class="inline-flex items-center rounded-full bg-[#143314] text-[#4ade80] border border-[#166534] tracking-widest uppercase shadow-md select-none gap-1 py-0.5 px-2 text-[9px] font-black">
+                            <span>Voters' Pick</span> 💖
+                        </span>
+                        <span class="tooltip-text">
+                            A local favorite! ⭐ 100% Liked based on ${d.reviews} reviews.
+                        </span>
+                    </div>
+                    ` : '';
+
+                let trendingHtml = '';
+                if (d.recent5Stars >= 3) {
+                    trendingHtml = `
+                    <div id="${trendId}" class="tooltip-container" onclick="toggleDishTooltip('${trendId}', event)">
+                        <span class="inline-flex items-center rounded-full bg-[#3b1c0a] text-[#f97316] border border-[#7c2d12] tracking-widest uppercase shadow-md select-none gap-1 py-0.5 px-2 text-[9px] font-black">
+                            <span>Trending</span> 💯🔥
+                        </span>
+                        <span class="tooltip-text">
+                            Absolute perfection! ⭐ ${d.recent5Stars} people rated this 5-stars in the last 48 hours.
+                        </span>
+                    </div>`;
+                } else if (d.recent4Plus >= 3) {
+                    trendingHtml = `
+                    <div id="${trendId}" class="tooltip-container" onclick="toggleDishTooltip('${trendId}', event)">
+                        <span class="inline-flex items-center rounded-full bg-[#3b1c0a] text-[#f97316] border border-[#7c2d12] tracking-widest uppercase shadow-md select-none gap-1 py-0.5 px-2 text-[9px] font-black">
+                            <span>Trending</span> 🔥
+                        </span>
+                        <span class="tooltip-text">
+                            Hot right now! 🚀 ${d.recent4Plus} people loved this dish in the last 48 hours. Don't miss out!
+                        </span>
+                    </div>`;
+                }
+
+                // 🟢 CAMERA ICON HTML
+                const cameraHtml = d.imageUrl 
+                    ? `<span onclick="openImageModal('${d.imageUrl}', '${d.name.replace(/'/g, "\\'")}')" class="cursor-pointer hover:scale-125 transition-transform text-lg ml-2" title="View Dish Photo">📸</span>` 
+                    : '';
+
+                return `
                 <tr>
-                    <td class="leading-tight pr-2 min-w-[120px] text-white">${d.name}</td>
-                    <td class="text-center text-white">${d.likedPct}</td>
-                    <td class="text-center"><span class="rating-badge">${d.rating.toFixed(2)}</span></td>
-                    <td class="text-center text-white">${d.reviews}</td>
-                    <td class="text-center pl-2">
-                        <button onclick="addToCart('${d.name.replace(/'/g, "\\'")}')" class="w-8 h-8 rounded-full bg-brand-card-black border border-brand-gold/50 text-brand-gold hover:bg-brand-gold hover:text-black transition-colors font-black text-lg leading-none shadow-lg">+</button>
+                    <td class="pl-0 pr-2 min-w-[120px] text-white py-4 align-middle">
+                        <div class="flex flex-col items-start gap-1.5">
+                            <div class="flex items-center">
+                                <span class="leading-snug font-extrabold text-[15px] text-left" style="white-space: normal; word-break: break-word;" title="${d.name}">${d.name}</span>
+                                ${cameraHtml}
+                            </div>
+                            
+                            <div class="flex flex-wrap gap-2">
+                                ${safeBetHtml}
+                                ${trendingHtml}
+                            </div>
+                            
+                        </div>
+                    </td>
+                    <td class="text-center text-white p-2 font-bold">${d.likedPct}</td>
+                    <td class="text-center p-2"><span class="rating-badge">${d.rating.toFixed(2)}</span></td>
+                    <td class="text-center text-white p-2 font-bold">${d.reviews}</td>
+                    <td class="text-center pr-0 p-2 pl-3">
+                        <button onclick="addToCart('${d.name.replace(/'/g, "\\'")}')" class="w-8 h-8 rounded-full bg-brand-card-black border border-brand-gold/50 text-brand-gold hover:bg-brand-gold hover:text-black transition-colors font-black text-lg leading-none shadow-lg relative z-10 shrink-0">+</button>
                     </td>
                 </tr>
-            `).join('');
+                `;
+            }).join('');
         }
+
+        function toggleDishTooltip(uniqueId, event) {
+            event.stopPropagation(); 
+            const tooltipContainer = document.getElementById(uniqueId);
+
+            if (tooltipContainer.classList.contains('active')) {
+                tooltipContainer.classList.remove('active');
+            } else {
+                document.querySelectorAll('.tooltip-container.active').forEach(el => {
+                    if (el.id !== uniqueId) el.classList.remove('active');
+                });
+                tooltipContainer.classList.add('active');
+            }
+        }
+        
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('.tooltip-container')) {
+                document.querySelectorAll('.tooltip-container.active').forEach(el => {
+                    el.classList.remove('active');
+                });
+            }
+        });
+
+        document.addEventListener('scroll', () => {
+             document.querySelectorAll('.tooltip-container.active').forEach(el => {
+                 el.classList.remove('active');
+             });
+        });
 
         function renderBarChart(topRated) {
             const ctx = document.getElementById('topRatedChart').getContext('2d');
@@ -482,8 +635,14 @@
                 options: {
                     responsive: true, 
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: window.innerWidth < 640 ? 20 : 15 
+                    },
                     plugins: {
-                        legend: { position: 'right', labels: { boxWidth: 10, font: {size: 11, family: 'Inter'}, color: '#d1d5db' } },
+                        legend: { 
+                            position: window.innerWidth < 640 ? 'bottom' : 'right', 
+                            labels: { boxWidth: 10, font: {size: 11, family: 'Inter'}, color: '#d1d5db', padding: 15 } 
+                        },
                         tooltip: { 
                             enabled: true,
                             backgroundColor: 'rgba(20, 20, 20, 0.95)',
@@ -492,24 +651,27 @@
                             padding: 12,
                             borderColor: '#e8c06440',
                             borderWidth: 1,
-                            callbacks: { label: function(context) { return ` ${context.raw} Likes`; } } 
+                            callbacks: { 
+                                label: function(context) { 
+                                    const dish = mostLiked[context.dataIndex];
+                                    return ` ${dish.name}: ${dish.likes} Likes (${dish.likedPct})`; 
+                                } 
+                            } 
                         },
                         datalabels: {
                             color: '#ffffff',
-                            textStrokeColor: 'rgba(0, 0, 0, 0.7)',
-                            textStrokeWidth: 3,
-                            anchor: 'center', 
-                            align: 'center',
+                            textStrokeColor: 'rgba(0, 0, 0, 0.8)',
+                            textStrokeWidth: 4,
+                            anchor: 'end', 
+                            align: 'start', 
+                            offset: window.innerWidth < 640 ? 8 : 15, 
                             
                             font: function(context) {
-                                const value = context.dataset.data[context.dataIndex];
-                                const total = context.chart._metasets[context.datasetIndex].total;
-                                const percentage = (value / total) * 100;
-                                
+                                const isMobile = window.innerWidth < 640;
                                 return {
-                                    weight: '800',
+                                    weight: '900',
                                     family: 'Inter',
-                                    size: (percentage >= 5 && percentage < 10) ? 4 : 10
+                                    size: isMobile ? 14 : 18 
                                 };
                             },
                             
@@ -551,13 +713,55 @@
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false }, 
                     scales: {
                         x: { stacked: true, grid: { display: false }, border: { display: false }, ticks: { font: {size: 11} } },
-                        y: { stacked: true, max: 5, grid: { color: '#e8c06415' }, border: { display: false } }
+                        y: { 
+                            stacked: true, 
+                            max: 5, 
+                            grid: { color: '#e8c06415' }, 
+                            border: { display: false },
+                            ticks: {
+                                callback: function(value) { return value.toFixed(2); }
+                            }
+                        }
                     },
                     plugins: {
                         legend: { position: 'top', labels: { boxWidth: 12, font: {size: 12, family: 'Inter'}, color: '#d1d5db' } },
-                        datalabels: { display: false } 
+                        datalabels: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(20, 20, 20, 0.95)',
+                            titleFont: { size: 14, weight: 'bold', family: 'Inter' },
+                            bodyFont: { size: 13, family: 'Inter' },
+                            footerFont: { size: 11, family: 'Inter', weight: 'bold' },
+                            footerColor: '#e8c064', 
+                            padding: 12,
+                            borderColor: '#e8c06440',
+                            borderWidth: 1,
+                            callbacks: {
+                                // 🟢 NEW: Rounds the top labels directly generated by ChartJS to 2 decimals
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y.toFixed(2);
+                                    }
+                                    return label;
+                                },
+                                footer: function(tooltipItems) {
+                                    const dataIndex = tooltipItems[0].dataIndex;
+                                    const dish = trends[dataIndex];
+                                    return [
+                                        '', 
+                                        `✨ Certified Comeback:`,
+                                        `• Surged from ${dish.lastWeek.toFixed(2)} to ${dish.thisWeek.toFixed(2)} ⭐`,
+                                        `• Verified by ${dish.votesThisWeek} recent votes`
+                                    ];
+                                }
+                            }
+                        }
                     }
                 }
             });
