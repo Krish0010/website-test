@@ -27,13 +27,34 @@
         }
     </script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; color: #e8c064; -webkit-font-smoothing: antialiased; }
-        .tagline-font { font-family: 'Playfair Display', serif; }
-        .page-textured-overlay { background-image: linear-gradient(rgba(10, 10, 10, 0.95), rgba(10, 10, 10, 0.95)), url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"); }
-        table { border-collapse: collapse; width: 100%; table-layout: fixed; }
-        .gauge-path { transition: stroke-dasharray 1.5s ease-out; }
-        th { cursor: pointer; user-select: none; transition: background 0.2s; }
-        th:hover { background-color: rgba(232, 192, 100, 0.1); }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #0a0a0a; 
+            color: #e8c064; 
+            -webkit-font-smoothing: antialiased; 
+        }
+        .tagline-font { 
+            font-family: 'Playfair Display', serif; 
+        }
+        .page-textured-overlay { 
+            background-image: linear-gradient(rgba(10, 10, 10, 0.95), rgba(10, 10, 10, 0.95)), url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"); 
+        }
+        table { 
+            border-collapse: collapse; 
+            width: 100%; 
+            table-layout: fixed; 
+        }
+        .gauge-path { 
+            transition: stroke-dasharray 1.5s ease-out; 
+        }
+        th { 
+            cursor: pointer; 
+            user-select: none; 
+            transition: background 0.2s; 
+        }
+        th:hover { 
+            background-color: rgba(232, 192, 100, 0.1); 
+        }
 
         .target-tooltip {
             position: absolute;
@@ -53,13 +74,63 @@
             letter-spacing: 1px;
         }
 
-        #timeTrendsChart {
-            touch-action: pan-y !important;
+        #timeTrendsChart, #menuMatrixChart { 
+            touch-action: pan-y !important; 
         }
         
-        .comment-scroll::-webkit-scrollbar { width: 4px; }
-        .comment-scroll::-webkit-scrollbar-track { background: transparent; }
-        .comment-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar { 
+            width: 4px; 
+        }
+        .custom-scroll::-webkit-scrollbar-track { 
+            background: transparent; 
+        }
+        .custom-scroll::-webkit-scrollbar-thumb { 
+            background: #333; 
+            border-radius: 4px; 
+        }
+
+        .tooltip-container { 
+            position: relative; 
+            display: inline-flex; 
+            cursor: pointer;
+        }
+        .tooltip-text {
+            visibility: hidden;
+            width: max-content;
+            max-width: 200px;
+            background-color: #1a1a1a;
+            color: #e8c064;
+            text-align: center;
+            border: 1px solid #e8c06440;
+            border-radius: 12px;
+            padding: 8px 12px;
+            position: absolute;
+            z-index: 60;
+            bottom: 125%; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            font-size: 11px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            line-height: 1.4;
+            letter-spacing: 0.02em;
+            opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s, visibility 0.3s;
+        }
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 20px; 
+            border-width: 6px;
+            border-style: solid;
+            border-color: #e8c06440 transparent transparent transparent;
+        }
+        .tooltip-container:hover .tooltip-text,
+        .tooltip-container.active .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+            bottom: 140%;
+        }
     </style>
 </head>
 <body class="min-h-screen p-3 sm:p-6 lg:p-8 page-textured-overlay flex flex-col items-center overflow-x-hidden">
@@ -80,6 +151,22 @@
 
     <div id="dashboard-content" class="w-full max-w-5xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 sm:gap-6 hidden animate-in fade-in duration-500">
         
+        <div id="ai-executive-brief" class="bg-[#0a0a0a] border border-brand-gold/40 rounded-2xl p-5 sm:p-6 shadow-[0_0_20px_rgba(232,192,100,0.1)] lg:col-span-6 mb-2 hidden relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-brand-gold/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+            <div class="text-brand-gold text-xs sm:text-sm font-black tracking-widest uppercase mb-4 flex items-center gap-2">
+                <span class="text-lg">🤖</span> AI Executive Brief
+            </div>
+            <ul id="ai-brief-list" class="space-y-3 text-xs sm:text-sm text-gray-300 font-medium leading-relaxed mb-2">
+                </ul>
+            <div class="mt-4 pt-3 border-t border-gray-800/50 flex items-start gap-1.5 text-[9px] sm:text-[10px] text-gray-500 italic">
+                <span class="text-gray-400 font-normal">ⓘ</span>
+                <span class="leading-tight">Disclaimer: These insights are automatically generated based on raw feedback patterns. While designed to be highly accurate, AI analysis can sometimes miss human nuances. Always verify critical data before making operational changes.</span>
+            </div>
+        </div>
+
+        <div id="critical-alerts-container" class="lg:col-span-6 hidden flex flex-col gap-2 mb-2">
+            </div>
+
         <div class="bg-brand-card-black border border-brand-gold/30 rounded-2xl p-5 sm:p-6 shadow-xl sm:col-span-2 lg:col-span-3 flex flex-col justify-center relative overflow-hidden">
             <div class="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-brand-gold/5 rounded-full blur-3xl -mr-8 -mt-8 sm:-mr-10 sm:-mt-10"></div>
             <div class="text-gray-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-2 sm:mb-3">🏆 Top Performing Dish</div>
@@ -147,8 +234,8 @@
                 <div><span class="text-brand-gold">📈</span> Customer Satisfaction Trend</div>
                 <span class="text-[9px] sm:text-[10px] text-gray-500 font-normal lowercase">(3-day avg)</span>
             </div>
-            <div style="height: 300px; sm:height: 350px; position: relative; width: 100%;">
-                <canvas id="timeTrendsChart"></canvas>
+            <div style="height: 300px; position: relative; width: 100%; touch-action: pan-y;">
+                <canvas id="timeTrendsChart" style="touch-action: pan-y !important;"></canvas>
             </div>
             <div class="text-center text-[9px] text-brand-gold/60 uppercase tracking-widest mt-4">
                 <span class="sm:hidden">↔ Drag to explore • 🔍 Pinch to zoom</span>
@@ -158,8 +245,14 @@
 
         <div class="lg:col-span-6 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-2">
             <div class="bg-brand-card-black border border-gray-800 rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col">
-                <div class="text-white text-xs sm:text-sm font-bold tracking-widest uppercase mb-4 text-center leading-snug">
+                <div class="text-white text-xs sm:text-sm font-bold tracking-widest uppercase mb-4 flex items-center justify-center leading-snug">
                     <span class="text-success-green text-sm mr-1">🚀</span> Most Improved Dishes
+                    <div class="tooltip-container flex items-center" onclick="toggleDishTooltip('tip-imp', event)" id="tip-imp">
+                        <span class="text-gray-500 hover:text-brand-gold transition-colors cursor-pointer text-xs ml-1.5 mt-0.5">ⓘ</span>
+                        <span class="tooltip-text w-[180px] p-2 text-center normal-case tracking-normal shadow-2xl font-medium text-gray-300" style="left: 50%; transform: translateX(-50%); bottom: 150%;">
+                            Compared to last week.<br><span class="text-brand-gold font-bold">Min. 3 votes required.</span>
+                        </span>
+                    </div>
                 </div>
                 <div class="flex justify-center gap-4 mb-4 text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase tracking-widest">
                     <div class="flex items-center gap-1"><div class="w-3 h-3 bg-[#4ade80] rounded-sm"></div> Last Week</div>
@@ -171,8 +264,14 @@
             </div>
 
             <div class="bg-brand-card-black border border-gray-800 rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col">
-                <div class="text-white text-xs sm:text-sm font-bold tracking-widest uppercase mb-4 text-center leading-snug">
+                <div class="text-white text-xs sm:text-sm font-bold tracking-widest uppercase mb-4 flex items-center justify-center leading-snug">
                     <span class="text-danger-red text-sm mr-1">🔻</span> Dishes That Declined
+                    <div class="tooltip-container flex items-center" onclick="toggleDishTooltip('tip-dec', event)" id="tip-dec">
+                        <span class="text-gray-500 hover:text-brand-gold transition-colors cursor-pointer text-xs ml-1.5 mt-0.5">ⓘ</span>
+                        <span class="tooltip-text w-[200px] p-2 text-center normal-case tracking-normal shadow-2xl font-medium text-gray-300" style="left: 50%; transform: translateX(-50%); bottom: 150%;">
+                            Compared to last week.<br><span class="text-brand-gold font-bold">Min. 3 votes required AND volume must equal or exceed last week.</span>
+                        </span>
+                    </div>
                 </div>
                 <div class="flex justify-center gap-4 mb-4 text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase tracking-widest">
                     <div class="flex items-center gap-1"><div class="w-3 h-3 bg-[#4ade80] rounded-sm"></div> This Week</div>
@@ -184,16 +283,110 @@
             </div>
         </div>
 
-        <div class="bg-brand-card-black border border-gray-800 rounded-2xl p-5 sm:p-8 lg:col-span-6 shadow-xl mt-2">
-            <div class="text-white text-xs sm:text-sm font-bold tracking-widest uppercase mb-6 flex items-center gap-2">
-                <span class="text-brand-gold">🗣️</span> Customer Voice (Latest Comments)
+        <div class="bg-brand-card-black border border-gray-800 rounded-2xl p-5 sm:p-8 lg:col-span-6 shadow-xl mt-2 sm:mt-4 overflow-x-auto">
+            <div class="text-white text-xs sm:text-sm font-bold tracking-widest uppercase mb-2 text-center leading-snug flex items-center justify-center gap-2">
+                <span class="text-brand-gold text-lg">🕒</span> Operational Quality Heatmap
+            </div>
+            <div class="text-center text-[9px] text-gray-500 font-normal mb-6">Average rating by Day & Hour (Past 30 Days • Atleast 3 Votes )</div>
+            
+            <div id="heatmap-container" class="min-w-[600px] flex flex-col gap-1.5">
+                </div>
+            
+            <div class="flex justify-center items-center gap-4 mt-6 text-[9px] uppercase tracking-widest font-bold text-gray-400">
+                <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded shadow-sm" style="background-color: #ef4444"></div> Needs Attention (≤ 3.0)</div>
+                <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded shadow-sm" style="background-color: #e8c064"></div> Acceptable (3.1 - 4.0)</div>
+                <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded shadow-sm" style="background-color: #4ade80"></div> Excellent (> 4.0)</div>
+            </div>
+        </div>
+
+        <div id="matrix-section-container" class="bg-brand-card-black border border-gray-800 rounded-2xl p-5 sm:p-8 lg:col-span-6 shadow-xl mt-2 sm:mt-4 relative">
+            
+            <div class="text-white text-xs sm:text-sm font-bold tracking-widest uppercase mb-4 flex justify-center items-center leading-snug">
+                <span class="text-brand-gold text-sm mr-1">🧭</span> Menu Engineering Matrix
+                <div class="tooltip-container flex items-center" onclick="toggleDishTooltip('tip-matrix', event)" id="tip-matrix">
+                    <span class="text-gray-500 hover:text-brand-gold transition-colors cursor-pointer text-sm ml-2 mt-0.5">ⓘ</span>
+                    <span class="tooltip-text w-[180px] p-2 text-center normal-case tracking-normal shadow-2xl font-medium text-gray-300" style="left: 50%; transform: translateX(-50%); bottom: 150%;">
+                        Uses all-time data.<br><span class="text-brand-gold font-bold">Min. 4 votes required to plot.</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-4 sm:gap-8 mb-6 text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                <div id="leg-stars" class="tooltip-container flex items-center gap-1 hover:text-white transition-colors" onclick="toggleDishTooltip('leg-stars', event)">
+                    <div class="w-3 h-3 bg-[#4ade80] rounded-sm shadow-sm"></div> Stars
+                    <span class="tooltip-text w-[200px] p-3 text-left normal-case tracking-normal shadow-2xl" style="left: -10px; bottom: 150%;">
+                        <span class="text-[#4ade80] font-black uppercase">Stars (Keep)</span><br>Perfect recipe, highly popular. Don't change a thing.
+                    </span>
+                </div>
+                <div id="leg-plow" class="tooltip-container flex items-center gap-1 hover:text-white transition-colors" onclick="toggleDishTooltip('leg-plow', event)">
+                    <div class="w-3 h-3 bg-[#3b82f6] rounded-sm shadow-sm"></div> Plowhorses
+                    <span class="tooltip-text w-[200px] p-3 text-left normal-case tracking-normal shadow-2xl" style="right: -10px; left: auto; bottom: 150%;">
+                        <span class="text-[#3b82f6] font-black uppercase">Plowhorses (Fix)</span><br>Highly ordered, but lower rated. Tweak the recipe.
+                    </span>
+                </div>
+                <div id="leg-gems" class="tooltip-container flex items-center gap-1 hover:text-white transition-colors" onclick="toggleDishTooltip('leg-gems', event)">
+                    <div class="w-3 h-3 bg-[#e8c064] rounded-sm shadow-sm"></div> Hidden Gems
+                    <span class="tooltip-text w-[200px] p-3 text-left normal-case tracking-normal shadow-2xl" style="left: -10px; bottom: 150%;">
+                        <span class="text-[#e8c064] font-black uppercase">Hidden Gems (Promote)</span><br>Excellent rating, low sales. Push marketing!
+                    </span>
+                </div>
+                <div id="leg-dogs" class="tooltip-container flex items-center gap-1 hover:text-white transition-colors" onclick="toggleDishTooltip('leg-dogs', event)">
+                    <div class="w-3 h-3 bg-[#ef4444] rounded-sm shadow-sm"></div> Dogs
+                    <span class="tooltip-text w-[200px] p-3 text-left normal-case tracking-normal shadow-2xl" style="right: -10px; left: auto; bottom: 150%;">
+                        <span class="text-[#ef4444] font-black uppercase">Dogs (Remove)</span><br>Low rating, low sales. Consider removing.
+                    </span>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4 relative z-[60]">
+                <div class="relative w-full max-w-sm mx-auto sm:mx-0">
+                    <input type="text" id="matrix-search" placeholder="Spotlight a dish on the grid..." autocomplete="off" class="w-full bg-[#0a0a0a] border border-gray-800 text-white rounded-full px-5 py-2.5 text-xs focus:outline-none focus:border-brand-gold/50 transition-all placeholder-gray-600 shadow-inner">
+                    <span class="absolute right-4 top-2.5 opacity-30 text-sm">🔍</span>
+                    
+                    <ul id="matrix-search-dropdown" class="absolute w-full mt-2 bg-[#141414] border border-brand-gold/30 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] max-h-48 overflow-y-auto hidden z-[70] custom-scroll"></ul>
+                </div>
+                <button onclick="resetMatrixZoom()" class="text-[10px] uppercase tracking-widest text-brand-gold border border-brand-gold/30 px-4 py-2 rounded-full hover:bg-brand-gold hover:text-black transition-colors hidden shadow-lg z-[60]" id="reset-zoom-btn">
+                    Clear Search / Reset Zoom
+                </button>
+            </div>
+
+            <div class="text-center text-[9px] text-brand-gold/60 uppercase tracking-widest mb-3">
+                <span class="sm:hidden">Pinch to zoom • 1-finger swipe to scroll page</span>
+                <span class="hidden sm:inline">Ctrl + Scroll to zoom 🔎 • Ctrl + Drag to pan</span>
+            </div>
+
+            <div style="height: 350px; position: relative; width: 100%; touch-action: pan-y;">
+                <canvas id="menuMatrixChart" style="touch-action: pan-y !important;"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-brand-card-black border border-gray-800 rounded-2xl p-5 sm:p-8 lg:col-span-6 shadow-xl mt-2 sm:mt-4 relative">
+            <div class="text-white text-xs sm:text-sm font-bold tracking-widest uppercase mb-4 flex items-center justify-between">
+                <div class="flex items-center gap-2"><span class="text-brand-gold">🗣️</span> Customer Voice</div>
+                <button onclick="window.toggleCommentSort()" id="comment-sort-btn" class="text-[9px] sm:text-[10px] text-gray-400 hover:text-brand-gold border border-gray-800 hover:border-brand-gold/50 px-3 py-1.5 rounded-full transition-colors flex items-center gap-1 focus:outline-none">
+                    <span>⬇️ NEWEST FIRST</span>
+                </button>
+            </div>
+
+            <div class="mb-6 bg-[#0a0a0a] border border-gray-800/50 rounded-xl p-4">
+                <div class="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                    <span>🤖</span> AI Keyword Analysis
+                </div>
+                <div class="text-[9px] text-gray-600 mb-3 italic leading-snug">
+                    *Note: Words like "spicy," "fatty," or "smoky" can sometimes be positive based on context. Click a tag to view dishes and read their comments to verify true customer sentiment.
+                </div>
+                <div id="keyword-tags-container" class="flex flex-wrap gap-2">
+                    <span class="text-gray-600 text-[10px] italic font-medium">Scanning comments...</span>
+                </div>
+                <div id="keyword-breakdown-container" class="mt-4 hidden bg-[#141414] p-3.5 rounded-lg border border-gray-700 max-h-48 overflow-y-auto custom-scroll shadow-inner relative">
+                </div>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div class="bg-[#0a0a0a] border border-success-green/30 rounded-xl p-4">
                     <div class="text-[10px] font-bold text-success-green uppercase tracking-widest mb-1">Top Rated</div>
                     <div id="comment-top-name" class="text-white font-bold mb-3 truncate">--</div>
-                    <ul id="comment-top-list" class="text-gray-300 text-xs space-y-2 max-h-48 overflow-y-auto comment-scroll pr-2">
+                    <ul id="comment-top-list" class="text-gray-300 text-xs space-y-2 max-h-48 overflow-y-auto custom-scroll pr-2">
                         <li class="italic text-gray-600">Loading comments...</li>
                     </ul>
                 </div>
@@ -201,7 +394,7 @@
                 <div class="bg-[#0a0a0a] border border-danger-red/30 rounded-xl p-4">
                     <div class="text-[10px] font-bold text-danger-red uppercase tracking-widest mb-1">Underperforming</div>
                     <div id="comment-low-name" class="text-white font-bold mb-3 truncate">--</div>
-                    <ul id="comment-low-list" class="text-gray-300 text-xs space-y-2 max-h-48 overflow-y-auto comment-scroll pr-2">
+                    <ul id="comment-low-list" class="text-gray-300 text-xs space-y-2 max-h-48 overflow-y-auto custom-scroll pr-2">
                         <li class="italic text-gray-600">Loading comments...</li>
                     </ul>
                 </div>
@@ -209,13 +402,17 @@
 
             <div class="relative w-full max-w-md mx-auto mb-4">
                 <input type="text" id="comment-search" placeholder="Search for a dish to read all comments..." 
-                       class="w-full bg-[#0a0a0a] border border-gray-800 text-white rounded-full px-5 py-3 text-xs sm:text-sm focus:outline-none focus:border-brand-gold/50 transition-all placeholder-gray-600">
-                <span class="absolute right-5 top-3.5 opacity-30 text-sm">🔍</span>
+                       class="w-full bg-[#0a0a0a] border border-gray-800 text-white rounded-full px-5 py-3 text-xs sm:text-sm focus:outline-none focus:border-brand-gold/50 transition-all placeholder-gray-600 pr-16">
+                <button id="clear-comment-search" onclick="window.clearCommentSearch()" class="absolute right-10 top-3.5 text-gray-500 hover:text-danger-red text-lg leading-none hidden focus:outline-none transition-colors">&times;</button>
+                <span class="absolute right-5 top-3.5 opacity-30 text-sm pointer-events-none">🔍</span>
             </div>
             
             <div id="comment-search-results" class="hidden bg-[#0a0a0a] border border-brand-gold/30 rounded-xl p-4 max-w-2xl mx-auto">
-                <div id="comment-search-name" class="text-brand-gold font-bold mb-3 truncate">--</div>
-                <ul id="comment-search-list" class="text-gray-300 text-xs space-y-2 max-h-60 overflow-y-auto comment-scroll pr-2"></ul>
+                <div id="comment-search-name" class="text-brand-gold font-bold mb-2 truncate text-lg">--</div>
+                
+                <div id="comment-search-tags" class="flex flex-wrap gap-1.5 mb-3 hidden"></div>
+                
+                <ul id="comment-search-list" class="text-gray-300 text-xs space-y-2 max-h-60 overflow-y-auto custom-scroll pr-2"></ul>
             </div>
         </div>
 
@@ -228,9 +425,16 @@
         </div>
 
         <div class="lg:col-span-6 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-2">
-            
             <div class="bg-brand-card-black rounded-2xl p-4 sm:p-6 shadow-2xl border border-gray-800 flex flex-col">
-                <h2 class="text-base sm:text-lg font-bold text-white mb-4 sm:mb-6 text-center">Top-Performing Dishes</h2>
+                <div class="flex items-center justify-center mb-4 sm:mb-6">
+                    <h2 class="text-base sm:text-lg font-bold text-white m-0">Top-Performing Dishes</h2>
+                    <div class="tooltip-container flex items-center" onclick="toggleDishTooltip('tip-top', event)" id="tip-top">
+                        <span class="text-gray-500 hover:text-brand-gold transition-colors cursor-pointer text-sm ml-2">ⓘ</span>
+                        <span class="tooltip-text w-[180px] p-2 text-center normal-case tracking-normal shadow-2xl font-medium text-gray-300" style="left: 50%; transform: translateX(-50%); bottom: 150%;">
+                            <span class="text-brand-gold font-bold">Min. 3 votes required.</span><br>Avg rating must be ≥ 3.7
+                        </span>
+                    </div>
+                </div>
                 <div class="rounded-lg border border-gray-800/50 overflow-hidden">
                     <table class="w-full text-left text-sm table-fixed">
                         <thead>
@@ -247,9 +451,17 @@
             </div>
 
             <div class="bg-brand-card-black rounded-2xl p-4 sm:p-6 shadow-2xl border border-gray-800 flex flex-col">
-                <h2 class="text-base sm:text-lg font-bold text-white mb-4 sm:mb-6 text-center flex items-center justify-center gap-2">
-                    <span class="text-danger-red text-sm">🔻</span> Least Liked Dishes
-                </h2>
+                <div class="flex items-center justify-center mb-4 sm:mb-6 gap-2">
+                    <h2 class="text-base sm:text-lg font-bold text-white flex items-center justify-center gap-2 m-0">
+                        <span class="text-danger-red text-sm">🔻</span> Least Liked Dishes
+                    </h2>
+                    <div class="tooltip-container flex items-center" onclick="toggleDishTooltip('tip-low', event)" id="tip-low">
+                        <span class="text-gray-500 hover:text-brand-gold transition-colors cursor-pointer text-sm">ⓘ</span>
+                        <span class="tooltip-text w-[180px] p-2 text-center normal-case tracking-normal shadow-2xl font-medium text-gray-300" style="left: 50%; transform: translateX(-50%); bottom: 150%;">
+                            <span class="text-brand-gold font-bold">Min. 3 votes required.</span><br>Avg rating must be &lt; 3.7
+                        </span>
+                    </div>
+                </div>
                 <div class="rounded-lg border border-gray-800/50 overflow-hidden">
                     <table class="w-full text-left text-sm table-fixed">
                         <thead>
@@ -267,6 +479,17 @@
         </div>
     </div>
 
+    <div id="draggable-matrix-tooltip" class="fixed bg-[#141414]/95 border border-brand-gold/60 text-white rounded-xl p-0 shadow-[0_10px_50px_rgba(0,0,0,0.9)] z-[9999] hidden flex-col w-[260px] sm:w-[320px]" style="touch-action: none;">
+        <div class="drag-handle bg-[#0a0a0a] rounded-t-xl px-4 py-3 border-b border-brand-gold/20 flex justify-between items-center cursor-move select-none">
+            <span class="text-[8px] text-brand-gold font-black uppercase tracking-widest flex items-center gap-2">
+                <span class="text-base leading-none">✋</span> Drag to move
+            </span>
+            <button onclick="closeDraggableTooltip()" class="text-gray-500 hover:text-white text-2xl leading-none px-2 focus:outline-none">&times;</button>
+        </div>
+        <div id="draggable-matrix-content" class="p-4 flex flex-col gap-3 max-h-[40vh] overflow-y-auto custom-scroll">
+            </div>
+    </div>
+
     <div id="comment-modal" class="fixed inset-0 bg-black/80 z-[200] hidden flex flex-col items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300 opacity-0" style="transition: opacity 0.3s ease;">
         <div class="bg-brand-card-black border border-brand-gold/50 rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-2xl relative transform transition-transform duration-300 scale-95" id="comment-modal-content">
             <button onclick="closeCommentModal()" class="absolute top-3 right-4 text-gray-500 hover:text-white text-2xl font-bold">&times;</button>
@@ -278,29 +501,21 @@
 
     <div class="w-full mt-12 sm:mt-16 flex flex-col items-center justify-center">
         <div class="w-screen h-[1px] bg-gradient-to-r from-transparent via-brand-gold/60 to-transparent"></div>
-
         <div class="flex flex-col items-center gap-3 mt-8">
             <p class="tagline-font text-white text-lg tracking-wide opacity-90">
                 Treat Better With Foodstorytvc
             </p>
-
             <img src="https://i.ibb.co/Xx2hfF5j/foostroytvc-logo-new.jpg" alt="FOODSTORYTVC Logo" class="w-20 h-20 rounded-full border-2 border-brand-gold object-cover shadow-[0_0_15px_rgba(232,192,100,0.2)]">
-            
-            
-            
-            <p class="text-[9px] sm:text-[10px] font-bold tracking-widest uppercase text-gray-500 mt-5 mb-1">Understand • Engage • Grow
-</p>
+            <p class="text-[9px] sm:text-[10px] font-bold tracking-widest uppercase text-gray-500 mt-5 mb-1">Understand • Engage • Grow</p>
         </div>
-
         <a href="https://www.foodstorytvc.com" target="_blank" class="text-brand-gold font-bold tracking-widest uppercase text-sm hover:text-white transition-colors duration-300 mt-1 mb-8">
                 www.foodstorytvc.com
-            </a>
-
+        </a>
         <div class="w-screen h-[1px] bg-gradient-to-r from-transparent via-brand-gold/60 to-transparent mb-10"></div>
     </div>
 
     <script>
-        const OWNER_API_URL = "https://script.google.com/macros/s/AKfycbzPKIje61r5Obh4CrZA3WilSre29pZGDiweHCsIlZPB9OaXdbSKEZ57NFyrWJSfyxkhjA/exec"; 
+        const OWNER_API_URL = "https://script.google.com/macros/s/AKfycbwPYbTsRsfeEVZwjp54pYbaVNQz4JmYKleqiPU7pbqNqeQn70cP4akyMATfIEmFKHt9OQ/exec"; 
         
         let timeChart = null;
         let allDishesGlobal = [];
@@ -308,18 +523,1268 @@
         let originalBottomDishes = [];
         let sortDirections = { top: {}, bottom: {} };
 
-        // Global Target Popup State
+        // Matrix Global Variables
+        window.matrixChartInstance = null;
+        window.matrixSearchTerm = '';
+        window.isTooltipManuallyPositioned = false;
+
+        // 🟢 COMMENT SORTING STATE
+        window.commentSortOrder = 'desc'; // 'desc' = newest first, 'asc' = oldest first
+        window.topDishComments = [];
+        window.lowDishComments = [];
+        window.searchDishComments = [];
+
         let isPopupFixed = false;
         const popup = document.getElementById('target-popup');
 
+        // 🟢 UPDATED DICTIONARY (Phrases + Manglish Slang + Emojis)
+        const keywordConfig = {
+            // 🔴 NEGATIVE THEMES
+            'Small Portion': { type: 'negative', emoji: '⚖️', words: ['small portion', 'less quantity', 'too small', 'tiny portion', 'skimpy', 'not enough', 'unfulfilling', 'valare kurav', 'korav','kurav', 'illarnu','illayrnnu','theere', 'shokam quantity', 'korache ollu','kurach', '🤏', '📉'] },
+            'Too Salty': { type: 'negative', emoji: '🧂', words: ['too salty', 'oversalted', 'lot of salt', 'high sodium', 'upp kooduthal', 'uppu koodi', 'uppu rasam', 'kadal vellam','upp illa', 'upp', 'puli'] },
+            'Too Spicy': { type: 'negative', emoji: '🌶️', words: ['too spicy', 'too hot', 'overspiced', 'burning', 'too much spice', 'erivu kooduthal', 'erivu koodi', 'bhayankara erivu', 'pukayunnu', 'erivu', '🥵'] },
+            'Oily / Greasy': { type: 'negative', emoji: '🛢️', words: ['too oily', 'greasy', 'dripping in oil', 'swimming in oil', 'oil kooduthal', 'valare oily', 'ennamayam', 'enna mayam'] },
+            'Cold Food': { type: 'negative', emoji: '🧊', words: ['served cold', 'food was cold', 'not hot enough', 'lukewarm', 'chilled', 'thanuthu poyi', 'thanutha food', 'choodilla','chood illa', '🥶', '🧊'] },
+            'Slow Service': { type: 'negative', emoji: '⏳', words: ['slow service', 'long wait', 'delayed', 'took a long time', 'arrived late', 'ignored', 'thamasam','thaamasam', 'kore time eduth', 'valare slow', 'shokam service', 'waiting kooduthal', 'lagging', 'van post', 'post aaki', '🐌', '🐢', '🥱'] },
+            'Overpriced': { type: 'negative', emoji: '💸', words: ['overpriced', 'too expensive', 'high price', 'costly', 'ripoff', 'not worth the price', 'valare costly', 'kollakkaar', 'rate kooduthal', 'over price', 'over priced'] },
+            'Bland / Bad Taste': { type: 'negative', emoji: '😐', words: ['bland', 'tasteless', 'flavorless', 'no flavor', 'lacks flavor', 'koora', 'shokam', 'vrukthiketta','vrithiketta', 'mosham', 'verum shokam', 'taste illa', 'tasteum illa','kuzhappam', 'boring', '🤢', '🤮', '👎', '😞', '😡', '🤬'] },
+            'Bad Texture / Cooking': { type: 'negative', emoji: '🥩', words: ['tough meat', 'hard to chew', 'chewy', 'burnt', 'overcooked', 'too dry', 'karinju poyi', 'vattipoyi', 'katti kooduthal', 'rubber pole','rubber', 'venthilla', 'pachakku'] },
+            'Unclean / Hygiene': { type: 'negative', emoji: '🧹', words: ['dirty', 'unclean', 'messy', 'hair in','hair', 'bug in', 'bad hygiene', 'smelled bad', 'gross', 'vrithiyilla', 'found a hair','bug', 'praani', 'insect', 'mosham environment', 'naatam', 'bad smell', 'vrithi illa', 'fresh alla','fresh ala', 'pazhakiya', 'chalicha', '🦟', '🐛'] },
+            
+            // 🟢 POSITIVE THEMES
+            'Delicious': { type: 'positive', emoji: '🤤', words: ['delicious', 'tasty', 'yummy', 'amazing', 'perfect', 'flavorful', 'best', 'loved it', 'fantastic', 'superb', 'great taste', 'kidu', 'kidilam', 'pwoli', 'adipoli', 'super', 'gambhheeram', 'gambheeram', 'rakshayilla', 'raksha illa', 'must try', 'oru rakshayum illa', 'polichu', 'marana mass', 'vere level', '😍', '🤤', '😋', '🔥', '❤️', '👌', '💯', '🥰', '🤩', '🫡', '😘' ] },
+            'Good Portion': { type: 'positive', emoji: '🍱', words: ['generous portion', 'good quantity', 'huge portion', 'filling', 'large portion', 'plenty of food', 'great size', 'nalla quantity', 'dharalam', 'valiya portion', 'vallya portion','niranju'] },
+            'Great Service': { type: 'positive', emoji: '🤝', words: ['friendly', 'fast service', 'quick service', 'attentive', 'polite', 'helpful staff','helpfull', 'welcoming', 'nalla service', 'speed delivery', 'adipoli service', 'nalla perumattam', '👍', '👏', '🙌'] },
+            'Fresh / Hot': { type: 'positive', emoji: '♨️', words: ['served hot', 'piping hot', 'steaming', 'very fresh', 'high quality', 'good quality', 'nalla choodu', 'fresh food', 'fresh fish', 'fresh meen', 'fresh seafood'] },
+            'Value for Money': { type: 'positive', emoji: '💰', words: ['worth the money', 'affordable', 'cheap','budget option', 'good price', 'reasonable price', 'great value', 'less price', 'low price', 'pocket friendly', 'paisa vasool', 'muthalayi', 'mothalaayi', 'mothalayi', 'budget friendly'] }
+        };
+        window.globalKeywordStats = {};
+
+        // ==========================================
+        // 1. HELPER FUNCTIONS
+        // ==========================================
+
+        // 🟢 NEW: TOGGLE SORT ORDER FUNCTION
+        window.toggleCommentSort = function() {
+            window.commentSortOrder = window.commentSortOrder === 'desc' ? 'asc' : 'desc';
+            const btn = document.getElementById('comment-sort-btn');
+            
+            if (window.commentSortOrder === 'desc') {
+                btn.innerHTML = `<span>⬇️ NEWEST FIRST</span>`;
+            } else {
+                btn.innerHTML = `<span>⬆️ OLDEST FIRST</span>`;
+            }
+            
+            // Re-render all active lists so they automatically sort on click
+            renderCommentList('comment-top-list', window.topDishComments);
+            renderCommentList('comment-low-list', window.lowDishComments);
+            renderCommentList('comment-search-list', window.searchDishComments);
+        };
+
+        function renderCommentList(elementId, comments) {
+            const listEl = document.getElementById(elementId);
+            
+            if (!comments || comments.length === 0) { 
+                listEl.innerHTML = `<li class="italic text-gray-600 p-2">No written comments yet.</li>`; 
+                return; 
+            }
+
+            // 🟢 NEW: SORT THE COMMENTS BEFORE RENDERING
+            let sortedComments = [...comments];
+            sortedComments.sort((a, b) => {
+                let timeA = a.rawTime || 0;
+                let timeB = b.rawTime || 0;
+                return window.commentSortOrder === 'desc' ? timeB - timeA : timeA - timeB;
+            });
+            
+            let htmlString = "";
+            for (let i = 0; i < sortedComments.length; i++) {
+                let cObj = sortedComments[i];
+                let cText = cObj.text || "";
+                let timeStr = cObj.time || "Recent";
+                
+                let cleanHTML = cText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                let safeForJS = cleanHTML.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                
+                if (cleanHTML.length > 75) {
+                    let shortText = cleanHTML.substring(0, 75) + '...';
+                    htmlString += `
+                        <li class="bg-[#141414] p-3 rounded-lg border border-gray-800 cursor-pointer hover:border-brand-gold/50 transition-colors relative" onclick="openCommentModal('${safeForJS}')">
+                            <div class="absolute top-2 right-3 text-[8px] text-gray-600 font-medium tracking-wider uppercase">${timeStr}</div>
+                            <div class="mt-2 pr-8">
+                                <span class="text-brand-gold opacity-50 mr-1">"</span>${shortText}
+                                <span class="text-brand-gold font-bold text-[10px] ml-1 underline uppercase tracking-wider">Read more</span>
+                            </div>
+                        </li>`;
+                } else {
+                    htmlString += `
+                        <li class="bg-[#141414] p-3 rounded-lg border border-gray-800 relative">
+                            <div class="absolute top-2 right-3 text-[8px] text-gray-600 font-medium tracking-wider uppercase">${timeStr}</div>
+                            <div class="mt-2 pr-8">
+                                <span class="text-brand-gold opacity-50 mr-1">"</span>${cleanHTML}<span class="text-brand-gold opacity-50 ml-1">"</span>
+                            </div>
+                        </li>`;
+                }
+            }
+            listEl.innerHTML = htmlString;
+        }
+
+        function openCommentModal(text) {
+            const modal = document.getElementById('comment-modal');
+            const modalContent = document.getElementById('comment-modal-content');
+            document.getElementById('comment-modal-text').innerText = text;
+            modal.classList.remove('hidden'); 
+            void modal.offsetWidth; 
+            modal.classList.remove('opacity-0');
+            modalContent.classList.remove('scale-95'); 
+            modalContent.classList.add('scale-100');
+        }
+
+        function closeCommentModal() {
+            const modal = document.getElementById('comment-modal');
+            const modalContent = document.getElementById('comment-modal-content');
+            modal.classList.add('opacity-0'); 
+            modalContent.classList.remove('scale-100'); 
+            modalContent.classList.add('scale-95');
+            setTimeout(() => { 
+                modal.classList.add('hidden'); 
+            }, 300);
+        }
+
+        function sortData(type, key) {
+            const list = type === 'top' ? originalTopDishes : originalBottomDishes;
+            sortDirections[type][key] = !sortDirections[type][key];
+            const dir = sortDirections[type][key] ? 1 : -1;
+            
+            list.sort((a, b) => {
+                if (a[key] < b[key]) return -1 * dir;
+                if (a[key] > b[key]) return 1 * dir;
+                return 0;
+            });
+            
+            if (type === 'top') {
+                renderTable('top-dishes-table', list);
+            } else {
+                renderTable('bottom-dishes-table', list);
+            }
+        }
+
+        function renderTable(tableId, dishes) {
+            const tbody = document.getElementById(tableId);
+            
+            if (!dishes || dishes.length === 0) { 
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center text-gray-500 py-8 text-xs">No dishes match this criteria.</td></tr>`; 
+                return; 
+            }
+            
+            let maxR = 0;
+            for (let i = 0; i < dishes.length; i++) {
+                if (dishes[i].reviews > maxR) maxR = dishes[i].reviews;
+            }
+            
+            let htmlString = "";
+            for (let i = 0; i < dishes.length; i++) {
+                let d = dishes[i];
+                let ratingBg = d.rating >= 3.7 ? 'bg-[#16a34a]' : 'bg-[#dc2626]';
+                let opacity = Math.max(0.2, d.reviews / maxR);
+                
+                htmlString += `
+                    <tr class="border-b border-gray-800 hover:bg-[#1a1a1a] transition-colors">
+                        <td class="py-2 sm:py-3 pl-2 sm:pl-4 text-white font-bold text-[10px] sm:text-xs leading-tight whitespace-normal break-words">
+                            <span class="text-gray-500 mr-1 sm:mr-2">${i + 1}.</span> ${d.name}
+                        </td>
+                        <td class="py-2 sm:py-3 text-center text-white font-semibold text-[10px] sm:text-xs whitespace-nowrap">${d.likedPct}%</td>
+                        <td class="py-2 sm:py-3 text-center font-bold text-white text-[10px] sm:text-xs ${ratingBg}">${d.rating.toFixed(1)}</td>
+                        <td class="py-2 sm:py-3 text-center font-bold text-white text-[10px] sm:text-xs whitespace-nowrap pr-2" style="background-color: rgba(8, 145, 178, ${opacity})">${d.reviews}</td>
+                    </tr>`;
+            }
+            tbody.innerHTML = htmlString;
+        }
+
+        function toggleDishTooltip(uniqueId, event) {
+            event.stopPropagation(); 
+            const tooltipContainer = document.getElementById(uniqueId);
+            
+            if (tooltipContainer.classList.contains('active')) {
+                tooltipContainer.classList.remove('active');
+            } else {
+                let allActive = document.querySelectorAll('.tooltip-container.active');
+                for (let i = 0; i < allActive.length; i++) {
+                    if (allActive[i].id !== uniqueId) {
+                        allActive[i].classList.remove('active');
+                    }
+                }
+                tooltipContainer.classList.add('active');
+            }
+        }
+
+        function handleCustomDraggableTooltip(context) {
+            const chart = context.chart;
+            const tooltip = context.tooltip;
+            const tooltipEl = document.getElementById('draggable-matrix-tooltip');
+            const contentEl = document.getElementById('draggable-matrix-content');
+
+            if (tooltip.opacity === 0) return; 
+
+            if (tooltip.body) {
+                const dataPoint = tooltip.dataPoints[0].raw;
+                const dsIndex = tooltip.dataPoints[0].datasetIndex;
+                
+                const categoryColors = ['#4ade80', '#3b82f6', '#e8c064', '#ef4444'];
+                const datasetColor = categoryColors[dsIndex];
+                
+                let html = '';
+                for (let i = 0; i < dataPoint.names.length; i++) {
+                    let name = dataPoint.names[i];
+                    html += `
+                        <div class="mb-2 last:mb-0 bg-[#0a0a0a] p-3 rounded-lg border border-gray-800">
+                            <div class="font-bold text-sm text-brand-gold flex items-center gap-2">
+                                <div class="w-3 h-3 rounded-sm shadow-sm shrink-0" style="background-color: ${datasetColor};"></div> 
+                                ${name}
+                            </div>
+                            <div class="text-[11px] text-gray-300 mt-1 pl-5 font-semibold tracking-wide">
+                                ⭐ Rating: ${dataPoint.y.toFixed(2)} &nbsp;|&nbsp; 📊 Volume: ${dataPoint.x}
+                            </div>
+                        </div>
+                    `;
+                }
+                contentEl.innerHTML = html;
+            }
+
+            tooltipEl.classList.remove('hidden');
+            tooltipEl.classList.add('flex');
+
+            if (!window.isTooltipManuallyPositioned) {
+                const rect = tooltipEl.getBoundingClientRect();
+                const x = (window.innerWidth - rect.width) / 2;
+                const y = (window.innerHeight - rect.height) / 2;
+                tooltipEl.style.left = x + 'px';
+                tooltipEl.style.top = y + 'px';
+            }
+        }
+
+        function closeDraggableTooltip() {
+            const tooltipEl = document.getElementById('draggable-matrix-tooltip');
+            tooltipEl.classList.add('hidden');
+            tooltipEl.classList.remove('flex');
+            window.isTooltipManuallyPositioned = false; 
+        }
+
+        function resetMatrixZoom() {
+            if (window.matrixChartInstance) {
+                window.matrixChartInstance.resetZoom();
+                window.matrixSearchTerm = '';
+                document.getElementById('matrix-search').value = '';
+                
+                window.matrixChartInstance.setActiveElements([]);
+                window.matrixChartInstance.tooltip.setActiveElements([], { x: 0, y: 0 });
+                window.matrixChartInstance.update();
+                
+                document.getElementById('reset-zoom-btn').classList.add('hidden');
+                closeDraggableTooltip();
+            }
+        }
+
+        function makeDraggable(element) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            const header = element.querySelector('.drag-handle');
+
+            if (header) {
+                header.onmousedown = dragMouseDown;
+                header.ontouchstart = dragTouchStart;
+            }
+
+            function dragMouseDown(e) {
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function dragTouchStart(e) {
+                pos3 = e.touches[0].clientX;
+                pos4 = e.touches[0].clientY;
+                document.ontouchend = closeDragElement;
+                document.ontouchmove = elementDragTouch;
+            }
+
+            function elementDrag(e) {
+                e.preventDefault();
+                window.isTooltipManuallyPositioned = true;
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                element.style.top = (element.offsetTop - pos2) + "px";
+                element.style.left = (element.offsetLeft - pos1) + "px";
+            }
+
+            function elementDragTouch(e) {
+                window.isTooltipManuallyPositioned = true;
+                pos1 = pos3 - e.touches[0].clientX;
+                pos2 = pos4 - e.touches[0].clientY;
+                pos3 = e.touches[0].clientX;
+                pos4 = e.touches[0].clientY;
+                element.style.top = (element.offsetTop - pos2) + "px";
+                element.style.left = (element.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+                document.ontouchend = null;
+                document.ontouchmove = null;
+            }
+        }
+
+        window.selectMatrixDish = function(dishName) {
+            const matrixSearch = document.getElementById('matrix-search');
+            const matrixDropdown = document.getElementById('matrix-search-dropdown');
+            
+            matrixSearch.value = dishName;
+            window.matrixSearchTerm = dishName.toLowerCase();
+            matrixDropdown.classList.add('hidden');
+
+            const chart = window.matrixChartInstance;
+            if (!chart) return;
+
+            let targetDatasetIndex = -1;
+            let targetDataIndex = -1;
+
+            chart.data.datasets.forEach((dataset, dsIndex) => {
+                dataset.data.forEach((point, ptIndex) => {
+                    if (point.names && point.names.some(n => n.toLowerCase() === dishName.toLowerCase())) {
+                        targetDatasetIndex = dsIndex;
+                        targetDataIndex = ptIndex;
+                    }
+                });
+            });
+
+            if (targetDatasetIndex !== -1) {
+                const activeElements = [{ datasetIndex: targetDatasetIndex, index: targetDataIndex }];
+                chart.update();
+                chart.setActiveElements(activeElements);
+                chart.tooltip.setActiveElements(activeElements, { x: 0, y: 0 });
+                chart.update();
+                document.getElementById('reset-zoom-btn').classList.remove('hidden');
+            }
+        };
+
+        function analyzeKeywords(dishes) {
+            let keywordStats = {};
+            
+            Object.keys(keywordConfig).forEach(k => {
+                keywordStats[k] = { total: 0, dishes: {} };
+            });
+
+            for (let i = 0; i < dishes.length; i++) {
+                let d = dishes[i];
+                if (d.comments && d.comments.length > 0) {
+                    for (let j = 0; j < d.comments.length; j++) {
+                        let lowerC = (d.comments[j].text || "").toLowerCase();
+                        
+                        Object.keys(keywordConfig).forEach(category => {
+                            let triggers = keywordConfig[category].words;
+                            let isMatch = false;
+                            
+                            for (let t = 0; t < triggers.length; t++) {
+                                if (lowerC.includes(triggers[t])) {
+                                    isMatch = true;
+                                    break;
+                                }
+                            }
+                            
+                            if (isMatch) {
+                                keywordStats[category].total++;
+                                if (!keywordStats[category].dishes[d.name]) {
+                                    keywordStats[category].dishes[d.name] = 0;
+                                }
+                                keywordStats[category].dishes[d.name]++;
+                            }
+                        });
+                    }
+                }
+            }
+
+            window.globalKeywordStats = keywordStats;
+
+            let categoriesArray = [];
+            Object.keys(keywordStats).forEach(k => {
+                if (keywordStats[k].total > 0) {
+                    categoriesArray.push({
+                        name: k,
+                        total: keywordStats[k].total,
+                        config: keywordConfig[k]
+                    });
+                }
+            });
+
+            categoriesArray.sort((a, b) => b.total - a.total);
+
+            const container = document.getElementById('keyword-tags-container');
+            if (!container) return;
+
+            if (categoriesArray.length === 0) {
+                container.innerHTML = `<span class="text-gray-600 text-[10px] italic font-medium">Gathering data... No recurring themes detected yet.</span>`;
+                return;
+            }
+
+            let htmlString = "";
+            for (let i = 0; i < categoriesArray.length; i++) {
+                let cat = categoriesArray[i];
+                
+                let colorClasses = cat.config.type === 'positive' 
+                    ? 'bg-success-green/10 border-success-green/30 hover:bg-success-green/20 text-success-green' 
+                    : 'bg-danger-red/10 border-danger-red/30 hover:bg-danger-red/20 text-danger-red';
+
+                htmlString += `
+                    <button onclick="window.showKeywordBreakdown('${cat.name}')" class="${colorClasses} px-3 py-1.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer">
+                        <span class="text-xs">${cat.config.emoji}</span> ${cat.name} (${cat.total})
+                    </button>
+                `;
+            }
+            container.innerHTML = htmlString;
+        }
+
+        window.showKeywordBreakdown = function(categoryName) {
+            const container = document.getElementById('keyword-breakdown-container');
+            const data = window.globalKeywordStats[categoryName];
+            const config = keywordConfig[categoryName];
+            if (!data) return;
+
+            let dishesArray = [];
+            Object.keys(data.dishes).forEach(dName => {
+                dishesArray.push({ name: dName, count: data.dishes[dName] });
+            });
+            dishesArray.sort((a, b) => b.count - a.count);
+
+            let textColorClass = config.type === 'positive' ? 'text-success-green' : 'text-danger-red';
+
+            let html = `
+                <div class="flex justify-between items-start mb-2">
+                    <div class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mt-1">Dishes flagged for: <span class="text-white">${categoryName}</span></div>
+                    <button onclick="window.closeKeywordBreakdown()" class="text-gray-500 hover:text-white text-2xl leading-none focus:outline-none -mt-1">&times;</button>
+                </div>
+            `;
+            html += `<ul class="text-xs text-gray-300 space-y-1.5 mt-2">`;
+            
+            for (let i = 0; i < dishesArray.length; i++) {
+                let d = dishesArray[i];
+                let safeName = d.name.replace(/'/g, "\\'");
+                html += `
+                    <li class="cursor-pointer hover:text-brand-gold transition-colors flex items-center gap-2" onclick="window.autoSearchComment('${safeName}')">
+                        <span class="${textColorClass} font-bold bg-[#0a0a0a] px-1.5 rounded">${d.count}x</span> 
+                        <span class="underline decoration-gray-600 hover:decoration-brand-gold underline-offset-2">${d.name}</span>
+                    </li>
+                `;
+            }
+            html += `</ul>`;
+
+            container.innerHTML = html;
+            container.classList.remove('hidden');
+        };
+
+        window.closeKeywordBreakdown = function() {
+            document.getElementById('keyword-breakdown-container').classList.add('hidden');
+        };
+
+        window.autoSearchComment = function(dishName) {
+            const searchInput = document.getElementById('comment-search');
+            searchInput.value = dishName;
+            searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+            searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        };
+
+        window.clearCommentSearch = function() {
+            const searchInput = document.getElementById('comment-search');
+            searchInput.value = '';
+            searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+        };
+
+        function analyzeDishSpecificKeywords(dish) {
+            let counts = {};
+            Object.keys(keywordConfig).forEach(k => counts[k] = 0);
+
+            if (dish.comments && dish.comments.length > 0) {
+                for (let i = 0; i < dish.comments.length; i++) {
+                    let lowerC = (dish.comments[i].text || "").toLowerCase();
+                    
+                    Object.keys(keywordConfig).forEach(category => {
+                        let triggers = keywordConfig[category].words;
+                        for (let t = 0; t < triggers.length; t++) {
+                            if (lowerC.includes(triggers[t])) {
+                                counts[category]++;
+                                break; 
+                            }
+                        }
+                    });
+                }
+            }
+
+            let tagsArray = [];
+            Object.keys(counts).forEach(k => {
+                if (counts[k] >= 3) { 
+                    tagsArray.push({ name: k, count: counts[k], config: keywordConfig[k] });
+                }
+            });
+
+            tagsArray.sort((a, b) => b.count - a.count);
+            
+            if (tagsArray.length > 5) { 
+                tagsArray = tagsArray.slice(0, 5);
+            }
+
+            const tagsContainer = document.getElementById('comment-search-tags');
+            if (tagsArray.length > 0) {
+                let htmlString = "";
+                for (let i = 0; i < tagsArray.length; i++) {
+                    let cat = tagsArray[i];
+                    let colorClasses = cat.config.type === 'positive' 
+                        ? 'bg-success-green/10 border-success-green/30 text-success-green' 
+                        : 'bg-danger-red/10 border-danger-red/30 text-danger-red';
+                        
+                    htmlString += `
+                        <span class="${colorClasses} px-2 py-1 rounded-md text-[8px] sm:text-[9px] font-bold uppercase tracking-widest flex items-center gap-1">
+                            ${cat.config.emoji} ${cat.name} (${cat.count})
+                        </span>
+                    `;
+                }
+                tagsContainer.innerHTML = htmlString;
+                tagsContainer.classList.remove('hidden');
+            } else {
+                tagsContainer.innerHTML = '';
+                tagsContainer.classList.add('hidden');
+            }
+        }
+
+        // ==========================================
+        // 2. CHART RENDERING FUNCTIONS
+        // ==========================================
+
+        function renderTimeChart(data) {
+            const ctx = document.getElementById('timeTrendsChart').getContext('2d');
+            
+            if (Chart.getChart("timeTrendsChart")) {
+                Chart.getChart("timeTrendsChart").destroy();
+            }
+
+            const formatAxisDate = (ds) => { 
+                const d = new Date(ds); 
+                return `${d.getDate().toString().padStart(2,'0')}-${d.toLocaleString('default',{month:'short'})}`; 
+            };
+            
+            const formatTooltipDate = (ds) => { 
+                const d = new Date(ds); 
+                return `${d.getDate().toString().padStart(2,'0')}-${d.toLocaleString('default',{month:'short'})}-${d.getFullYear().toString().slice(-2)}`; 
+            };
+
+            const isMobile = window.innerWidth < 640; 
+            const maxVisible = isMobile ? 20 : Math.min(data.length, 45); 
+            const startIndex = Math.max(0, data.length - maxVisible);
+
+            let labelsArray = [];
+            let valuesArray = [];
+            
+            for (let i = 0; i < data.length; i++) {
+                labelsArray.push(data[i].date);
+                valuesArray.push(data[i].value);
+            }
+
+            new Chart(ctx, { 
+                type: 'line', 
+                data: { 
+                    labels: labelsArray, 
+                    datasets: [{ 
+                        data: valuesArray, 
+                        borderColor: '#e8c064', 
+                        backgroundColor: 'rgba(232, 192, 100, 0.08)', 
+                        borderWidth: 3, 
+                        tension: 0.15, 
+                        fill: true, 
+                        pointRadius: 0, 
+                        pointHitRadius: 25, 
+                        pointHoverRadius: 6, 
+                        pointBackgroundColor: '#e8c064' 
+                    }] 
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { display: false }, 
+                        zoom: { 
+                            pan: { enabled: true, mode: 'x' }, 
+                            zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' } 
+                        }, 
+                        tooltip: { 
+                            backgroundColor: '#141414', 
+                            titleColor: '#e8c064', 
+                            borderColor: '#e8c064', 
+                            borderWidth: 1, 
+                            padding: 12, 
+                            titleFont: { size: 11 }, 
+                            bodyFont: { size: 12, weight: 'bold' }, 
+                            callbacks: { 
+                                title: (ctxs) => formatTooltipDate(ctxs[0].label), 
+                                label: (c) => `3-Day Avg: ${c.raw}` 
+                            } 
+                        } 
+                    }, 
+                    scales: { 
+                        y: { 
+                            min: 2.5, 
+                            max: 5.0, 
+                            grid: { color: 'rgba(255,255,255,0.03)' }, 
+                            ticks: { color: '#6b7280', font: { size: 10 } } 
+                        }, 
+                        x: { 
+                            min: data[startIndex]?.date, 
+                            max: data[data.length - 1]?.date, 
+                            grid: { display: false }, 
+                            ticks: { 
+                                color: '#6b7280', 
+                                maxRotation: 45, 
+                                font: { size: 9 }, 
+                                callback: function(v) { 
+                                    return formatAxisDate(this.getLabelForValue(v)); 
+                                } 
+                            } 
+                        } 
+                    } 
+                }
+            });
+        }
+
+        function createImprovedChart(data) {
+            const canvas = document.getElementById('improvedChart'); 
+            const ctx = canvas.getContext('2d'); 
+            
+            if (Chart.getChart("improvedChart")) {
+                Chart.getChart("improvedChart").destroy();
+            }
+            
+            if (!data || data.length === 0) { 
+                ctx.clearRect(0, 0, canvas.width, canvas.height); 
+                const centerX = canvas.width / 2; 
+                const centerY = canvas.height / 2; 
+                ctx.textAlign = "center"; 
+                ctx.textBaseline = "middle"; 
+                ctx.font = "bold 14px Inter"; 
+                ctx.fillStyle = "#6b7280"; 
+                ctx.fillText("Let's Aim Big Next Week 🚀", centerX, centerY + 30); 
+                ctx.font = "11px Inter"; 
+                ctx.fillStyle = "#4b5563"; 
+                ctx.fillText("No big improvements this week.", centerX, centerY + 50); 
+                return; 
+            }
+
+            const isMobile = window.innerWidth < 640; 
+            
+            let labelsArray = [];
+            let lastWkDataArray = [];
+            let changeDataArray = [];
+            
+            for (let i = 0; i < data.length; i++) {
+                labelsArray.push(data[i].name);
+                lastWkDataArray.push(data[i].lastWeek);
+                changeDataArray.push(data[i].change);
+            }
+            
+            new Chart(ctx, { 
+                type: 'bar', 
+                data: { 
+                    labels: labelsArray, 
+                    datasets: [ 
+                        { 
+                            label: "Last Week's Avg", 
+                            data: lastWkDataArray, 
+                            backgroundColor: '#4ade80', 
+                            stack: 'Stack 0', 
+                            barThickness: isMobile ? 18 : 30 
+                        }, 
+                        { 
+                            label: "Improvement", 
+                            data: changeDataArray, 
+                            backgroundColor: '#e8c064', 
+                            stack: 'Stack 0', 
+                            borderRadius: { topLeft: 4, topRight: 4 }, 
+                            barThickness: isMobile ? 18 : 30 
+                        } 
+                    ] 
+                }, 
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { display: false }, 
+                        tooltip: { 
+                            backgroundColor: '#141414', 
+                            titleColor: '#e8c064', 
+                            borderColor: '#e8c064', 
+                            borderWidth: 1, 
+                            padding: 12, 
+                            callbacks: { 
+                                label: function(c) { 
+                                    const i = c.dataIndex; 
+                                    return [
+                                        `This Week: ${(lastWkDataArray[i] + changeDataArray[i]).toFixed(2)}`, 
+                                        `Change: +${changeDataArray[i].toFixed(2)}`, 
+                                        `Last Week: ${lastWkDataArray[i].toFixed(2)}`
+                                    ]; 
+                                } 
+                            } 
+                        } 
+                    }, 
+                    scales: { 
+                        x: { 
+                            stacked: true, 
+                            grid: { display: false }, 
+                            ticks: { color: '#6b7280', font: { size: 9 } } 
+                        }, 
+                        y: { 
+                            stacked: true, 
+                            min: 0, 
+                            max: 5.0, 
+                            grid: { color: 'rgba(255,255,255,0.03)' }, 
+                            ticks: { color: '#6b7280', font: { size: 10 } } 
+                        } 
+                    } 
+                } 
+            });
+        }
+
+        function createDeclinedChart(data) {
+            const canvas = document.getElementById('declinedChart'); 
+            const ctx = canvas.getContext('2d'); 
+            
+            if (Chart.getChart("declinedChart")) {
+                Chart.getChart("declinedChart").destroy();
+            }
+            
+            if (!data || data.length === 0) { 
+                ctx.clearRect(0, 0, canvas.width, canvas.height); 
+                const centerX = canvas.width / 2; 
+                const centerY = canvas.height / 2; 
+                ctx.textAlign = "center"; 
+                ctx.textBaseline = "middle"; 
+                ctx.font = "40px Inter"; 
+                ctx.fillText("🎉", centerX, centerY - 5); 
+                ctx.font = "bold 16px Inter"; 
+                ctx.fillStyle = "#4ade80"; 
+                ctx.fillText("All Good!", centerX, centerY + 35); 
+                ctx.font = "10px Inter"; 
+                ctx.fillStyle = "#6b7280"; 
+                ctx.fillText("No negative trends detected this week.", centerX, centerY + 55); 
+                return; 
+            }
+
+            const isMobile = window.innerWidth < 640; 
+            
+            let labelsArray = [];
+            let thisWkDataArray = [];
+            let changeDataArray = [];
+            let lastWkDataArray = [];
+            
+            for (let i = 0; i < data.length; i++) {
+                labelsArray.push(data[i].name);
+                thisWkDataArray.push(data[i].thisWeek);
+                changeDataArray.push(data[i].change);
+                lastWkDataArray.push(data[i].lastWeek);
+            }
+            
+            new Chart(ctx, { 
+                type: 'bar', 
+                data: { 
+                    labels: labelsArray, 
+                    datasets: [ 
+                        { 
+                            label: "This Week's Rating", 
+                            data: thisWkDataArray, 
+                            backgroundColor: '#4ade80', 
+                            stack: 'Stack 0', 
+                            barThickness: isMobile ? 18 : 30 
+                        }, 
+                        { 
+                            label: "Decline", 
+                            data: changeDataArray, 
+                            backgroundColor: '#ef4444', 
+                            stack: 'Stack 0', 
+                            borderRadius: { bottomLeft: 4, bottomRight: 4 }, 
+                            barThickness: isMobile ? 18 : 30 
+                        } 
+                    ] 
+                }, 
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { display: false }, 
+                        tooltip: { 
+                            backgroundColor: '#141414', 
+                            titleColor: '#ef4444', 
+                            borderColor: '#ef4444', 
+                            borderWidth: 1, 
+                            padding: 12, 
+                            callbacks: { 
+                                label: function(c) { 
+                                    const i = c.dataIndex; 
+                                    return [
+                                        `Last Week: ${lastWkDataArray[i].toFixed(2)}`, 
+                                        `Change: ${changeDataArray[i].toFixed(2)}`, 
+                                        `This Week: ${thisWkDataArray[i].toFixed(2)}`
+                                    ]; 
+                                } 
+                            } 
+                        } 
+                    }, 
+                    scales: { 
+                        x: { 
+                            stacked: true, 
+                            grid: { display: false }, 
+                            ticks: { color: '#6b7280', font: { size: 9 } } 
+                        }, 
+                        y: { 
+                            stacked: true, 
+                            suggestedMin: -1.0, 
+                            max: 5.0, 
+                            grid: { color: 'rgba(255,255,255,0.03)', zeroLineColor: '#6b7280' }, 
+                            ticks: { color: '#6b7280', font: { size: 10 } } 
+                        } 
+                    } 
+                } 
+            });
+        }
+
+        function renderMenuMatrix(dishes) {
+            const canvas = document.getElementById('menuMatrixChart');
+            const ctx = canvas.getContext('2d');
+            
+            if (window.matrixChartInstance) {
+                window.matrixChartInstance.destroy();
+            }
+
+            const validDishes = dishes.filter(d => d.reviews >= 4);
+
+            if (validDishes.length === 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                ctx.textAlign = "center"; 
+                ctx.textBaseline = "middle";
+                ctx.font = "bold 14px Inter"; 
+                ctx.fillStyle = "#6b7280"; 
+                ctx.fillText("Gathering Menu Data 📊", centerX, centerY);
+                ctx.font = "11px Inter"; 
+                ctx.fillStyle = "#4b5563"; 
+                ctx.fillText("Dishes need at least 4 votes to appear on the matrix.", centerX, centerY + 25);
+                return;
+            }
+
+            let sumVol = 0;
+            for (let i = 0; i < validDishes.length; i++) {
+                sumVol += validDishes[i].reviews;
+            }
+            const avgVol = sumVol / validDishes.length;
+            const ratingThreshold = 3.8; 
+
+            const grouped = {};
+            for (let i = 0; i < validDishes.length; i++) {
+                let d = validDishes[i];
+                let key = `${d.reviews}-${d.rating}`;
+                if (!grouped[key]) {
+                    grouped[key] = { x: d.reviews, y: d.rating, names: [] };
+                }
+                grouped[key].names.push(d.name);
+            }
+
+            const stars = [];
+            const plowhorses = [];
+            const gems = [];
+            const dogs = [];
+
+            const groupValues = Object.values(grouped);
+            for (let i = 0; i < groupValues.length; i++) {
+                let point = groupValues[i];
+                if (point.y >= ratingThreshold && point.x >= avgVol) {
+                    stars.push(point);
+                } else if (point.y < ratingThreshold && point.x >= avgVol) {
+                    plowhorses.push(point);
+                } else if (point.y >= ratingThreshold && point.x < avgVol) {
+                    gems.push(point);
+                } else {
+                    dogs.push(point);
+                }
+            }
+
+            const getPointStyle = (context, baseColor, matchColor, dimColor) => {
+                const term = window.matrixSearchTerm || '';
+                if (term.length < 2) return baseColor;
+                
+                let matches = false;
+                for (let i = 0; i < context.raw.names.length; i++) {
+                    if (context.raw.names[i].toLowerCase().includes(term)) {
+                        matches = true;
+                        break;
+                    }
+                }
+                return matches ? matchColor : dimColor;
+            };
+
+            const getPointRadius = (context, baseRad, matchRad, dimRad) => {
+                const term = window.matrixSearchTerm || '';
+                if (term.length < 2) return baseRad;
+                
+                let matches = false;
+                for (let i = 0; i < context.raw.names.length; i++) {
+                    if (context.raw.names[i].toLowerCase().includes(term)) {
+                        matches = true;
+                        break;
+                    }
+                }
+                return matches ? matchRad : dimRad;
+            };
+
+            const createDataset = (label, data, color) => {
+                return {
+                    label: label,
+                    data: data,
+                    backgroundColor: (c) => getPointStyle(c, color, '#ffffff', 'rgba(50,50,50,0.3)'),
+                    borderColor: (c) => getPointStyle(c, '#141414', color, 'transparent'),
+                    borderWidth: (c) => getPointRadius(c, 2, 3, 0),
+                    pointRadius: (c) => getPointRadius(c, 6, 12, 3),
+                    pointHoverRadius: 14
+                };
+            };
+
+            window.matrixChartInstance = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        createDataset('Stars', stars, '#4ade80'),
+                        createDataset('Plowhorses', plowhorses, '#3b82f6'),
+                        createDataset('Hidden Gems', gems, '#e8c064'),
+                        createDataset('Dogs', dogs, '#ef4444')
+                    ]
+                },
+                options: {
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        zoom: {
+                            pan: { enabled: true, mode: 'x', modifierKey: 'ctrl' }, 
+                            zoom: { 
+                                wheel: { enabled: true, modifierKey: 'ctrl' }, 
+                                pinch: { enabled: true }, 
+                                mode: 'x',
+                                onZoomComplete: () => {
+                                    document.getElementById('reset-zoom-btn').classList.remove('hidden');
+                                }
+                            }
+                        },
+                        tooltip: {
+                            enabled: false, 
+                            external: handleCustomDraggableTooltip
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            title: { display: true, text: 'Volume (Total Votes)', color: '#6b7280', font: {size: 10, weight: 'bold', family: 'Inter', letterSpacing: 1} }, 
+                            grid: { color: 'rgba(255,255,255,0.03)' }, 
+                            ticks: { color: '#6b7280', precision: 0 } 
+                        },
+                        y: { 
+                            min: 0, 
+                            max: 5.0, 
+                            title: { display: true, text: 'Quality (Avg Rating)', color: '#6b7280', font: {size: 10, weight: 'bold', family: 'Inter', letterSpacing: 1} }, 
+                            grid: { color: 'rgba(255,255,255,0.03)' }, 
+                            ticks: { color: '#6b7280' } 
+                        }
+                    }
+                }
+            });
+        }
+
+        // 🟢 NEW: ALERTS RENDERER
+        function renderAlerts(alerts) {
+            const container = document.getElementById('critical-alerts-container');
+            if (!alerts || alerts.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+            container.classList.remove('hidden');
+            let html = '';
+            for(let i=0; i<alerts.length; i++) {
+                html += `
+                    <div class="bg-[#2a0e0e] border-l-4 border-danger-red rounded-r-xl p-4 flex items-center justify-between shadow-lg">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl animate-pulse">🚨</span>
+                            <div>
+                                <div class="text-danger-red font-black uppercase tracking-widest text-xs sm:text-sm">Alert: ${alerts[i].name}</div>
+                                <div class="text-gray-300 text-[10px] sm:text-xs mt-0.5 font-medium">${alerts[i].message}</div>
+                            </div>
+                        </div>
+                        <button onclick="window.autoSearchComment('${alerts[i].name.replace(/'/g, "\\'")}')" class="bg-danger-red text-white text-[9px] sm:text-[10px] px-3 py-2 rounded font-bold uppercase tracking-wider hover:bg-red-600 transition-colors shadow-md hidden sm:block">
+                            View Feedback
+                        </button>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        // 🟢 NEW: HEATMAP RENDERER
+        function renderHeatmap(data) {
+            const container = document.getElementById('heatmap-container');
+            if(!data || data.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray-500 text-xs py-8">Not enough time-based data available yet.</div>';
+                return;
+            }
+
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const startHour = 10; // 10 AM (Assumed Opening time, change if needed)
+            const endHour = 23;   // 11 PM (Assumed Closing time)
+            
+            const grid = {};
+            data.forEach(d => { grid[`${d.day}-${d.hour}`] = d; });
+
+            // Create Header Row (Time Ranges)
+            let html = '<div class="flex gap-1 mb-1"><div class="w-10 shrink-0"></div>'; 
+            for(let h=startHour; h<=endHour; h++) {
+                let startNum = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+                let nextH = h + 1;
+                let endAmpm = nextH >= 12 && nextH < 24 ? 'P' : 'A';
+                let endNum = nextH > 12 ? nextH - 12 : (nextH === 0 ? 12 : nextH);
+                
+                let displayRange = `${startNum}-${endNum}${endAmpm}`; // e.g., "12-1P"
+                html += `<div class="flex-1 text-center text-[8px] sm:text-[9px] text-gray-500 font-bold uppercase whitespace-nowrap">${displayRange}</div>`;
+            }
+            html += '</div>';
+
+            // Create Rows (Days)
+            for(let d=0; d<7; d++) {
+                html += `<div class="flex gap-1 items-center"><div class="w-10 text-[9px] text-brand-gold font-bold uppercase tracking-widest shrink-0 text-right pr-2">${days[d]}</div>`;
+                for(let h=startHour; h<=endHour; h++) {
+                    let cellData = grid[`${d}-${h}`];
+                    let bgColor = '#111111'; // Default empty
+                    let tooltip = 'No orders recorded';
+                    let label = '';
+                    
+                    // Format nice times for Tooltip (e.g., 12:00 PM - 1:00 PM)
+                    let ampm1 = h >= 12 ? 'PM' : 'AM';
+                    let hr1 = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+                    let ampm2 = (h+1) >= 12 && (h+1) < 24 ? 'PM' : 'AM';
+                    let hr2 = (h+1) > 12 ? (h+1) - 12 : ((h+1) === 0 ? 12 : (h+1));
+                    let fullTimeRange = `${hr1}:00 ${ampm1} - ${hr2}:00 ${ampm2}`;
+
+                    if(cellData) {
+                        if(cellData.avg <= 3.0) bgColor = '#ef4444'; // Red
+                        else if(cellData.avg <= 4.0) bgColor = '#e8c064'; // Gold
+                        else bgColor = '#4ade80'; // Green
+                        
+                        tooltip = `${days[d]} ${fullTimeRange}<br>Avg Rating: ${cellData.avg} (${cellData.votes} votes)`;
+                        label = cellData.avg;
+                    }
+
+                    html += `
+                        <div class="flex-1 aspect-square rounded border border-gray-800 flex items-center justify-center relative group transition-transform hover:scale-110 z-10" style="background-color: ${bgColor}">
+                            <span class="text-[8px] font-black text-black opacity-60 pointer-events-none">${label}</span>
+                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-black text-white text-[9px] whitespace-nowrap rounded border border-gray-700 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-lg z-50">
+                                ${tooltip}
+                            </div>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+            }
+            container.innerHTML = html;
+        }
+
+        // 🟢 NEW: AI EXECUTIVE BRIEF ENGINE
+        function generateExecutiveBrief(data) {
+            const briefList = document.getElementById('ai-brief-list');
+            const container = document.getElementById('ai-executive-brief');
+            let bullets = [];
+
+            // 1. Overall & Trend Insight
+            let trendPhrase = "remaining stable";
+            if (data.timeData && data.timeData.length >= 3) {
+                let recentAvg = data.timeData[data.timeData.length - 1].value;
+                let oldAvg = data.timeData[0].value;
+                if (recentAvg > oldAvg + 0.2) trendPhrase = "showing a strong upward trend";
+                else if (recentAvg < oldAvg - 0.2) trendPhrase = "showing a concerning downward trend";
+            }
+            bullets.push(`<li class="flex items-start gap-2"><span class="shrink-0 text-base leading-snug">📊</span> <div><span class="text-white font-bold tracking-wide">Overall Pulse:</span> Customer satisfaction is currently at <b>${data.monthlyRating.toFixed(1)}</b> and is ${trendPhrase} over the selected period.</div></li>`);
+
+            // 2. Keyword Warning
+            let topNeg = null;
+            let maxNeg = 0;
+            for (let key in window.globalKeywordStats) {
+                if (keywordConfig[key].type === 'negative' && window.globalKeywordStats[key].total > maxNeg) {
+                    maxNeg = window.globalKeywordStats[key].total;
+                    let worstDish = Object.keys(window.globalKeywordStats[key].dishes).reduce((a, b) => window.globalKeywordStats[key].dishes[a] > window.globalKeywordStats[key].dishes[b] ? a : b);
+                    topNeg = { name: key, count: maxNeg, dish: worstDish };
+                }
+            }
+            if (topNeg && topNeg.count > 1) {
+                // Find current rating of the impacted dish
+                let affectedDishData = allDishesGlobal.find(d => d.name === topNeg.dish);
+                let ratingContext = affectedDishData ? ` (currently at <b>${affectedDishData.rating.toFixed(1)}⭐</b>)` : "";
+                bullets.push(`<li class="flex items-start gap-2"><span class="shrink-0 text-base leading-snug">⚠️</span> <div><span class="text-danger-red font-bold tracking-wide">Quality Alert:</span> <b>${topNeg.name}</b> is the leading complaint (${topNeg.count} mentions), most heavily impacting <b>${topNeg.dish}</b>${ratingContext}.</div></li>`);
+            }
+
+            // 3. Weekly Momentum (Improved / Declined)
+            if (data.decliningDishes && data.decliningDishes.length > 0) {
+                let worstDrop = data.decliningDishes[0];
+                let votesContext = worstDrop.votesThisWeek > 0 ? ` <i>(${worstDrop.votesThisWeek} votes this week)</i>` : "";
+                bullets.push(`<li class="flex items-start gap-2"><span class="shrink-0 text-base leading-snug">📉</span> <div><span class="text-danger-red font-bold tracking-wide">Steepest Decline:</span> <b>${worstDrop.name}</b> dropped by ${Math.abs(worstDrop.change).toFixed(1)} points this week down to <b>${worstDrop.thisWeek.toFixed(1)}⭐</b>${votesContext}.</div></li>`);
+            }
+            if (data.improvingDishes && data.improvingDishes.length > 0) {
+                let bestGain = data.improvingDishes[0];
+                let votesContext = bestGain.votesThisWeek > 0 ? ` <i>(${bestGain.votesThisWeek} votes this week)</i>` : "";
+                bullets.push(`<li class="flex items-start gap-2"><span class="shrink-0 text-base leading-snug">🚀</span> <div><span class="text-success-green font-bold tracking-wide">Biggest Win:</span> <b>${bestGain.name}</b> improved by +${bestGain.change.toFixed(1)} points up to <b>${bestGain.thisWeek.toFixed(1)}⭐</b>${votesContext}.</div></li>`);
+            }
+
+            // 4. Menu Matrix Insight
+            const validDishes = allDishesGlobal.filter(d => d.reviews >= 4);
+            if (validDishes.length > 0) {
+                let sumVol = 0; validDishes.forEach(d => sumVol += d.reviews);
+                const avgVol = sumVol / validDishes.length;
+                
+                // 🟢 LOGIC UPDATE: Require at least 5 votes to prove a "Hidden Gem" is actually good, and Tie-break sorts
+                let hiddenGems = validDishes.filter(d => d.rating >= 3.8 && d.reviews < avgVol && d.reviews >= 5).sort((a,b) => b.rating !== a.rating ? b.rating - a.rating : b.reviews - a.reviews);
+                let dogs = validDishes.filter(d => d.rating < 3.0 && d.reviews < avgVol).sort((a,b) => a.rating !== b.rating ? a.rating - b.rating : b.reviews - a.reviews);
+                
+                if (hiddenGems.length > 0) {
+                    bullets.push(`<li class="flex items-start gap-2"><span class="shrink-0 text-base leading-snug">💎</span> <div><span class="text-brand-gold font-bold tracking-wide">Menu Opportunity:</span> <b>${hiddenGems[0].name}</b> is a 'Hidden Gem'. It has a near-perfect rating (${hiddenGems[0].rating.toFixed(1)}) but low sales volume. Recommend pushing this on social media or combos.</div></li>`);
+                } else if (dogs.length > 0) {
+                    bullets.push(`<li class="flex items-start gap-2"><span class="shrink-0 text-base leading-snug">🐕</span> <div><span class="text-danger-red font-bold tracking-wide">Menu Risk:</span> <b>${dogs[0].name}</b> is performing poorly (${dogs[0].rating.toFixed(1)}) with low order volume. Consider removing it from the menu to save prep time.</div></li>`);
+                }
+            }
+
+            // 5. Operational Heatmap Insight
+            if (data.heatmapData && data.heatmapData.length > 0) {
+                let worstTime = data.heatmapData.reduce((min, p) => p.avg < min.avg ? p : min, data.heatmapData[0]);
+                if (worstTime.avg <= 3.2) {
+                    const days = ['Sundays', 'Mondays', 'Tuesdays', 'Wednesdays', 'Thursdays', 'Fridays', 'Saturdays'];
+                    let ampm = worstTime.hour >= 12 ? 'PM' : 'AM';
+                    let hr = worstTime.hour > 12 ? worstTime.hour - 12 : (worstTime.hour === 0 ? 12 : worstTime.hour);
+                    bullets.push(`<li class="flex items-start gap-2"><span class="shrink-0 text-base leading-snug">🕒</span> <div><span class="text-[#3b82f6] font-bold tracking-wide">Operational Bottleneck:</span> Kitchen execution struggles on <b>${days[worstTime.day]} around ${hr}:00 ${ampm}</b> (Avg Rating drops to ${worstTime.avg.toFixed(1)}). Ensure adequate staffing or prep during this window.</div></li>`);
+                }
+            }
+
+            if (bullets.length > 0) {
+                briefList.innerHTML = bullets.join('');
+                container.classList.remove('hidden');
+            }
+        }
+
+        // ==========================================
+        // 3. GAUGE LOGIC
+        // ==========================================
+        function polarToCartesian(cx, cy, r, angleDeg) { 
+            let angleRad = angleDeg * Math.PI / 180.0; 
+            return { 
+                x: cx + (r * Math.cos(angleRad)), 
+                y: cy - (r * Math.sin(angleRad)) 
+            }; 
+        }
+
+        function describeArc(cx, cy, r, startAngle, endAngle) { 
+            let start = polarToCartesian(cx, cy, r, startAngle); 
+            let end = polarToCartesian(cx, cy, r, endAngle); 
+            let largeArcFlag = Math.abs(endAngle - startAngle) <= 180 ? "0" : "1"; 
+            return ["M", start.x, start.y, "A", r, r, 0, largeArcFlag, 1, end.x, end.y].join(" "); 
+        }
+
+        function renderCustomGauge(score) {
+            const container = document.getElementById('svg-gauge-container');
+            const cx = 100, cy = 110, r = 85; 
+            const ranges = [ 
+                { start: 0, end: 1.5, color: '#e06666' }, 
+                { start: 1.5, end: 3.0, color: '#f4cccc' }, 
+                { start: 3.0, end: 4.5, color: '#b6d7a8' }, 
+                { start: 4.5, end: 5.0, color: '#fce5cd' } 
+            ];
+            
+            let svg = `<svg viewBox="0 0 200 135" class="w-full h-full overflow-visible drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">`;
+            
+            for (let i = 0; i < ranges.length; i++) {
+                let rng = ranges[i];
+                svg += `<path d="${describeArc(cx, cy, r, 180-(rng.start/5)*180, 180-(rng.end/5)*180)}" stroke="${rng.color}" stroke-width="28" fill="none" />`;
+            }
+            
+            svg += `<path d="${describeArc(cx, cy, r, 180, 180-(score/5)*180)}" stroke="#38761d" stroke-width="12" fill="none" class="gauge-path" />`;
+            
+            let tS = polarToCartesian(100, 110, 70, 180 - (3.5 / 5) * 180);
+            let tE = polarToCartesian(100, 110, 100, 180 - (3.5 / 5) * 180);   
+            svg += `<line id="target-line" x1="${tS.x}" y1="${tS.y}" x2="${tE.x}" y2="${tE.y}" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round" style="cursor:pointer;" />`;
+            
+            const sP = polarToCartesian(100, 110, 85, 180);
+            const eP = polarToCartesian(100, 110, 85, 0);      
+            svg += `<text x="${sP.x}" y="${sP.y + 22}" font-size="11" font-weight="bold" fill="#6b7280" text-anchor="middle">0</text>`;
+            svg += `<text x="${eP.x}" y="${eP.y + 22}" font-size="11" font-weight="bold" fill="#6b7280" text-anchor="middle">5</text></svg>`;
+            
+            container.innerHTML = svg;
+
+            const line = document.getElementById('target-line');
+            
+            const updatePopupPosition = (pageX, pageY, clientX) => {
+                popup.style.display = 'block'; 
+                const rect = popup.getBoundingClientRect(); 
+                let leftPos = pageX + 15;
+                if (clientX + 15 + rect.width > window.innerWidth - 10) { 
+                    leftPos = pageX - rect.width - 15; 
+                }
+                popup.style.left = leftPos + 'px'; 
+                popup.style.top = (pageY - 35) + 'px';
+            };
+
+            line.addEventListener('mouseenter', (e) => { 
+                if(!isPopupFixed) updatePopupPosition(e.pageX, e.pageY, e.clientX); 
+            });
+            line.addEventListener('mousemove', (e) => { 
+                if(!isPopupFixed) updatePopupPosition(e.pageX, e.pageY, e.clientX); 
+            });
+            line.addEventListener('mouseleave', () => { 
+                if(!isPopupFixed) popup.style.display = 'none'; 
+            });
+            
+            const lockPopup = (e) => { 
+                e.preventDefault(); 
+                e.stopPropagation(); 
+                isPopupFixed = true; 
+                let pageX = e.touches ? e.touches[0].pageX : e.pageX; 
+                let pageY = e.touches ? e.touches[0].pageY : e.pageY; 
+                let clientX = e.touches ? e.touches[0].clientX : e.clientX; 
+                updatePopupPosition(pageX, pageY, clientX); 
+            };
+            
+            line.addEventListener('click', lockPopup); 
+            line.addEventListener('touchstart', lockPopup, {passive: false});
+        }
+
+        // ==========================================
+        // 4. MAIN DASHBOARD DATA LOAD
+        // ==========================================
+
         async function loadDashboard() {
             try {
-                if (typeof Chart === 'undefined') { setTimeout(loadDashboard, 200); return; }
+                if (typeof Chart === 'undefined') { 
+                    setTimeout(loadDashboard, 200); 
+                    return; 
+                }
+                
                 const response = await fetch(OWNER_API_URL);
                 const result = await response.json();
-                if (!result.success) throw new Error(result.message);
+                
+                if (!result.success) {
+                    throw new Error(result.message);
+                }
 
                 const data = result.data;
+                
                 document.getElementById('metric-top-dish').innerText = data.topDishName || data.topDish;
                 document.getElementById('metric-low-dish').innerText = data.underperformingDishName || data.underperformingDish;
                 document.getElementById('metric-customers').innerText = data.totalCustomers;
@@ -330,30 +1795,38 @@
                 document.getElementById('gauge-score').innerText = data.monthlyRating.toFixed(1);
 
                 renderCustomGauge(data.monthlyRating);
-                if (data.timeData && data.timeData.length > 0) renderTimeChart(data.timeData);
                 
-                // Populate Comments
+                if (data.timeData && data.timeData.length > 0) {
+                    renderTimeChart(data.timeData);
+                }
+                
                 if (data.topDishName) {
                     document.getElementById('comment-top-name').innerText = data.topDishName;
-                    renderCommentList('comment-top-list', data.topDishComments ? data.topDishComments.slice(-5) : []);
+                    window.topDishComments = data.topDishComments || [];
+                    renderCommentList('comment-top-list', window.topDishComments);
                     
                     document.getElementById('comment-low-name').innerText = data.underperformingDishName;
-                    renderCommentList('comment-low-list', data.underperformingDishComments ? data.underperformingDishComments.slice(-5) : []);
+                    window.lowDishComments = data.underperformingDishComments || [];
+                    renderCommentList('comment-low-list', window.lowDishComments);
                 }
 
-                // Prepare Table Data
-                allDishesGlobal = data.allDishes.map(d => ({ 
-                    ...d, 
-                    likedPct: d.reviews > 0 ? Math.round((d.likes / d.reviews) * 100) : 0 
-                }));
+                allDishesGlobal = [];
+                for (let i = 0; i < data.allDishes.length; i++) {
+                    let d = data.allDishes[i];
+                    d.likedPct = d.reviews > 0 ? Math.round((d.likes / d.reviews) * 100) : 0;
+                    allDishesGlobal.push(d);
+                }
 
-                originalTopDishes = allDishesGlobal.filter(d => d.rating >= 3.7 && d.reviews >= 3).sort((a,b)=>b.rating-a.rating);
-                originalBottomDishes = allDishesGlobal.filter(d => d.rating < 3.7 && d.reviews >= 3).sort((a,b)=>a.rating-b.rating);
+                // 🟢 LOGIC UPDATE: Sort by Rating first, then Tie-Break by total Reviews (Volume)
+                originalTopDishes = allDishesGlobal.filter(d => d.rating >= 3.7 && d.reviews >= 3);
+                originalTopDishes.sort((a,b) => b.rating !== a.rating ? b.rating - a.rating : b.reviews - a.reviews);
+                
+                originalBottomDishes = allDishesGlobal.filter(d => d.rating < 3.7 && d.reviews >= 3);
+                originalBottomDishes.sort((a,b) => a.rating !== b.rating ? a.rating - b.rating : b.reviews - a.reviews);
 
                 renderTable('top-dishes-table', originalTopDishes);
                 renderTable('bottom-dishes-table', originalBottomDishes);
                 
-                // Filter Trend Data (Only >= 0.5 or <= -0.5 change, Max 8 items)
                 const significantImproving = (data.improvingDishes || [])
                     .filter(d => d.change >= 0.5)
                     .sort((a, b) => b.change - a.change)
@@ -364,335 +1837,161 @@
                     .sort((a, b) => a.change - b.change)
                     .slice(0, 8);
 
-                // Render Weekly Trend Charts
                 createImprovedChart(significantImproving);
                 createDeclinedChart(significantDeclining);
+                
+                renderMenuMatrix(allDishesGlobal);
+                
+                // 🟢 TRIGGER KEYWORD ANALYSIS
+                analyzeKeywords(allDishesGlobal);
+
+                // 🟢 TRIGGER ALERTS & HEATMAP
+                renderAlerts(data.criticalAlerts || []);
+                renderHeatmap(data.heatmapData || []);
+                
+                // 🟢 TRIGGER AI EXECUTIVE BRIEF
+                generateExecutiveBrief(data);
 
                 document.getElementById('loading-screen').classList.add('hidden');
                 document.getElementById('dashboard-content').classList.remove('hidden');
 
-                // Table Search
+                const draggableTooltip = document.getElementById('draggable-matrix-tooltip');
+                if (draggableTooltip) {
+                    makeDraggable(draggableTooltip);
+                }
+
+                const matrixContainer = document.getElementById('matrix-section-container');
+                if (matrixContainer) {
+                    const matrixObserver = new IntersectionObserver((entries) => {
+                        for (let i = 0; i < entries.length; i++) {
+                            if (!entries[i].isIntersecting) {
+                                closeDraggableTooltip();
+                            }
+                        }
+                    }, { threshold: 0.1 });
+                    matrixObserver.observe(matrixContainer);
+                }
+
                 document.getElementById('dish-search').addEventListener('input', (e) => {
                     const term = e.target.value.toLowerCase();
                     renderTable('top-dishes-table', originalTopDishes.filter(d => d.name.toLowerCase().includes(term)));
                     renderTable('bottom-dishes-table', originalBottomDishes.filter(d => d.name.toLowerCase().includes(term)));
                 });
 
-                // Comment Search
                 document.getElementById('comment-search').addEventListener('input', (e) => {
                     const term = e.target.value.toLowerCase();
                     const resultsContainer = document.getElementById('comment-search-results');
+                    const clearBtn = document.getElementById('clear-comment-search');
+                    
+                    if (term.length > 0) {
+                        clearBtn.classList.remove('hidden');
+                    } else {
+                        clearBtn.classList.add('hidden');
+                    }
                     
                     if (term.length < 2) { 
                         resultsContainer.classList.add('hidden'); 
                         return; 
                     }
                     
-                    const foundDish = allDishesGlobal.find(d => d.name.toLowerCase().includes(term));
+                    let foundDish = null;
+                    for (let i = 0; i < allDishesGlobal.length; i++) {
+                        if (allDishesGlobal[i].name.toLowerCase().includes(term)) {
+                            foundDish = allDishesGlobal[i];
+                            break;
+                        }
+                    }
                     
                     if (foundDish) {
                         resultsContainer.classList.remove('hidden');
                         document.getElementById('comment-search-name').innerText = foundDish.name;
-                        renderCommentList('comment-search-list', foundDish.comments); 
-                    } else {
-                        resultsContainer.classList.add('hidden');
+                        analyzeDishSpecificKeywords(foundDish);
+                        window.searchDishComments = foundDish.comments || [];
+                        renderCommentList('comment-search-list', window.searchDishComments); 
+                    } else { 
+                        resultsContainer.classList.add('hidden'); 
                     }
                 });
 
-            } catch (err) { alert("Dashboard Error: " + err.message); }
-        }
+                const matrixSearch = document.getElementById('matrix-search');
+                const matrixDropdown = document.getElementById('matrix-search-dropdown');
 
-        // ==========================================
-        // COMMENT MODAL & RENDERING LOGIC
-        // ==========================================
-        function renderCommentList(elementId, comments) {
-            const listEl = document.getElementById(elementId);
-            if (!comments || comments.length === 0) {
-                listEl.innerHTML = `<li class="italic text-gray-600 p-2">No written comments yet.</li>`;
-                return;
+                matrixSearch.addEventListener('input', (e) => {
+                    const term = e.target.value.toLowerCase().trim();
+                    window.matrixSearchTerm = term;
+                    matrixDropdown.innerHTML = '';
+
+                    if (term.length < 2) {
+                        matrixDropdown.classList.add('hidden');
+                        if (window.matrixChartInstance) window.matrixChartInstance.update();
+                        return;
+                    }
+
+                    const validDishes = allDishesGlobal.filter(d => d.reviews >= 4);
+                    const matches = validDishes.filter(d => d.name.toLowerCase().includes(term));
+
+                    if (matches.length > 0) {
+                        matrixDropdown.classList.remove('hidden');
+                        for (let i = 0; i < matches.length; i++) {
+                            let match = matches[i];
+                            const li = document.createElement('li');
+                            li.className = 'px-4 py-3 hover:bg-brand-gold hover:text-black cursor-pointer text-xs font-bold text-gray-300 border-b border-gray-800 last:border-0 transition-colors';
+                            li.textContent = match.name;
+                            li.onclick = () => window.selectMatrixDish(match.name);
+                            matrixDropdown.appendChild(li);
+                        }
+                    } else {
+                        matrixDropdown.classList.add('hidden');
+                    }
+
+                    if (window.matrixChartInstance) window.matrixChartInstance.update();
+                });
+
+            } catch (err) { 
+                alert("Dashboard Error: " + err.message); 
             }
-            listEl.innerHTML = comments.map(c => {
-                // 1. Sanitize HTML tags to prevent XSS attacks
-                const cleanHTML = c.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                
-                // 2. Make it safe to pass into the Javascript onclick function
-                const safeForJS = cleanHTML.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                
-                if (cleanHTML.length > 75) {
-                    const shortText = cleanHTML.substring(0, 75) + '...';
-                    return `
-                    <li class="bg-[#141414] p-3 rounded-lg border border-gray-800 cursor-pointer hover:border-brand-gold/50 transition-colors" onclick="openCommentModal('${safeForJS}')">
-                        <span class="text-brand-gold opacity-50 mr-1">"</span>${shortText}
-                        <span class="text-brand-gold font-bold text-[10px] ml-1 underline uppercase tracking-wider">Read more</span>
-                    </li>`;
-                } else {
-                    return `
-                    <li class="bg-[#141414] p-3 rounded-lg border border-gray-800">
-                        <span class="text-brand-gold opacity-50 mr-1">"</span>${cleanHTML}<span class="text-brand-gold opacity-50 ml-1">"</span>
-                    </li>`;
-                }
-            }).join('');
         }
 
-        function openCommentModal(text) {
-            const modal = document.getElementById('comment-modal');
-            const modalContent = document.getElementById('comment-modal-content');
-            document.getElementById('comment-modal-text').innerText = text;
-            
-            modal.classList.remove('hidden');
-            void modal.offsetWidth; 
-            modal.classList.remove('opacity-0');
-            modalContent.classList.remove('scale-95');
-            modalContent.classList.add('scale-100');
-        }
+        // ==========================================
+        // 5. GLOBAL EVENT LISTENERS
+        // ==========================================
 
-        function closeCommentModal() {
-            const modal = document.getElementById('comment-modal');
-            const modalContent = document.getElementById('comment-modal-content');
-            
-            modal.classList.add('opacity-0');
-            modalContent.classList.remove('scale-100');
-            modalContent.classList.add('scale-95');
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
-        }
-
-        document.getElementById('comment-modal').addEventListener('click', function(e) {
-            if (e.target === this) { closeCommentModal(); }
+        document.addEventListener('click', (e) => {
+            const matrixSearch = document.getElementById('matrix-search');
+            const matrixDropdown = document.getElementById('matrix-search-dropdown');
+            if (e.target !== matrixSearch && matrixDropdown) {
+                matrixDropdown.classList.add('hidden');
+            }
         });
 
-        // ==========================================
-        // TABLE LOGIC
-        // ==========================================
-        function sortData(type, key) {
-            const list = type === 'top' ? originalTopDishes : originalBottomDishes;
-            sortDirections[type][key] = !sortDirections[type][key];
-            const dir = sortDirections[type][key] ? 1 : -1;
-            list.sort((a, b) => (a[key] < b[key] ? -1 * dir : a[key] > b[key] ? 1 * dir : 0));
-            renderTable(type === 'top' ? 'top-dishes-table' : 'bottom-dishes-table', list);
-        }
-
-        function renderTable(tableId, dishes) {
-            const tbody = document.getElementById(tableId);
-            if (!dishes.length) { tbody.innerHTML = `<tr><td colspan="4" class="text-center text-gray-500 py-8 text-xs">No dishes match this criteria.</td></tr>`; return; }
-            const maxR = Math.max(...dishes.map(d => d.reviews));
-            tbody.innerHTML = dishes.map((d, index) => {
-                const ratingBg = d.rating >= 3.7 ? 'bg-[#16a34a]' : 'bg-[#dc2626]';
-                return `
-                <tr class="border-b border-gray-800 hover:bg-[#1a1a1a] transition-colors">
-                    <td class="py-2 sm:py-3 pl-2 sm:pl-4 text-white font-bold text-[10px] sm:text-xs leading-tight whitespace-normal break-words">
-                        <span class="text-gray-500 mr-1 sm:mr-2">${index + 1}.</span> ${d.name}
-                    </td>
-                    <td class="py-2 sm:py-3 text-center text-white font-semibold text-[10px] sm:text-xs whitespace-nowrap">${d.likedPct}%</td>
-                    <td class="py-2 sm:py-3 text-center font-bold text-white text-[10px] sm:text-xs ${ratingBg}">${d.rating.toFixed(1)}</td>
-                    <td class="py-2 sm:py-3 text-center font-bold text-white text-[10px] sm:text-xs whitespace-nowrap pr-2" style="background-color: rgba(8, 145, 178, ${Math.max(0.2, d.reviews / maxR)})">${d.reviews}</td>
-                </tr>`;
-            }).join('');
-        }
-
-        // ==========================================
-        // CHART RENDERING (TRENDS & BAR CHARTS)
-        // ==========================================
-        function renderTimeChart(data) {
-            const ctx = document.getElementById('timeTrendsChart').getContext('2d');
-            Chart.getChart("timeTrendsChart")?.destroy();
-            
-            const formatAxisDate = (ds) => { const d = new Date(ds); return `${d.getDate().toString().padStart(2,'0')}-${d.toLocaleString('default',{month:'short'})}`; };
-            const formatTooltipDate = (ds) => { const d = new Date(ds); return `${d.getDate().toString().padStart(2,'0')}-${d.toLocaleString('default',{month:'short'})}-${d.getFullYear().toString().slice(-2)}`; };
-
-            const isMobile = window.innerWidth < 640;
-            const maxVisible = isMobile ? 20 : Math.min(data.length, 45); 
-            const startIndex = Math.max(0, data.length - maxVisible);
-
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: data.map(i => i.date),
-                    datasets: [{
-                        data: data.map(i => i.value),
-                        borderColor: '#e8c064',
-                        backgroundColor: 'rgba(232, 192, 100, 0.08)',
-                        borderWidth: 3,
-                        tension: 0.15, 
-                        fill: true,
-                        pointRadius: 0, 
-                        pointHitRadius: 25, 
-                        pointHoverRadius: 6,
-                        pointBackgroundColor: '#e8c064',
-                    }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false },
-                        zoom: { pan: { enabled: true, mode: 'x' }, zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' } },
-                        tooltip: { backgroundColor: '#141414', titleColor: '#e8c064', borderColor: '#e8c064', borderWidth: 1, padding: 12, titleFont: { size: 11 }, bodyFont: { size: 12, weight: 'bold' }, callbacks: { title: (ctxs) => formatTooltipDate(ctxs[0].label), label: (c) => `3-Day Avg: ${c.raw}` } }
-                    },
-                    scales: {
-                        y: { min: 2.5, max: 5.0, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', font: { size: 10 } } },
-                        x: { min: data[startIndex]?.date, max: data[data.length - 1]?.date, grid: { display: false }, ticks: { color: '#6b7280', maxRotation: 45, font: { size: 9 }, callback: function(v) { return formatAxisDate(this.getLabelForValue(v)); } } }
-                    }
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('.tooltip-container')) {
+                let allActive = document.querySelectorAll('.tooltip-container.active');
+                for (let i = 0; i < allActive.length; i++) {
+                    allActive[i].classList.remove('active');
                 }
-            });
-        }
-
-        // NEW: Rocket-style Stacked Bar Chart for Improvements
-        function createImprovedChart(data) {
-            const canvas = document.getElementById('improvedChart');
-            const ctx = canvas.getContext('2d');
-            Chart.getChart("improvedChart")?.destroy(); // Clear old chart
-            
-           // Graceful fallback perfectly centered for all screens
-            if (!data || data.length === 0) { 
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                // Let the canvas naturally find its mathematical center
-                const centerX = canvas.width / 2;
-                const centerY = canvas.height / 2;
-
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle"; // Ensures perfect vertical centering
-                
-                // Draw a simple, clean status text (No +55 offset!)
-                ctx.font = "bold 14px Inter";
-                ctx.fillStyle = "#6b7280"; 
-                ctx.fillText("Let's Aim Big Next Week 🚀", centerX, centerY + 30);
-                
-                // Draw the subtext (No +55 offset!)
-                ctx.font = "11px Inter";
-                ctx.fillStyle = "#4b5563"; 
-                ctx.fillText("No big improvements this week.", centerX, centerY + 50);
-                return; 
             }
-            
-            const isMobile = window.innerWidth < 640;
-            const labels = data.map(d => d.name);
-            const lastWkData = data.map(d => d.lastWeek);
-            const changeData = data.map(d => d.change);
+        });
 
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: "Last Week's Avg", data: lastWkData, backgroundColor: '#4ade80', stack: 'Stack 0', barThickness: isMobile ? 18 : 30 },
-                        { label: "Improvement", data: changeData, backgroundColor: '#e8c064', stack: 'Stack 0', borderRadius: { topLeft: 4, topRight: 4 }, barThickness: isMobile ? 18 : 30 }
-                    ]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: { backgroundColor: '#141414', titleColor: '#e8c064', borderColor: '#e8c064', borderWidth: 1, padding: 12, callbacks: { label: function(c) { const i = c.dataIndex; return [`This Week: ${(lastWkData[i] + changeData[i]).toFixed(2)}`, `Change: +${changeData[i].toFixed(2)}`, `Last Week: ${lastWkData[i].toFixed(2)}`]; } } }
-                    },
-                    scales: {
-                        x: { stacked: true, grid: { display: false }, ticks: { color: '#6b7280', font: { size: 9 } } },
-                        y: { stacked: true, min: 0, max: 5.0, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', font: { size: 10 } } }
-                    }
-                }
-            });
-        }
-
-        // NEW: Dual-Axis Bar Chart for Declines
-        function createDeclinedChart(data) {
-            const canvas = document.getElementById('declinedChart');
-            const ctx = canvas.getContext('2d');
-            Chart.getChart("declinedChart")?.destroy();
-            
-            // "ALL GOOD" Fallback if no dishes are actively declining with high vote volume
-            if (!data || data.length === 0) { 
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                const centerX = canvas.width / 2;
-                const centerY = canvas.height / 2;
-
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle"; // Ensures perfect vertical centering
-                
-                // Draw a nice big celebration emoji
-                ctx.font = "40px Inter";
-                ctx.fillText("🎉", centerX, centerY - 5);
-                
-                // Draw the All Good text
-                ctx.font = "bold 16px Inter";
-                ctx.fillStyle = "#4ade80"; // Success Green
-                ctx.fillText("All Good!", centerX, centerY + 35);
-                
-                // Draw the subtext
-                ctx.font = "10px Inter";
-                ctx.fillStyle = "#6b7280";
-                ctx.fillText("No negative trends detected this week.", centerX, centerY + 55);
-                return; 
+        document.addEventListener('scroll', () => {
+            let allActive = document.querySelectorAll('.tooltip-container.active');
+            for (let i = 0; i < allActive.length; i++) {
+                allActive[i].classList.remove('active');
             }
+        });
 
-            
-            const isMobile = window.innerWidth < 640;
-            const labels = data.map(d => d.name);
-            const thisWkData = data.map(d => d.thisWeek);
-            const changeData = data.map(d => d.change); 
-            const lastWkData = data.map(d => d.lastWeek);
-
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: "This Week's Rating", data: thisWkData, backgroundColor: '#4ade80', stack: 'Stack 0', barThickness: isMobile ? 18 : 30 },
-                        { label: "Decline", data: changeData, backgroundColor: '#ef4444', stack: 'Stack 0', borderRadius: { bottomLeft: 4, bottomRight: 4 }, barThickness: isMobile ? 18 : 30 }
-                    ]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: { backgroundColor: '#141414', titleColor: '#ef4444', borderColor: '#ef4444', borderWidth: 1, padding: 12, callbacks: { label: function(c) { const i = c.dataIndex; return [`Last Week: ${lastWkData[i].toFixed(2)}`, `Change: ${changeData[i].toFixed(2)}`, `This Week: ${thisWkData[i].toFixed(2)}`]; } } }
-                    },
-                    scales: {
-                        x: { stacked: true, grid: { display: false }, ticks: { color: '#6b7280', font: { size: 9 } } },
-                        y: { stacked: true, suggestedMin: -1.0, max: 5.0, grid: { color: 'rgba(255,255,255,0.03)', zeroLineColor: '#6b7280' }, ticks: { color: '#6b7280', font: { size: 10 } } }
-                    }
-                }
-            });
-        }
-
-        // ==========================================
-        // GAUGE RENDERING
-        // ==========================================
-        function polarToCartesian(cx, cy, r, angleDeg) { let angleRad = angleDeg * Math.PI / 180.0; return { x: cx + (r * Math.cos(angleRad)), y: cy - (r * Math.sin(angleRad)) }; }
-        function describeArc(cx, cy, r, startAngle, endAngle) { let start = polarToCartesian(cx, cy, r, startAngle); let end = polarToCartesian(cx, cy, r, endAngle); let largeArcFlag = Math.abs(endAngle - startAngle) <= 180 ? "0" : "1"; return ["M", start.x, start.y, "A", r, r, 0, largeArcFlag, 1, end.x, end.y].join(" "); }
-
-        function renderCustomGauge(score) {
-            const container = document.getElementById('svg-gauge-container');
-            const cx = 100, cy = 110, r = 85; 
-            const ranges = [ { start: 0, end: 1.5, color: '#e06666' }, { start: 1.5, end: 3.0, color: '#f4cccc' }, { start: 3.0, end: 4.5, color: '#b6d7a8' }, { start: 4.5, end: 5.0, color: '#fce5cd' } ];
-            let svg = `<svg viewBox="0 0 200 135" class="w-full h-full overflow-visible drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">`;
-            ranges.forEach(rng => svg += `<path d="${describeArc(cx, cy, r, 180-(rng.start/5)*180, 180-(rng.end/5)*180)}" stroke="${rng.color}" stroke-width="28" fill="none" />`);
-            svg += `<path d="${describeArc(cx, cy, r, 180, 180-(score/5)*180)}" stroke="#38761d" stroke-width="12" fill="none" class="gauge-path" />`;
-            
-            let tS = polarToCartesian(100, 110, 70, 180 - (3.5 / 5) * 180), tE = polarToCartesian(100, 110, 100, 180 - (3.5 / 5) * 180);   
-            svg += `<line id="target-line" x1="${tS.x}" y1="${tS.y}" x2="${tE.x}" y2="${tE.y}" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round" style="cursor:pointer;" />`;
-
-            const sP = polarToCartesian(100, 110, 85, 180), eP = polarToCartesian(100, 110, 85, 0);     
-            svg += `<text x="${sP.x}" y="${sP.y + 22}" font-size="11" font-weight="bold" fill="#6b7280" text-anchor="middle">0</text>`;
-            svg += `<text x="${eP.x}" y="${eP.y + 22}" font-size="11" font-weight="bold" fill="#6b7280" text-anchor="middle">5</text></svg>`;
-            container.innerHTML = svg;
-
-            const line = document.getElementById('target-line');
-            const updatePopupPosition = (pageX, pageY, clientX) => {
-                popup.style.display = 'block'; const rect = popup.getBoundingClientRect(); let leftPos = pageX + 15;
-                if (clientX + 15 + rect.width > window.innerWidth - 10) { leftPos = pageX - rect.width - 15; }
-                popup.style.left = leftPos + 'px'; popup.style.top = (pageY - 35) + 'px';
-            };
-            line.addEventListener('mouseenter', (e) => { if(!isPopupFixed) updatePopupPosition(e.pageX, e.pageY, e.clientX); });
-            line.addEventListener('mousemove', (e) => { if(!isPopupFixed) updatePopupPosition(e.pageX, e.pageY, e.clientX); });
-            line.addEventListener('mouseleave', () => { if(!isPopupFixed) popup.style.display = 'none'; });
-            const lockPopup = (e) => { e.preventDefault(); e.stopPropagation(); isPopupFixed = true; let pageX = e.touches ? e.touches[0].pageX : e.pageX; let pageY = e.touches ? e.touches[0].pageY : e.pageY; let clientX = e.touches ? e.touches[0].clientX : e.clientX; updatePopupPosition(pageX, pageY, clientX); };
-            line.addEventListener('click', lockPopup); line.addEventListener('touchstart', lockPopup, {passive: false});
-        }
-
-        const dismissPopup = (e) => { if (e.target.id !== 'target-line' && popup.style.display === 'block') { popup.style.display = 'none'; isPopupFixed = false; } };
-        document.addEventListener('click', dismissPopup); document.addEventListener('touchstart', dismissPopup);
+        const dismissPopup = (e) => { 
+            if (e.target.id !== 'target-line' && popup.style.display === 'block') { 
+                popup.style.display = 'none'; 
+                isPopupFixed = false; 
+            } 
+        };
+        
+        document.addEventListener('click', dismissPopup); 
+        document.addEventListener('touchstart', dismissPopup);
 
         window.onload = loadDashboard;
+
     </script>
 </body>
 </html>
