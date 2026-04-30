@@ -136,10 +136,10 @@
         <p class="text-gray-500 text-[10px] sm:text-xs tracking-widest uppercase mb-8">Enter Owner PIN to view analytics</p>
         
         <div class="flex gap-3 sm:gap-4 mb-6" id="pin-container">
-            <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="w-12 h-14 sm:w-14 sm:h-16 bg-[#141414] border border-gray-800 rounded-xl text-center text-brand-gold text-2xl font-black focus:border-brand-gold focus:shadow-[0_0_15px_rgba(232,192,100,0.2)] focus:outline-none transition-all" oninput="moveToNext(this, 'pin2')" id="pin1">
-            <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="w-12 h-14 sm:w-14 sm:h-16 bg-[#141414] border border-gray-800 rounded-xl text-center text-brand-gold text-2xl font-black focus:border-brand-gold focus:shadow-[0_0_15px_rgba(232,192,100,0.2)] focus:outline-none transition-all" oninput="moveToNext(this, 'pin3')" id="pin2">
-            <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="w-12 h-14 sm:w-14 sm:h-16 bg-[#141414] border border-gray-800 rounded-xl text-center text-brand-gold text-2xl font-black focus:border-brand-gold focus:shadow-[0_0_15px_rgba(232,192,100,0.2)] focus:outline-none transition-all" oninput="moveToNext(this, 'pin4')" id="pin3">
-            <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="w-12 h-14 sm:w-14 sm:h-16 bg-[#141414] border border-gray-800 rounded-xl text-center text-brand-gold text-2xl font-black focus:border-brand-gold focus:shadow-[0_0_15px_rgba(232,192,100,0.2)] focus:outline-none transition-all" oninput="checkPin()" id="pin4">
+            <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="w-12 h-14 sm:w-14 sm:h-16 bg-[#141414] border border-gray-800 rounded-xl text-center text-brand-gold text-2xl font-black focus:border-brand-gold focus:shadow-[0_0_15px_rgba(232,192,100,0.2)] focus:outline-none transition-all" oninput="moveToNext(this, 'pin2')" onkeydown="handleBackspace(event, null)" id="pin1">
+            <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="w-12 h-14 sm:w-14 sm:h-16 bg-[#141414] border border-gray-800 rounded-xl text-center text-brand-gold text-2xl font-black focus:border-brand-gold focus:shadow-[0_0_15px_rgba(232,192,100,0.2)] focus:outline-none transition-all" oninput="moveToNext(this, 'pin3')" onkeydown="handleBackspace(event, 'pin1')" id="pin2">
+            <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="w-12 h-14 sm:w-14 sm:h-16 bg-[#141414] border border-gray-800 rounded-xl text-center text-brand-gold text-2xl font-black focus:border-brand-gold focus:shadow-[0_0_15px_rgba(232,192,100,0.2)] focus:outline-none transition-all" oninput="moveToNext(this, 'pin4')" onkeydown="handleBackspace(event, 'pin2')" id="pin3">
+            <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="w-12 h-14 sm:w-14 sm:h-16 bg-[#141414] border border-gray-800 rounded-xl text-center text-brand-gold text-2xl font-black focus:border-brand-gold focus:shadow-[0_0_15px_rgba(232,192,100,0.2)] focus:outline-none transition-all" oninput="checkPin()" onkeydown="handleBackspace(event, 'pin3')" id="pin4">
         </div>
         <div id="pin-error" class="text-danger-red text-[10px] font-bold tracking-widest uppercase h-4 opacity-0 transition-opacity duration-300">Incorrect PIN</div>
     </div>
@@ -2074,6 +2074,17 @@
         function moveToNext(current, nextId) {
             if (current.value.length === 1 && nextId) {
                 document.getElementById(nextId).focus();
+            }
+        }
+
+        // 🟢 NEW: Handles seamless backspacing between PIN boxes
+        function handleBackspace(e, prevId) {
+            if (e.key === 'Backspace' && e.target.value === '') {
+                if (prevId) {
+                    const prevInput = document.getElementById(prevId);
+                    prevInput.focus();
+                    prevInput.value = ''; // Automatically clears the previous box
+                }
             }
         }
 
