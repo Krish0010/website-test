@@ -550,23 +550,39 @@
         // 🟢 UPDATED DICTIONARY (Phrases + Manglish Slang + Emojis)
         const keywordConfig = {
             // 🔴 NEGATIVE THEMES
-            'Small Portion': { type: 'negative', emoji: '⚖️', words: ['small portion', 'less quantity', 'too small', 'tiny portion', 'skimpy', 'not enough', 'unfulfilling', 'valare kurav', 'korav','kurav', 'illarnu','illayrnnu','theere', 'shokam quantity', 'korache ollu','kurach', '🤏', '📉'] },
-            'Too Salty': { type: 'negative', emoji: '🧂', words: ['too salty', 'oversalted', 'lot of salt', 'high sodium', 'upp kooduthal', 'uppu koodi', 'uppu rasam', 'kadal vellam','upp illa', 'upp', 'puli'] },
-            'Too Spicy': { type: 'negative', emoji: '🌶️', words: ['too spicy', 'too hot', 'overspiced', 'burning', 'too much spice', 'erivu kooduthal', 'erivu koodi', 'bhayankara erivu', 'pukayunnu', 'erivu', '🥵'] },
+            'Small Portion': { type: 'negative', emoji: '⚖️', words: ['small portion', 'less quantity', 'too small', 'tiny portion', 'skimpy', 'not enough', 'portion size is very small', 'portion size is very less', 'quantity illa', 'unfulfilling', 'valare kurav', 'illarnu', 'illayrnnu', 'theere', 'shokam quantity', 'korache ollu', '🤏', '📉'] },
+            
+            'Too Salty': { type: 'negative', emoji: '🧂', words: ['too salty', 'oversalted', 'lot of salt', 'high sodium', 'upp kooduthal', 'uppu koodi', 'uppu rasam', 'kadal vellam', 'puli'] },
+            
+            'Too Spicy': { type: 'negative', emoji: '🌶️', words: ['too spicy', 'too hot', 'overspiced', 'burning', 'too much spice', 'erivu kooduthal', 'erivu koodi', 'bhayankara erivu', 'pukayunnu', '🥵'] },
+            
             'Oily / Greasy': { type: 'negative', emoji: '🛢️', words: ['too oily', 'greasy', 'dripping in oil', 'swimming in oil', 'oil kooduthal', 'valare oily', 'ennamayam', 'enna mayam'] },
-            'Cold Food': { type: 'negative', emoji: '🧊', words: ['served cold', 'food was cold', 'not hot enough', 'lukewarm', 'chilled', 'thanuthu poyi', 'thanutha food', 'choodilla','chood illa', '🥶', '🧊'] },
-            'Slow Service': { type: 'negative', emoji: '⏳', words: ['slow service', 'long wait', 'delayed', 'took a long time', 'arrived late', 'ignored', 'thamasam','thaamasam', 'kore time eduth', 'valare slow', 'shokam service', 'waiting kooduthal', 'lagging', 'van post', 'post aaki', '🐌', '🐢', '🥱'] },
+            
+            // 🔴 NEW: Bad Customer Service Category
+            'Bad Customer Service': { type: 'negative', emoji: '😤', words: ['rude', 'unprofessional', 'bad behavior', 'arrogant', 'unfriendly', 'poor service', 'bad service', 'attitude', 'ignored us', 'mosham service', 'mosham perumattam', 'jaada', 'jaday', 'vrithiketta service', 'oru vrithiyilla', 'oru vrithi illa', 'waste service'] },
+            
+            'Cold Food': { type: 'negative', emoji: '🧊', words: ['served cold', 'food was cold', 'not hot enough', 'lukewarm', 'chilled', 'thanuthu poyi', 'thanutha food', 'choodilla', 'chood illa', '🥶', '🧊'] },
+            
+            'Slow Service': { type: 'negative', emoji: '⏳', words: ['slow service', 'long wait', 'delayed', 'took a long time', 'arrived late', 'ignored', 'thamasam', 'thaamasam', 'kore time eduth', 'valare slow', 'shokam service', 'waiting kooduthal', 'lagging', 'van post', 'post aaki', '🐌', '🐢', '🥱'] },
+            
             'Overpriced': { type: 'negative', emoji: '💸', words: ['overpriced', 'too expensive', 'high price', 'costly', 'ripoff', 'not worth the price', 'valare costly', 'kollakkaar', 'rate kooduthal', 'over price', 'over priced'] },
-            'Bland / Bad Taste': { type: 'negative', emoji: '😐', words: ['bland', 'tasteless', 'flavorless', 'no flavor', 'lacks flavor', 'koora', 'shokam', 'vrukthiketta','vrithiketta', 'mosham', 'verum shokam', 'taste illa', 'tasteum illa','kuzhappam', 'boring', '🤢', '🤮', '👎', '😞', '😡', '🤬'] },
-            'Bad Texture / Cooking': { type: 'negative', emoji: '🥩', words: ['tough meat', 'hard to chew', 'chewy', 'burnt', 'overcooked', 'over cooked', 'too dry', 'karinju poyi', 'vattipoyi', 'katti kooduthal', 'rubber pole','rubber', 'venthilla', 'pachakku'] },
-            'Unclean / Hygiene': { type: 'negative', emoji: '🧹', words: ['dirty', 'unclean', 'messy', 'hair in','hair', 'bug in', 'bad hygiene', 'smelled bad', 'gross', 'vrithiyilla', 'found a hair','bug', 'praani', 'insect', 'mosham environment', 'naatam', 'bad smell', 'vrithi illa', 'fresh alla','fresh ala', 'pazhakiya', 'chalicha', '🦟', '🐛'] },
+            
+            'Bland / Bad Taste': { type: 'negative', emoji: '😐', words: ['bland', 'tasteless', 'pathetic', 'flavorless', 'no flavor', 'lacks flavor', 'koora', 'vrukthiketta', 'vrithiketta', 'verum shokam', 'taste illa', 'tasteum illa', 'kuzhappam', 'boring', 'upp illa', '🤢', '🤮', '👎', '😞', '😡', '🤬'] },
+            
+            'Bad Texture / Cooking': { type: 'negative', emoji: '🥩', words: ['tough meat', 'hard to chew', 'chewy', 'burnt', 'overcooked', 'over cooked', 'too dry', 'karinju poyi', 'vattipoyi', 'katti kooduthal', 'rubber pole', 'rubber', 'venthilla', 'pachakku'] },
+            
+            'Unclean / Hygiene': { type: 'negative', emoji: '🧹', words: ['dirty', 'unclean', 'messy', 'hair in', 'hair', 'bug in', 'bad hygiene', 'smelled bad', 'gross', 'vrithiyilla', 'found a hair', 'bug', 'praani', 'insect', 'mosham environment', 'naatam', 'bad smell', 'vrithi illa', 'fresh alla', 'fresh ala', 'pazhakiya', 'chalicha', '🦟', '🐛'] },
             
             // 🟢 POSITIVE THEMES
-            'Delicious': { type: 'positive', emoji: '🤤', words: ['delicious', 'tasty', 'yummy', 'amazing', 'perfect', 'flavorful', 'best', 'loved it', 'fantastic', 'superb', 'great taste', 'kidu', 'kidilam', 'pwoli', 'adipoli', 'super', 'gambhheeram', 'gambheeram', 'rakshayilla', 'raksha illa', 'must try', 'oru rakshayum illa', 'polichu', 'marana mass', 'vere level', '😍', '🤤', '😋', '🔥', '❤️', '👌', '💯', '🥰', '🤩', '🫡', '😘' ] },
-            'Good Portion': { type: 'positive', emoji: '🍱', words: ['generous portion', 'good quantity', 'huge portion', 'filling', 'large portion', 'plenty of food', 'great size', 'nalla quantity', 'dharalam', 'valiya portion', 'vallya portion','niranju'] },
-            'Great Service': { type: 'positive', emoji: '🤝', words: ['friendly', 'fast service', 'quick service', 'attentive', 'polite', 'helpful staff','helpfull', 'welcoming', 'nalla service', 'speed delivery', 'adipoli service', 'nalla perumattam', '👍', '👏', '🙌'] },
+            'Delicious': { type: 'positive', emoji: '🤤', words: ['delicious', 'tasty', 'yummy', 'amazing', 'perfect', 'flavorful', 'best', 'loved it', 'fantastic', 'superb', 'great taste', 'kidu', 'kidilam', 'pwoli', 'adipoli', 'super', 'gambhheeram', 'gambheeram', 'rakshayilla', 'raksha illa', 'must try', 'oru rakshayum illa', 'polichu', 'marana mass', 'vere level', '😍', '🤤', '😋', '🔥', '❤️', '👌', '💯', '🥰', '🤩', '🫡', '😘'] },
+            
+            'Good Portion': { type: 'positive', emoji: '🍱', words: ['generous portion', 'good quantity', 'huge portion', 'filling', 'large portion', 'plenty of food', 'great size', 'nalla quantity', 'dharalam', 'valiya portion', 'vallya portion', 'niranju'] },
+            
+            'Great Service': { type: 'positive', emoji: '🤝', words: ['friendly', 'fast service', 'quick service', 'attentive', 'polite', 'helpful staff', 'helpfull', 'welcoming', 'nalla service', 'speed delivery', 'adipoli service', 'nalla perumattam', '👍', '👏', '🙌'] },
+            
             'Fresh / Hot': { type: 'positive', emoji: '♨️', words: ['served hot', 'piping hot', 'steaming', 'very fresh', 'high quality', 'good quality', 'nalla choodu', 'fresh food', 'fresh fish', 'fresh meen', 'fresh seafood'] },
-            'Value for Money': { type: 'positive', emoji: '💰', words: ['worth the money', 'affordable', 'cheap','budget option', 'good price', 'reasonable price', 'great value', 'less price', 'low price', 'pocket friendly', 'paisa vasool', 'muthalayi', 'mothalaayi', 'mothalayi', 'budget friendly'] }
+            
+            'Value for Money': { type: 'positive', emoji: '💰', words: ['worth the money', 'affordable', 'cheap', 'budget option', 'good price', 'reasonable price', 'great value', 'less price', 'low price', 'pocket friendly', 'paisa vasool', 'muthalayi', 'mothalaayi', 'mothalayi', 'budget friendly'] }
         };
         window.globalKeywordStats = {};
 
@@ -888,20 +904,43 @@
                 keywordStats[k] = { total: 0, dishes: {} };
             });
 
+            // 🟢 NEW: Negation words that cancel out a trigger
+            const negators = ["not", "no", "never", "less", "without", "alla", "illa", "kurav", "kurach", "korav", "allarnu", "illarnu"];
+
             for (let i = 0; i < dishes.length; i++) {
                 let d = dishes[i];
                 if (d.comments && d.comments.length > 0) {
                     for (let j = 0; j < d.comments.length; j++) {
-                        let lowerC = (d.comments[j].text || "").toLowerCase();
+                        // Pad the string with spaces to check word boundaries easily
+                        let lowerC = " " + (d.comments[j].text || "").toLowerCase() + " "; 
                         
                         Object.keys(keywordConfig).forEach(category => {
                             let triggers = keywordConfig[category].words;
                             let isMatch = false;
                             
                             for (let t = 0; t < triggers.length; t++) {
-                                if (lowerC.includes(triggers[t])) {
-                                    isMatch = true;
-                                    break;
+                                let trigger = triggers[t];
+                                let triggerIndex = lowerC.indexOf(trigger);
+                                
+                                if (triggerIndex !== -1) {
+                                    // Look at the text immediately before the trigger word
+                                    let precedingText = lowerC.substring(Math.max(0, triggerIndex - 25), triggerIndex);
+                                    let precedingWords = precedingText.trim().split(/\s+/);
+                                    
+                                    let isNegated = false;
+                                    let wordsToCheck = precedingWords.slice(-3); // Check last 3 words
+                                    
+                                    for (let w = 0; w < wordsToCheck.length; w++) {
+                                        if (negators.includes(wordsToCheck[w])) {
+                                            isNegated = true;
+                                            break;
+                                        }
+                                    }
+                                    
+                                    if (!isNegated) {
+                                        isMatch = true;
+                                        break; 
+                                    }
                                 }
                             }
                             
@@ -943,7 +982,6 @@
             let htmlString = "";
             for (let i = 0; i < categoriesArray.length; i++) {
                 let cat = categoriesArray[i];
-                
                 let colorClasses = cat.config.type === 'positive' 
                     ? 'bg-success-green/10 border-success-green/30 hover:bg-success-green/20 text-success-green' 
                     : 'bg-danger-red/10 border-danger-red/30 hover:bg-danger-red/20 text-danger-red';
@@ -1016,16 +1054,37 @@
             let counts = {};
             Object.keys(keywordConfig).forEach(k => counts[k] = 0);
 
+            // 🟢 NEW: Negation logic for the search bar analysis
+            const negators = ["not", "no", "never", "less", "without", "alla", "illa", "kurav", "kurach", "korav", "allarnu", "illarnu"];
+
             if (dish.comments && dish.comments.length > 0) {
                 for (let i = 0; i < dish.comments.length; i++) {
-                    let lowerC = (dish.comments[i].text || "").toLowerCase();
+                    let lowerC = " " + (dish.comments[i].text || "").toLowerCase() + " ";
                     
                     Object.keys(keywordConfig).forEach(category => {
                         let triggers = keywordConfig[category].words;
                         for (let t = 0; t < triggers.length; t++) {
-                            if (lowerC.includes(triggers[t])) {
-                                counts[category]++;
-                                break; 
+                            let trigger = triggers[t];
+                            let triggerIndex = lowerC.indexOf(trigger);
+                            
+                            if (triggerIndex !== -1) {
+                                let precedingText = lowerC.substring(Math.max(0, triggerIndex - 25), triggerIndex);
+                                let precedingWords = precedingText.trim().split(/\s+/);
+                                
+                                let isNegated = false;
+                                let wordsToCheck = precedingWords.slice(-3);
+                                
+                                for (let w = 0; w < wordsToCheck.length; w++) {
+                                    if (negators.includes(wordsToCheck[w])) {
+                                        isNegated = true;
+                                        break;
+                                    }
+                                }
+                                
+                                if (!isNegated) {
+                                    counts[category]++;
+                                    break; 
+                                }
                             }
                         }
                     });
