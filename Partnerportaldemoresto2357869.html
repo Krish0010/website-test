@@ -58,6 +58,11 @@
                         </div>
                         <span id="result-badge" class="px-3 py-1 rounded-lg text-[10px] font-black tracking-tighter"></span>
                     </div>
+
+                    <!-- 🟢 NEW: Voided Warning Message (Hidden by default) -->
+                    <div id="void-warning" class="hidden mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg text-[10px] text-orange-800 font-bold leading-relaxed shadow-inner">
+                        ⚠️ <span class="uppercase tracking-wider">Duplicate Bill Detected:</span> A newer code was already generated for this exact receipt. To prevent double-claiming, this older code has been voided.
+                    </div>
                     
                     <div class="mb-6 space-y-4">
                         <div>
@@ -367,7 +372,10 @@
             
             const badge = document.getElementById('result-badge');
             const actionButtons = document.getElementById('action-buttons');
+            const voidWarning = document.getElementById('void-warning'); // 🟢 NEW
             
+            voidWarning.classList.add('hidden'); // 🟢 Ensure it hides when scanning a new code
+
             const status = data.status.toLowerCase();
             if (status === 'valid') {
                 badge.innerText = "VALID OFFER";
@@ -381,6 +389,12 @@
                 badge.innerText = "FLAGGED AS SPAM";
                 badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-red-900 text-red-100 border border-red-950";
                 actionButtons.classList.add('hidden');
+            } else if (status === 'voided') {
+                // 🟢 NEW: Handles the Voided status!
+                badge.innerText = "VOIDED";
+                badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-orange-100 text-orange-700 border border-orange-300";
+                voidWarning.classList.remove('hidden'); // Show the explanation text!
+                actionButtons.classList.add('hidden'); 
             } else {
                 badge.innerText = "EXPIRED";
                 badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-red-100 text-red-700 border border-red-200";
