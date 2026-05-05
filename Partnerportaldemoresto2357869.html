@@ -17,7 +17,7 @@
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4 sm:p-6">
+<body class="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6">
 
     <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100 relative z-10">
         
@@ -29,7 +29,7 @@
             </div>
         </div>
 
-        <div id="redemption-section" class="p-6 sm:p-8">
+        <div id="redemption-section" class="p-6 sm:p-8 pb-4">
             <label for="discount-code" class="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">Enter Customer Code</label>
             
             <div class="relative flex items-center">
@@ -59,7 +59,7 @@
                         <span id="result-badge" class="px-3 py-1 rounded-lg text-[10px] font-black tracking-tighter"></span>
                     </div>
 
-                    <!-- 🟢 NEW: Voided Warning Message (Hidden by default) -->
+                    <!-- 🟢 Voided Warning Message -->
                     <div id="void-warning" class="hidden mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg text-[10px] text-orange-800 font-bold leading-relaxed shadow-inner">
                         ⚠️ <span class="uppercase tracking-wider">Duplicate Bill Detected:</span> A newer code was already generated for this exact receipt. To prevent double-claiming, this older code has been voided.
                     </div>
@@ -104,7 +104,55 @@
                 </div>
             </div>
         </div>
+
+        <!-- 🟢 Subtle Manager Link -->
+        <div class="border-t border-gray-100 bg-gray-50 py-3 text-center">
+            <button onclick="openOverrideModal()" class="text-[9px] text-gray-400 hover:text-gray-700 font-bold tracking-widest uppercase transition-colors">
+                🔒 Manager Access
+            </button>
+        </div>
     </div>
+
+    <!-- 🟢 NEW: MANAGER OVERRIDE MODAL -->
+    <div id="override-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center relative">
+            <button onclick="closeOverrideModal()" class="absolute top-4 right-5 text-gray-400 hover:text-gray-800 text-2xl font-bold">&times;</button>
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 mb-4">
+                <span class="text-xl">🛡️</span>
+            </div>
+            <h3 class="text-xl font-extrabold text-gray-900 mb-1 tracking-tight">Manager Override</h3>
+            <p class="text-[10px] text-gray-500 font-medium mb-6 uppercase tracking-wider">Generate replacement code</p>
+
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">Secret PIN</label>
+                    <input type="password" id="override-pin" placeholder="Enter Manager PIN" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-900 outline-none text-center tracking-widest font-bold">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">True Bill Number</label>
+                    <input type="text" id="override-bill" placeholder="e.g. 1005" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-900 outline-none font-bold text-center">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">Customer Email (Optional)</label>
+                    <input type="email" id="override-email" placeholder="customer@email.com" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-900 outline-none text-sm text-center">
+                </div>
+            </div>
+
+            <div id="override-error" class="hidden mt-3 text-red-600 text-[10px] font-bold uppercase tracking-wider bg-red-50 p-2 rounded-lg border border-red-100"></div>
+
+            <div id="override-success" class="hidden mt-4 bg-green-50 border border-green-200 rounded-xl p-4">
+                <p class="text-[10px] text-green-700 font-bold uppercase tracking-wider mb-1">New Code Generated:</p>
+                <p id="override-new-code" class="text-lg font-black text-green-700 tracking-widest select-all"></p>
+                <p class="text-[9px] text-green-600 mt-2">Code is copied to the portal automatically. Close to redeem.</p>
+            </div>
+
+            <button id="override-btn" onclick="generateOverride()" class="mt-6 w-full bg-gray-900 text-white font-bold py-3 px-4 rounded-xl hover:bg-black active:scale-[0.98] transition-all flex justify-center items-center shadow-lg">
+                <span id="override-text">Authorize Override</span>
+                <span id="override-loader" class="loader hidden" style="border-top-color: white; width: 16px; height: 16px; border-width: 2px;"></span>
+            </button>
+        </div>
+    </div>
+    <!-- END MANAGER OVERRIDE MODAL -->
 
     <div id="success-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center">
@@ -149,11 +197,11 @@
 
     <script>
         // Your specific API Details
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxmaTBb1tyWdp0B63CqU_3bQdqxgebf_0_btB6gEF_TDDjkv6dKAonX_EfFWQDTi1uN/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzBW8FVC0OQbBzzuAQmn47slDdYj9dPP-TanLzlX4B6udctVEBs4D-GSRswLR11D32O/exec"; 
         const RESTAURANT_NAME = "Temp New"; 
 
         let currentlyVerifiedCode = "";
-        let undoInterval; // Timer variable for the undo countdown
+        let undoInterval;
 
         document.addEventListener("DOMContentLoaded", () => {
             document.getElementById('restaurant-name-display').innerText = RESTAURANT_NAME;
@@ -184,6 +232,84 @@
                 modal.classList.add('hidden');
             }, 300);
         }
+
+        // --- 🟢 NEW: MANAGER OVERRIDE LOGIC ---
+        function openOverrideModal() {
+            const modal = document.getElementById('override-modal');
+            const modalBox = modal.querySelector('div');
+            
+            // Reset fields
+            document.getElementById('override-pin').value = '';
+            document.getElementById('override-bill').value = '';
+            document.getElementById('override-email').value = '';
+            document.getElementById('override-error').classList.add('hidden');
+            document.getElementById('override-success').classList.add('hidden');
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalBox.classList.remove('scale-90');
+                modalBox.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeOverrideModal() {
+            const modal = document.getElementById('override-modal');
+            const modalBox = modal.querySelector('div');
+            
+            modal.classList.add('opacity-0');
+            modalBox.classList.remove('scale-100');
+            modalBox.classList.add('scale-90');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        async function generateOverride() {
+            const pin = document.getElementById('override-pin').value.trim();
+            const bill = document.getElementById('override-bill').value.trim();
+            const email = document.getElementById('override-email').value.trim();
+            const errorDiv = document.getElementById('override-error');
+            const successDiv = document.getElementById('override-success');
+
+            if (!pin || !bill) {
+                errorDiv.innerText = "PIN and True Bill Number are required.";
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            errorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+            toggleLoading('override-btn', 'override-text', 'override-loader', true);
+
+            try {
+                // Secure GET request to the Apps Script Backend
+                const url = `${SCRIPT_URL}?action=override&pin=${encodeURIComponent(pin)}&billNumber=${encodeURIComponent(bill)}&restaurant=${encodeURIComponent(RESTAURANT_NAME)}&email=${encodeURIComponent(email)}`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.success) {
+                    // Success! Display it to the manager
+                    document.getElementById('override-new-code').innerText = data.newCode;
+                    successDiv.classList.remove('hidden');
+                    
+                    // Sneakily pre-fill the main portal input so it's ready to scan right away
+                    let rawCodeOnly = data.newCode.replace("IMPACT-", "");
+                    document.getElementById('discount-code').value = rawCodeOnly;
+                } else {
+                    errorDiv.innerText = data.message;
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (err) {
+                errorDiv.innerText = "Network Error. Please try again.";
+                errorDiv.classList.remove('hidden');
+            } finally {
+                toggleLoading('override-btn', 'override-text', 'override-loader', false);
+            }
+        }
+        // ---------------------------------------------
 
         // --- CORE LOGIC ---
         async function verifyCode() {
@@ -355,10 +481,8 @@
             document.getElementById('result-offer').innerText = data.offer;
             document.getElementById('result-customer').innerText = data.customer;
             
-            // Inject the Bill Number
             document.getElementById('result-bill').innerText = data.billNumber && data.billNumber !== "N/A" ? "#" + data.billNumber : "N/A";
             
-            // Format the Date beautifully
             let formattedDate = "N/A";
             if (data.dateSubmitted && data.dateSubmitted !== "N/A") {
                 const d = new Date(data.dateSubmitted);
@@ -372,9 +496,9 @@
             
             const badge = document.getElementById('result-badge');
             const actionButtons = document.getElementById('action-buttons');
-            const voidWarning = document.getElementById('void-warning'); // 🟢 NEW
+            const voidWarning = document.getElementById('void-warning');
             
-            voidWarning.classList.add('hidden'); // 🟢 Ensure it hides when scanning a new code
+            voidWarning.classList.add('hidden');
 
             const status = data.status.toLowerCase();
             if (status === 'valid') {
@@ -390,10 +514,9 @@
                 badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-red-900 text-red-100 border border-red-950";
                 actionButtons.classList.add('hidden');
             } else if (status === 'voided') {
-                // 🟢 NEW: Handles the Voided status!
                 badge.innerText = "VOIDED";
                 badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-orange-100 text-orange-700 border border-orange-300";
-                voidWarning.classList.remove('hidden'); // Show the explanation text!
+                voidWarning.classList.remove('hidden');
                 actionButtons.classList.add('hidden'); 
             } else {
                 badge.innerText = "EXPIRED";
@@ -401,7 +524,6 @@
                 actionButtons.classList.add('hidden'); 
             }
 
-            // Always clear undo timer and warning modal when loading a new card
             clearInterval(undoInterval);
             document.getElementById('undo-container').classList.add('hidden');
             document.getElementById('warning-modal').classList.add('hidden');
