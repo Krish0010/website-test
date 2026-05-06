@@ -55,7 +55,6 @@
                         <span id="result-badge" class="px-3 py-1 rounded-lg text-[10px] font-black tracking-tighter"></span>
                     </div>
 
-                    <!-- 🟢 THE DYNAMIC WARNING/CLARIFICATION BOX -->
                     <div id="status-warning" class="hidden mb-4 p-3 rounded-lg text-[10px] font-bold leading-relaxed shadow-inner border"></div>
                     
                     <div class="mb-6 space-y-4">
@@ -76,15 +75,20 @@
                         </div>
                     </div>
                     
-                    <div id="action-buttons" class="mt-6 flex flex-col items-center gap-4">
+                    <div id="action-buttons" class="mt-6 flex flex-col items-center gap-3">
                         <button id="redeem-btn" onclick="redeemCode()" class="w-full bg-green-600 text-white font-bold py-4 px-4 rounded-xl shadow-md hover:bg-green-700 active:scale-[0.98] transition-all flex justify-center items-center">
                             <span id="redeem-text">Confirm Redemption</span>
                             <span id="redeem-loader" class="loader hidden" style="border-top-color: white;"></span>
                         </button>
 
-                        <button id="spam-btn" onclick="markAsSpam()" class="text-[10px] font-bold text-gray-400 hover:text-red-500 uppercase tracking-widest transition-colors flex items-center gap-2">
-                            <span id="spam-text">Flag as Fake / Spam</span>
-                        </button>
+                        <div class="flex w-full gap-2 mt-2">
+                            <button onclick="openTypoModal()" class="w-1/2 bg-gray-200 text-gray-700 text-[10px] font-bold py-3 rounded-lg hover:bg-gray-300 transition-colors uppercase tracking-wider flex items-center justify-center gap-1">
+                                ✏️ Correct Typo
+                            </button>
+                            <button id="spam-btn" onclick="markAsSpam()" class="w-1/2 text-[10px] font-bold text-gray-400 hover:text-red-500 uppercase tracking-wider transition-colors flex items-center justify-center gap-1">
+                                🚫 Flag as Spam
+                            </button>
+                        </div>
                     </div>
 
                     <div id="undo-container" class="mt-6 hidden text-center bg-gray-50 border border-gray-200 rounded-xl p-4">
@@ -99,14 +103,42 @@
             </div>
         </div>
 
-        <!-- 🟢 MANAGER ACCESS BUTTON MOVED HERE -->
-        <!-- Placed safely at the bottom of the main white container so it NEVER hides -->
-        <div class="border-t border-gray-100 bg-gray-50 py-3 text-center">
+        <div class="border-t border-gray-100 bg-gray-50 py-3 text-center mt-auto">
             <button onclick="openOverrideModal()" class="text-[9px] text-gray-400 hover:text-gray-900 font-bold tracking-widest uppercase transition-colors">
-                🔒 Manager Access
+                🔒 Full Manager Override
             </button>
         </div>
 
+    </div>
+
+    <!-- 🟢 TYPO CORRECTION MODAL -->
+    <div id="typo-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center relative">
+            <button onclick="closeTypoModal()" class="absolute top-4 right-5 text-gray-400 hover:text-gray-800 text-2xl font-bold">&times;</button>
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
+                <span class="text-xl">✏️</span>
+            </div>
+            <h3 class="text-xl font-extrabold text-gray-900 mb-1 tracking-tight">Correct Bill Number</h3>
+            <p class="text-[10px] text-gray-500 font-medium mb-6 uppercase tracking-wider">Fix a customer's honest mistake</p>
+
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">Secret PIN</label>
+                    <input type="password" id="typo-pin" placeholder="Enter Manager PIN" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-center tracking-widest font-bold">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">True Bill Number from Receipt</label>
+                    <input type="text" id="typo-new-bill" placeholder="e.g. 1005" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-center">
+                </div>
+            </div>
+
+            <div id="typo-error" class="hidden mt-3 text-red-600 text-[10px] font-bold uppercase tracking-wider bg-red-50 p-2 rounded-lg border border-red-100"></div>
+
+            <button id="typo-btn" onclick="executeTypoFix()" class="mt-6 w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 active:scale-[0.98] transition-all flex justify-center items-center shadow-lg">
+                <span id="typo-text">Save Correction</span>
+                <span id="typo-loader" class="loader hidden" style="border-top-color: white; width: 16px; height: 16px; border-width: 2px;"></span>
+            </button>
+        </div>
     </div>
 
     <!-- 🟢 MANAGER OVERRIDE MODAL -->
@@ -116,8 +148,8 @@
             <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 mb-4">
                 <span class="text-xl">🛡️</span>
             </div>
-            <h3 class="text-xl font-extrabold text-gray-900 mb-1 tracking-tight">Manager Override</h3>
-            <p class="text-[10px] text-gray-500 font-medium mb-6 uppercase tracking-wider">Generate replacement code</p>
+            <h3 class="text-xl font-extrabold text-gray-900 mb-1 tracking-tight">Full Override</h3>
+            <p class="text-[10px] text-gray-500 font-medium mb-6 uppercase tracking-wider">Generate a completely new code</p>
 
             <div class="space-y-4 text-left">
                 <div>
@@ -149,13 +181,11 @@
         </div>
     </div>
 
-    <!-- Modals for Success/Warning kept exactly identical -->
+    <!-- Modals for Success/Warning -->
     <div id="success-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center">
             <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-6">
-                <svg class="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
+                <svg class="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
             </div>
             <h3 class="text-2xl font-extrabold text-gray-900 mb-2 tracking-tight">Success!</h3>
             <p class="text-sm text-gray-500 font-medium mb-8">The customer's offer has been securely redeemed and recorded.</p>
@@ -166,12 +196,10 @@
     <div id="warning-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center">
             <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-red-100 mb-6 border-4 border-red-50">
-                <svg class="h-10 w-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
+                <svg class="h-10 w-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
             </div>
             <h3 class="text-xl font-extrabold text-gray-900 mb-2 tracking-tight">Wait, are you sure?</h3>
-            <p class="text-xs text-gray-500 font-medium mb-8">This will permanently kill the code and delete this customer's ratings.</p>
+            <p class="text-xs text-gray-500 font-medium mb-8">This will permanently kill the code and blacklist the user.</p>
             <div class="flex gap-3">
                 <button onclick="closeWarningModal()" class="w-1/2 bg-gray-100 text-gray-700 font-bold py-3 px-4 rounded-xl hover:bg-gray-200 active:scale-[0.98] transition-all tracking-wider text-sm">Cancel</button>
                 <button id="confirm-spam-btn" onclick="executeSpamAction()" class="w-1/2 bg-red-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-red-700 active:scale-[0.98] transition-all tracking-wider text-sm flex justify-center items-center shadow-md">
@@ -184,7 +212,7 @@
 
     <script>
         // 🔴 IMPORTANT: Replace this with your actual Web App URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwrfrucel7FqUM-8LLP5qpQch7boB_jrKi1pHixPsPav_3GD9K1EkSSJnSbPrxXD2nk/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx_mpyGRH1FLf_0Mr1onhQLWDSCEMHgGQa96MBYc_znvyrA2hnnJU_OvJXyJqTP7fXE/exec"; 
         const RESTAURANT_NAME = "Temp New"; 
 
         let currentlyVerifiedCode = "";
@@ -192,28 +220,85 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             document.getElementById('restaurant-name-display').innerText = RESTAURANT_NAME;
+            document.getElementById('discount-code').addEventListener('keypress', function (e) { if (e.key === 'Enter') verifyCode(); });
             
-            document.getElementById('discount-code').addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') verifyCode();
+            ['override-pin', 'override-bill', 'override-email'].forEach(id => {
+                document.getElementById(id).addEventListener('keypress', function (e) { if (e.key === 'Enter') generateOverride(); });
             });
-
-            const overrideInputs = ['override-pin', 'override-bill', 'override-email'];
-            overrideInputs.forEach(id => {
-                document.getElementById(id).addEventListener('keypress', function (e) {
-                    if (e.key === 'Enter') generateOverride();
-                });
+            ['typo-pin', 'typo-new-bill'].forEach(id => {
+                document.getElementById(id).addEventListener('keypress', function (e) { if (e.key === 'Enter') executeTypoFix(); });
             });
         });
 
-        function showSuccessModal() {
-            const modal = document.getElementById('success-modal');
+        // 🟢 TYPO CORRECTION LOGIC
+        function openTypoModal() {
+            const modal = document.getElementById('typo-modal');
             const modalBox = modal.querySelector('div');
+            
+            document.getElementById('typo-pin').value = '';
+            document.getElementById('typo-new-bill').value = '';
+            document.getElementById('typo-error').classList.add('hidden');
+
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
                 modalBox.classList.remove('scale-90');
                 modalBox.classList.add('scale-100');
+                document.getElementById('typo-pin').focus();
             }, 10);
+        }
+
+        function closeTypoModal() {
+            const modal = document.getElementById('typo-modal');
+            const modalBox = modal.querySelector('div');
+            modal.classList.add('opacity-0');
+            modalBox.classList.remove('scale-100');
+            modalBox.classList.add('scale-90');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+
+        async function executeTypoFix() {
+            const pin = document.getElementById('typo-pin').value.trim();
+            const newBill = document.getElementById('typo-new-bill').value.trim();
+            const errorDiv = document.getElementById('typo-error');
+
+            if (!pin || !newBill) {
+                errorDiv.innerText = "Both PIN and New Bill Number are required.";
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            errorDiv.classList.add('hidden');
+            toggleLoading('typo-btn', 'typo-text', 'typo-loader', true);
+
+            try {
+                const url = `${SCRIPT_URL}?action=fix_typo&pin=${encodeURIComponent(pin)}&newBillNumber=${encodeURIComponent(newBill)}&code=${encodeURIComponent(currentlyVerifiedCode)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.success) {
+                    closeTypoModal();
+                    document.getElementById('result-bill').innerText = "#" + data.newBill;
+                    const billBox = document.getElementById('result-bill').parentElement.parentElement;
+                    billBox.classList.add('bg-blue-100', 'border-blue-300');
+                    setTimeout(() => billBox.classList.remove('bg-blue-100', 'border-blue-300'), 1500);
+                } else {
+                    errorDiv.innerText = data.message;
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (err) {
+                errorDiv.innerText = "Network Error. Please try again.";
+                errorDiv.classList.remove('hidden');
+            } finally {
+                toggleLoading('typo-btn', 'typo-text', 'typo-loader', false);
+            }
+        }
+
+        function showSuccessModal() {
+            const modal = document.getElementById('success-modal');
+            const modalBox = modal.querySelector('div');
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); modalBox.classList.remove('scale-90'); modalBox.classList.add('scale-100'); }, 10);
         }
 
         function closeModal() {
@@ -230,7 +315,6 @@
             const modalBox = modal.querySelector('div');
             
             const currentDisplayedEmail = document.getElementById('result-customer').innerText;
-            
             document.getElementById('override-pin').value = '';
             document.getElementById('override-bill').value = '';
             document.getElementById('override-email').value = (currentDisplayedEmail && currentDisplayedEmail !== "N/A") ? currentDisplayedEmail : '';
@@ -244,12 +328,7 @@
             document.getElementById('override-text').innerText = "Authorize Override";
 
             modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                modalBox.classList.remove('scale-90');
-                modalBox.classList.add('scale-100');
-                document.getElementById('override-pin').focus();
-            }, 10);
+            setTimeout(() => { modal.classList.remove('opacity-0'); modalBox.classList.remove('scale-90'); modalBox.classList.add('scale-100'); document.getElementById('override-pin').focus(); }, 10);
         }
 
         function closeOverrideModal() {
@@ -270,8 +349,7 @@
 
             if (!pin || !bill) {
                 errorDiv.innerText = "PIN and True Bill Number are required.";
-                errorDiv.classList.remove('hidden');
-                return;
+                errorDiv.classList.remove('hidden'); return;
             }
 
             errorDiv.classList.add('hidden');
@@ -280,7 +358,6 @@
 
             try {
                 const url = `${SCRIPT_URL}?action=override&pin=${encodeURIComponent(pin)}&billNumber=${encodeURIComponent(bill)}&restaurant=${encodeURIComponent(RESTAURANT_NAME)}&email=${encodeURIComponent(email)}&oldCode=${encodeURIComponent(currentlyVerifiedCode)}`;
-                
                 const response = await fetch(url);
                 const data = await response.json();
 
@@ -313,7 +390,6 @@
             const resultCard = document.getElementById('result-card');
             
             if (!rawInput) return;
-
             const fullCode = "IMPACT-" + rawInput.toUpperCase();
 
             errorMsg.classList.add('hidden');
@@ -324,11 +400,8 @@
                 const response = await fetch(`${SCRIPT_URL}?code=${fullCode}&restaurant=${RESTAURANT_NAME}&action=verify`);
                 const data = await response.json();
 
-                if (data.success) {
-                    showResultCard(data.data, fullCode);
-                } else {
-                    showError(data.message);
-                }
+                if (data.success) showResultCard(data.data, fullCode);
+                else showError(data.message);
             } catch (err) {
                 showError("Connection Error. Try again.");
             } finally {
@@ -372,11 +445,7 @@
             const modal = document.getElementById('warning-modal');
             const modalBox = modal.querySelector('div');
             modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                modalBox.classList.remove('scale-90');
-                modalBox.classList.add('scale-100');
-            }, 10);
+            setTimeout(() => { modal.classList.remove('opacity-0'); modalBox.classList.remove('scale-90'); modalBox.classList.add('scale-100'); }, 10);
         }
 
         function closeWarningModal() {
@@ -433,10 +502,7 @@
             undoInterval = setInterval(() => {
                 timeLeft--;
                 undoTimerSpan.innerText = timeLeft;
-                if (timeLeft <= 0) {
-                    clearInterval(undoInterval);
-                    undoContainer.classList.add('hidden'); 
-                }
+                if (timeLeft <= 0) { clearInterval(undoInterval); undoContainer.classList.add('hidden'); }
             }, 1000);
         }
 
@@ -455,7 +521,6 @@
                     badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-green-100 text-green-700 border border-green-200";
                     document.getElementById('undo-container').classList.add('hidden'); 
                     document.getElementById('action-buttons').classList.remove('hidden'); 
-                    
                     document.getElementById('status-warning').classList.add('hidden');
                 } else {
                     showError(data.message);
@@ -478,11 +543,8 @@
             let formattedDate = "N/A";
             if (data.dateSubmitted && data.dateSubmitted !== "N/A") {
                 const d = new Date(data.dateSubmitted);
-                if (!isNaN(d.getTime())) {
-                    formattedDate = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-                } else {
-                    formattedDate = data.dateSubmitted;
-                }
+                if (!isNaN(d.getTime())) { formattedDate = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }); } 
+                else { formattedDate = data.dateSubmitted; }
             }
             document.getElementById('result-date').innerText = formattedDate;
             
@@ -508,13 +570,13 @@
                 badge.innerText = "FLAGGED AS SPAM";
                 badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-red-900 text-red-100 border border-red-950";
                 warningBox.classList.add('bg-red-50', 'border-red-200', 'text-red-800', '!block');
-                warningBox.innerHTML = '🚫 <span class="uppercase tracking-wider">Security Flag:</span> This code was flagged by the automated anti-abuse system or manually by staff. The user is restricted.';
+                warningBox.innerHTML = '🚫 <span class="uppercase tracking-wider">Security Flag:</span> This code was flagged by the automated anti-abuse system or manually by staff.';
                 actionButtons.classList.add('hidden');
             } else if (status === 'voided') {
                 badge.innerText = "VOIDED";
                 badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-orange-100 text-orange-700 border border-orange-300";
                 warningBox.classList.add('bg-orange-50', 'border-orange-200', 'text-orange-800', '!block');
-                warningBox.innerHTML = '⚠️ <span class="uppercase tracking-wider">Duplicate Bill Detected:</span> A newer code was already generated for this exact receipt. To prevent double-claiming, this older code has been voided.';
+                warningBox.innerHTML = '⚠️ <span class="uppercase tracking-wider">Duplicate Bill Detected:</span> A newer code was already generated for this exact receipt.';
                 actionButtons.classList.add('hidden'); 
             } else if (status === 'overridden') { 
                 badge.innerText = "OVERRIDDEN";
@@ -552,13 +614,9 @@
             const loader = document.getElementById(loaderId);
             const btn = document.getElementById(btnId);
             if (isLoading) {
-                btnText.classList.add('hidden');
-                loader.classList.remove('hidden');
-                btn.disabled = true;
+                btnText.classList.add('hidden'); loader.classList.remove('hidden'); btn.disabled = true;
             } else {
-                btnText.classList.remove('hidden');
-                loader.classList.add('hidden');
-                btn.disabled = false;
+                btnText.classList.remove('hidden'); loader.classList.add('hidden'); btn.disabled = false;
             }
         }
     </script>
