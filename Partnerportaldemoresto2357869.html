@@ -10,11 +10,7 @@
         body { font-family: 'Inter', sans-serif; background-color: #f5f5f4; }
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid #16A34A; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Mobile optimization for input focus to prevent zooming on iOS */
-        @media screen and (max-width: 768px) {
-            input { font-size: 16px !important; }
-        }
+        @media screen and (max-width: 768px) { input { font-size: 16px !important; } }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6">
@@ -59,10 +55,7 @@
                         <span id="result-badge" class="px-3 py-1 rounded-lg text-[10px] font-black tracking-tighter"></span>
                     </div>
 
-                    <!-- 🟢 Voided Warning Message -->
-                    <div id="void-warning" class="hidden mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg text-[10px] text-orange-800 font-bold leading-relaxed shadow-inner">
-                        ⚠️ <span class="uppercase tracking-wider">Duplicate Bill Detected:</span> A newer code was already generated for this exact receipt. To prevent double-claiming, this older code has been voided.
-                    </div>
+                    <div id="void-warning" class="hidden mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg text-[10px] text-orange-800 font-bold leading-relaxed shadow-inner"></div>
                     
                     <div class="mb-6 space-y-4">
                         <div>
@@ -91,6 +84,13 @@
                         <button id="spam-btn" onclick="markAsSpam()" class="text-[10px] font-bold text-gray-400 hover:text-red-500 uppercase tracking-widest transition-colors flex items-center gap-2">
                             <span id="spam-text">Flag as Fake / Spam</span>
                         </button>
+                        
+                        <!-- 🟢 Manager Access moved inside the result card -->
+                        <div class="mt-2 pt-4 border-t border-gray-200 w-full text-center">
+                            <button onclick="openOverrideModal()" class="text-[9px] text-gray-400 hover:text-gray-900 font-bold tracking-widest uppercase transition-colors">
+                                🔒 Manager Access
+                            </button>
+                        </div>
                     </div>
 
                     <div id="undo-container" class="mt-6 hidden text-center bg-gray-50 border border-gray-200 rounded-xl p-4">
@@ -104,16 +104,9 @@
                 </div>
             </div>
         </div>
-
-        <!-- 🟢 Subtle Manager Link -->
-        <div class="border-t border-gray-100 bg-gray-50 py-3 text-center">
-            <button onclick="openOverrideModal()" class="text-[9px] text-gray-400 hover:text-gray-700 font-bold tracking-widest uppercase transition-colors">
-                🔒 Manager Access
-            </button>
-        </div>
     </div>
 
-    <!-- 🟢 NEW: MANAGER OVERRIDE MODAL -->
+    <!-- 🟢 MANAGER OVERRIDE MODAL -->
     <div id="override-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
         <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center relative">
             <button onclick="closeOverrideModal()" class="absolute top-4 right-5 text-gray-400 hover:text-gray-800 text-2xl font-bold">&times;</button>
@@ -152,7 +145,6 @@
             </button>
         </div>
     </div>
-    <!-- END MANAGER OVERRIDE MODAL -->
 
     <div id="success-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center">
@@ -161,32 +153,23 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
             </div>
-            
             <h3 class="text-2xl font-extrabold text-gray-900 mb-2 tracking-tight">Success!</h3>
             <p class="text-sm text-gray-500 font-medium mb-8">The customer's offer has been securely redeemed and recorded.</p>
-            
-            <button onclick="closeModal()" class="w-full bg-gray-900 text-white font-bold py-4 px-4 rounded-xl hover:bg-black active:scale-[0.98] transition-all tracking-wider uppercase text-sm">
-                Done
-            </button>
+            <button onclick="closeModal()" class="w-full bg-gray-900 text-white font-bold py-4 px-4 rounded-xl hover:bg-black active:scale-[0.98] transition-all tracking-wider uppercase text-sm">Done</button>
         </div>
     </div>
 
     <div id="warning-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center">
-            
             <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-red-100 mb-6 border-4 border-red-50">
                 <svg class="h-10 w-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
             </div>
-            
             <h3 class="text-xl font-extrabold text-gray-900 mb-2 tracking-tight">Wait, are you sure?</h3>
             <p class="text-xs text-gray-500 font-medium mb-8">This will permanently kill the code and delete this customer's ratings from the impact dashboard.</p>
-            
             <div class="flex gap-3">
-                <button onclick="closeWarningModal()" class="w-1/2 bg-gray-100 text-gray-700 font-bold py-3 px-4 rounded-xl hover:bg-gray-200 active:scale-[0.98] transition-all tracking-wider text-sm">
-                    Cancel
-                </button>
+                <button onclick="closeWarningModal()" class="w-1/2 bg-gray-100 text-gray-700 font-bold py-3 px-4 rounded-xl hover:bg-gray-200 active:scale-[0.98] transition-all tracking-wider text-sm">Cancel</button>
                 <button id="confirm-spam-btn" onclick="executeSpamAction()" class="w-1/2 bg-red-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-red-700 active:scale-[0.98] transition-all tracking-wider text-sm flex justify-center items-center shadow-md">
                     <span id="confirm-spam-text">Kill Code</span>
                     <span id="confirm-spam-loader" class="loader hidden" style="border-top-color: white; width: 16px; height: 16px; border-width: 2px;"></span>
@@ -196,8 +179,8 @@
     </div>
 
     <script>
-        // Your specific API Details
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwq_-jI13CtOraJyQW3peHa92wEESDy5KWdQEVREtF2VJBLO0a85Ohq-940vGwLBvaT/exec"; 
+        // 🔴 IMPORTANT: Replace this with your actual Web App URL
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwrfrucel7FqUM-8LLP5qpQch7boB_jrKi1pHixPsPav_3GD9K1EkSSJnSbPrxXD2nk/exec"; 
         const RESTAURANT_NAME = "Temp New"; 
 
         let currentlyVerifiedCode = "";
@@ -205,13 +188,23 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             document.getElementById('restaurant-name-display').innerText = RESTAURANT_NAME;
+            
+            // 🟢 ENTER KEY LOGIC: Triggers the associated button
+            document.getElementById('discount-code').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') verifyCode();
+            });
+
+            const overrideInputs = ['override-pin', 'override-bill', 'override-email'];
+            overrideInputs.forEach(id => {
+                document.getElementById(id).addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') generateOverride();
+                });
+            });
         });
 
-        // --- SUCCESS MODAL CONTROL ---
         function showSuccessModal() {
             const modal = document.getElementById('success-modal');
             const modalBox = modal.querySelector('div');
-            
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
@@ -223,47 +216,48 @@
         function closeModal() {
             const modal = document.getElementById('success-modal');
             const modalBox = modal.querySelector('div');
-            
             modal.classList.add('opacity-0');
             modalBox.classList.remove('scale-100');
             modalBox.classList.add('scale-90');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
-        // --- 🟢 NEW: MANAGER OVERRIDE LOGIC ---
         function openOverrideModal() {
             const modal = document.getElementById('override-modal');
             const modalBox = modal.querySelector('div');
             
-            // Reset fields
+            // 🟢 AUTO-FILL LOGIC: Grabs the email currently on the screen
+            const currentDisplayedEmail = document.getElementById('result-customer').innerText;
+            
             document.getElementById('override-pin').value = '';
             document.getElementById('override-bill').value = '';
-            document.getElementById('override-email').value = '';
+            document.getElementById('override-email').value = (currentDisplayedEmail && currentDisplayedEmail !== "N/A") ? currentDisplayedEmail : '';
+            
             document.getElementById('override-error').classList.add('hidden');
             document.getElementById('override-success').classList.add('hidden');
+
+            // Reset the button state
+            const overrideBtn = document.getElementById('override-btn');
+            overrideBtn.disabled = false;
+            overrideBtn.className = "mt-6 w-full bg-gray-900 text-white font-bold py-3 px-4 rounded-xl hover:bg-black active:scale-[0.98] transition-all flex justify-center items-center shadow-lg";
+            document.getElementById('override-text').innerText = "Authorize Override";
 
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
                 modalBox.classList.remove('scale-90');
                 modalBox.classList.add('scale-100');
+                document.getElementById('override-pin').focus();
             }, 10);
         }
 
         function closeOverrideModal() {
             const modal = document.getElementById('override-modal');
             const modalBox = modal.querySelector('div');
-            
             modal.classList.add('opacity-0');
             modalBox.classList.remove('scale-100');
             modalBox.classList.add('scale-90');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
         async function generateOverride() {
@@ -284,20 +278,24 @@
             toggleLoading('override-btn', 'override-text', 'override-loader', true);
 
             try {
-                // Secure GET request to the Apps Script Backend
-                const url = `${SCRIPT_URL}?action=override&pin=${encodeURIComponent(pin)}&billNumber=${encodeURIComponent(bill)}&restaurant=${encodeURIComponent(RESTAURANT_NAME)}&email=${encodeURIComponent(email)}`;
+                // Passes the currently scanned code (if any) back to the server to be killed
+                const url = `${SCRIPT_URL}?action=override&pin=${encodeURIComponent(pin)}&billNumber=${encodeURIComponent(bill)}&restaurant=${encodeURIComponent(RESTAURANT_NAME)}&email=${encodeURIComponent(email)}&oldCode=${encodeURIComponent(currentlyVerifiedCode)}`;
                 
                 const response = await fetch(url);
                 const data = await response.json();
 
                 if (data.success) {
-                    // Success! Display it to the manager
                     document.getElementById('override-new-code').innerText = data.newCode;
                     successDiv.classList.remove('hidden');
                     
-                    // Sneakily pre-fill the main portal input so it's ready to scan right away
                     let rawCodeOnly = data.newCode.replace("IMPACT-", "");
                     document.getElementById('discount-code').value = rawCodeOnly;
+
+                    // 🟢 DISABLED STATE LOGIC: Turns the button gray so they can't spam it
+                    const overrideBtn = document.getElementById('override-btn');
+                    overrideBtn.disabled = true;
+                    overrideBtn.className = "mt-6 w-full bg-gray-400 text-white font-bold py-3 px-4 rounded-xl flex justify-center items-center cursor-not-allowed";
+                    document.getElementById('override-text').innerText = "Override Complete ✓";
                 } else {
                     errorDiv.innerText = data.message;
                     errorDiv.classList.remove('hidden');
@@ -309,9 +307,7 @@
                 toggleLoading('override-btn', 'override-text', 'override-loader', false);
             }
         }
-        // ---------------------------------------------
 
-        // --- CORE LOGIC ---
         async function verifyCode() {
             const rawInput = document.getElementById('discount-code').value.trim();
             const errorMsg = document.getElementById('error-message');
@@ -343,7 +339,6 @@
 
         async function redeemCode() {
             if (!currentlyVerifiedCode) return;
-
             const errorMsg = document.getElementById('error-message');
             toggleLoading('redeem-btn', 'redeem-text', 'redeem-loader', true);
             errorMsg.classList.add('hidden');
@@ -356,7 +351,6 @@
                     document.getElementById('result-badge').innerText = "REDEEMED";
                     document.getElementById('result-badge').className = "px-3 py-1 rounded-lg text-[10px] font-black bg-gray-200 text-gray-500";
                     document.getElementById('action-buttons').classList.add('hidden'); 
-                    
                     showSuccessModal();
                     document.getElementById('discount-code').value = '';
                 } else {
@@ -369,12 +363,10 @@
             }
         }
 
-        // --- SPAM & WARNING MODAL LOGIC ---
         function markAsSpam() {
             if (!currentlyVerifiedCode) return;
             const modal = document.getElementById('warning-modal');
             const modalBox = modal.querySelector('div');
-            
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
@@ -386,14 +378,10 @@
         function closeWarningModal() {
             const modal = document.getElementById('warning-modal');
             const modalBox = modal.querySelector('div');
-            
             modal.classList.add('opacity-0');
             modalBox.classList.remove('scale-100');
             modalBox.classList.add('scale-90');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
         async function executeSpamAction() {
@@ -407,11 +395,9 @@
 
                 if (data.success) {
                     closeWarningModal();
-                    
                     const badge = document.getElementById('result-badge');
                     badge.innerText = "FLAGGED AS SPAM";
                     badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-red-900 text-red-100 border border-red-950";
-                    
                     document.getElementById('action-buttons').classList.add('hidden'); 
                     startUndoTimer(); 
                 } else {
@@ -438,7 +424,6 @@
             undoInterval = setInterval(() => {
                 timeLeft--;
                 undoTimerSpan.innerText = timeLeft;
-                
                 if (timeLeft <= 0) {
                     clearInterval(undoInterval);
                     undoContainer.classList.add('hidden'); 
@@ -448,7 +433,6 @@
 
         async function undoSpam() {
             if (!currentlyVerifiedCode) return;
-            
             clearInterval(undoInterval); 
             toggleLoading('undo-btn', 'undo-text', 'undo-loader', true);
             
@@ -460,7 +444,6 @@
                     const badge = document.getElementById('result-badge');
                     badge.innerText = "VALID OFFER";
                     badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-green-100 text-green-700 border border-green-200";
-                    
                     document.getElementById('undo-container').classList.add('hidden'); 
                     document.getElementById('action-buttons').classList.remove('hidden'); 
                 } else {
@@ -474,13 +457,11 @@
                 toggleLoading('undo-btn', 'undo-text', 'undo-loader', false);
             }
         }
-        // -----------------------------
 
         function showResultCard(data, code) {
             currentlyVerifiedCode = code;
             document.getElementById('result-offer').innerText = data.offer;
             document.getElementById('result-customer').innerText = data.customer;
-            
             document.getElementById('result-bill').innerText = data.billNumber && data.billNumber !== "N/A" ? "#" + data.billNumber : "N/A";
             
             let formattedDate = "N/A";
@@ -501,6 +482,8 @@
             voidWarning.classList.add('hidden');
 
             const status = data.status.toLowerCase();
+            
+            // 🟢 UPDATED: Handles the new "Overridden" status dynamically
             if (status === 'valid') {
                 badge.innerText = "VALID OFFER";
                 badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-green-100 text-green-700 border border-green-200";
@@ -516,6 +499,13 @@
             } else if (status === 'voided') {
                 badge.innerText = "VOIDED";
                 badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-orange-100 text-orange-700 border border-orange-300";
+                voidWarning.innerHTML = '⚠️ <span class="uppercase tracking-wider">Duplicate Bill Detected:</span> A newer code was already generated for this exact receipt. To prevent double-claiming, this older code has been voided.';
+                voidWarning.classList.remove('hidden');
+                actionButtons.classList.add('hidden'); 
+            } else if (status === 'overridden') { 
+                badge.innerText = "OVERRIDDEN";
+                badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-purple-100 text-purple-700 border border-purple-300";
+                voidWarning.innerHTML = '⚠️ <span class="uppercase tracking-wider">Manager Override:</span> This code was manually replaced by a manager and is no longer valid.';
                 voidWarning.classList.remove('hidden');
                 actionButtons.classList.add('hidden'); 
             } else {
@@ -529,6 +519,11 @@
             document.getElementById('warning-modal').classList.add('hidden');
 
             document.getElementById('result-card').classList.remove('hidden');
+            
+            // Auto-focus the redeem button for fast workflow
+            if(status === 'valid') {
+                document.getElementById('redeem-btn').focus();
+            }
         }
 
         function showError(message) {
