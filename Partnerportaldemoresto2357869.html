@@ -105,7 +105,7 @@
 
         <div class="border-t border-gray-100 bg-gray-50 py-3 text-center mt-auto">
             <button onclick="openOverrideModal()" class="text-[9px] text-gray-400 hover:text-gray-900 font-bold tracking-widest uppercase transition-colors">
-                🔒 Manager Access
+                🔒 Full Manager Override
             </button>
         </div>
 
@@ -123,8 +123,8 @@
 
             <div class="space-y-4 text-left">
                 <div>
-                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">Secret PIN</label>
-                    <input type="password" id="typo-pin" placeholder="Enter Manager PIN" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-center tracking-widest font-bold">
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">Secret Passphrase</label>
+                    <input type="password" id="typo-pin" placeholder="Enter Manager Key" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-center font-bold">
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">True Bill Number from Receipt</label>
@@ -153,8 +153,8 @@
 
             <div class="space-y-4 text-left">
                 <div>
-                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">Secret PIN</label>
-                    <input type="password" id="override-pin" placeholder="Enter Manager PIN" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-900 outline-none text-center tracking-widest font-bold">
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">Secret Passphrase</label>
+                    <input type="password" id="override-pin" placeholder="Enter Manager Key" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-900 outline-none text-center font-bold">
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">True Bill Number</label>
@@ -211,20 +211,34 @@
     </div>
 
     <script>
-        // 🔴 IMPORTANT: Replace this with your actual Web App URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx_mpyGRH1FLf_0Mr1onhQLWDSCEMHgGQa96MBYc_znvyrA2hnnJU_OvJXyJqTP7fXE/exec"; 
+        // 🔴 IMPORTANT: Replace this with your newly deployed Web App URL
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzsJ1TB0zL5Aqx9y5bkPIsYRGIRM4PYOgHXyi6D0pazA7N8OnaWbFZ1YeXugLQz26_o/exec"; 
         const RESTAURANT_NAME = "Temp New"; 
 
         let currentlyVerifiedCode = "";
         let undoInterval;
 
+        // 🛡️ THE SECURE POST HELPER: Sends data invisibly to the backend
+        async function securePost(paramsObj) {
+            const formData = new URLSearchParams(paramsObj);
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: formData
+            });
+            return await response.json();
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             document.getElementById('restaurant-name-display').innerText = RESTAURANT_NAME;
-            document.getElementById('discount-code').addEventListener('keypress', function (e) { if (e.key === 'Enter') verifyCode(); });
             
+            document.getElementById('discount-code').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') verifyCode();
+            });
+
             ['override-pin', 'override-bill', 'override-email'].forEach(id => {
                 document.getElementById(id).addEventListener('keypress', function (e) { if (e.key === 'Enter') generateOverride(); });
             });
+            
             ['typo-pin', 'typo-new-bill'].forEach(id => {
                 document.getElementById(id).addEventListener('keypress', function (e) { if (e.key === 'Enter') executeTypoFix(); });
             });
@@ -263,7 +277,7 @@
             const errorDiv = document.getElementById('typo-error');
 
             if (!pin || !newBill) {
-                errorDiv.innerText = "Both PIN and New Bill Number are required.";
+                errorDiv.innerText = "Both Passphrase and New Bill Number are required.";
                 errorDiv.classList.remove('hidden');
                 return;
             }
@@ -272,9 +286,8 @@
             toggleLoading('typo-btn', 'typo-text', 'typo-loader', true);
 
             try {
-                const url = `${SCRIPT_URL}?action=fix_typo&pin=${encodeURIComponent(pin)}&newBillNumber=${encodeURIComponent(newBill)}&code=${encodeURIComponent(currentlyVerifiedCode)}`;
-                const response = await fetch(url);
-                const data = await response.json();
+                // Secure POST request
+                const data = await securePost({ action: 'fix_typo', pin: pin, newBillNumber: newBill, code: currentlyVerifiedCode });
 
                 if (data.success) {
                     closeTypoModal();
@@ -348,7 +361,7 @@
             const successDiv = document.getElementById('override-success');
 
             if (!pin || !bill) {
-                errorDiv.innerText = "PIN and True Bill Number are required.";
+                errorDiv.innerText = "Passphrase and True Bill Number are required.";
                 errorDiv.classList.remove('hidden'); return;
             }
 
@@ -357,9 +370,8 @@
             toggleLoading('override-btn', 'override-text', 'override-loader', true);
 
             try {
-                const url = `${SCRIPT_URL}?action=override&pin=${encodeURIComponent(pin)}&billNumber=${encodeURIComponent(bill)}&restaurant=${encodeURIComponent(RESTAURANT_NAME)}&email=${encodeURIComponent(email)}&oldCode=${encodeURIComponent(currentlyVerifiedCode)}`;
-                const response = await fetch(url);
-                const data = await response.json();
+                // Secure POST request
+                const data = await securePost({ action: 'override', pin: pin, billNumber: bill, restaurant: RESTAURANT_NAME, email: email, oldCode: currentlyVerifiedCode });
 
                 if (data.success) {
                     document.getElementById('override-new-code').innerText = data.newCode;
@@ -397,8 +409,8 @@
             toggleLoading('verify-btn', 'verify-text', 'verify-loader', true);
 
             try {
-                const response = await fetch(`${SCRIPT_URL}?code=${fullCode}&restaurant=${RESTAURANT_NAME}&action=verify`);
-                const data = await response.json();
+                // Secure POST request
+                const data = await securePost({ code: fullCode, restaurant: RESTAURANT_NAME, action: 'verify' });
 
                 if (data.success) showResultCard(data.data, fullCode);
                 else showError(data.message);
@@ -416,8 +428,8 @@
             errorMsg.classList.add('hidden');
 
             try {
-                const response = await fetch(`${SCRIPT_URL}?code=${currentlyVerifiedCode}&restaurant=${RESTAURANT_NAME}&action=redeem`);
-                const data = await response.json();
+                // Secure POST request
+                const data = await securePost({ code: currentlyVerifiedCode, restaurant: RESTAURANT_NAME, action: 'redeem' });
 
                 if (data.success) {
                     document.getElementById('result-badge').innerText = "REDEEMED";
@@ -463,8 +475,8 @@
             errorMsg.classList.add('hidden');
 
             try {
-                const response = await fetch(`${SCRIPT_URL}?code=${currentlyVerifiedCode}&restaurant=${RESTAURANT_NAME}&action=spam`);
-                const data = await response.json();
+                // Secure POST request
+                const data = await securePost({ code: currentlyVerifiedCode, restaurant: RESTAURANT_NAME, action: 'spam' });
 
                 if (data.success) {
                     closeWarningModal();
@@ -512,8 +524,8 @@
             toggleLoading('undo-btn', 'undo-text', 'undo-loader', true);
             
             try {
-                const response = await fetch(`${SCRIPT_URL}?code=${currentlyVerifiedCode}&restaurant=${RESTAURANT_NAME}&action=undo_spam`);
-                const data = await response.json();
+                // Secure POST request
+                const data = await securePost({ code: currentlyVerifiedCode, restaurant: RESTAURANT_NAME, action: 'undo_spam' });
 
                 if (data.success) {
                     const badge = document.getElementById('result-badge');
@@ -557,67 +569,44 @@
             const status = data.status.toLowerCase();
             
             if (status === 'valid') {
-                badge.innerText = "VALID OFFER";
-                badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-green-100 text-green-700 border border-green-200";
-                actionButtons.classList.remove('hidden'); 
+                badge.innerText = "VALID OFFER"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-green-100 text-green-700 border border-green-200"; actionButtons.classList.remove('hidden'); 
             } else if (status === 'redeemed') {
-                badge.innerText = "USED ALREADY";
-                badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-gray-100 text-gray-500 border border-gray-200";
+                badge.innerText = "USED ALREADY"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-gray-100 text-gray-500 border border-gray-200";
                 warningBox.classList.add('bg-gray-100', 'border-gray-300', 'text-gray-700', '!block');
-                warningBox.innerHTML = '⚠️ <span class="uppercase tracking-wider">Already Claimed:</span> This reward has already been scanned and redeemed at the counter. It cannot be used again.';
-                actionButtons.classList.add('hidden'); 
+                warningBox.innerHTML = '⚠️ <span class="uppercase tracking-wider">Already Claimed:</span> This reward has already been scanned and redeemed at the counter. It cannot be used again.'; actionButtons.classList.add('hidden'); 
             } else if (status === 'spam') {
-                badge.innerText = "FLAGGED AS SPAM";
-                badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-red-900 text-red-100 border border-red-950";
+                badge.innerText = "FLAGGED AS SPAM"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-red-900 text-red-100 border border-red-950";
                 warningBox.classList.add('bg-red-50', 'border-red-200', 'text-red-800', '!block');
-                warningBox.innerHTML = '🚫 <span class="uppercase tracking-wider">Security Flag:</span> This code was flagged by the automated anti-abuse system or manually by staff.';
-                actionButtons.classList.add('hidden');
+                warningBox.innerHTML = '🚫 <span class="uppercase tracking-wider">Security Flag:</span> This code was flagged by the automated anti-abuse system or manually by staff.'; actionButtons.classList.add('hidden');
             } else if (status === 'voided') {
-                badge.innerText = "VOIDED";
-                badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-orange-100 text-orange-700 border border-orange-300";
+                badge.innerText = "VOIDED"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-orange-100 text-orange-700 border border-orange-300";
                 warningBox.classList.add('bg-orange-50', 'border-orange-200', 'text-orange-800', '!block');
-                warningBox.innerHTML = '⚠️ <span class="uppercase tracking-wider">Duplicate Bill Detected:</span> A newer code was already generated for this exact receipt.';
-                actionButtons.classList.add('hidden'); 
+                warningBox.innerHTML = '⚠️ <span class="uppercase tracking-wider">Duplicate Bill Detected:</span> A newer code was already generated for this exact receipt.'; actionButtons.classList.add('hidden'); 
             } else if (status === 'overridden') { 
-                badge.innerText = "OVERRIDDEN";
-                badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-purple-100 text-purple-700 border border-purple-300";
+                badge.innerText = "OVERRIDDEN"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-purple-100 text-purple-700 border border-purple-300";
                 warningBox.classList.add('bg-purple-50', 'border-purple-200', 'text-purple-800', '!block');
-                warningBox.innerHTML = '🛡️ <span class="uppercase tracking-wider">Manager Override:</span> This code was manually replaced by a manager due to a typo or dispute, rendering this original code invalid.';
-                actionButtons.classList.add('hidden'); 
+                warningBox.innerHTML = '🛡️ <span class="uppercase tracking-wider">Manager Override:</span> This code was manually replaced by a manager due to a typo or dispute, rendering this original code invalid.'; actionButtons.classList.add('hidden'); 
             } else {
-                badge.innerText = "EXPIRED";
-                badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-red-100 text-red-700 border border-red-200";
+                badge.innerText = "EXPIRED"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-red-100 text-red-700 border border-red-200";
                 warningBox.classList.add('bg-red-50', 'border-red-200', 'text-red-800', '!block');
-                warningBox.innerHTML = '⏰ <span class="uppercase tracking-wider">Offer Expired:</span> This code has passed its validity window and can no longer be redeemed.';
-                actionButtons.classList.add('hidden'); 
+                warningBox.innerHTML = '⏰ <span class="uppercase tracking-wider">Offer Expired:</span> This code has passed its validity window and can no longer be redeemed.'; actionButtons.classList.add('hidden'); 
             }
 
             clearInterval(undoInterval);
-            document.getElementById('undo-container').classList.add('hidden');
-            document.getElementById('warning-modal').classList.add('hidden');
-
+            document.getElementById('undo-container').classList.add('hidden'); document.getElementById('warning-modal').classList.add('hidden');
             document.getElementById('result-card').classList.remove('hidden');
             
-            if(status === 'valid') {
-                document.getElementById('redeem-btn').focus();
-            }
+            if(status === 'valid') { document.getElementById('redeem-btn').focus(); }
         }
 
         function showError(message) {
-            const errorMsg = document.getElementById('error-message');
-            errorMsg.innerText = message;
-            errorMsg.classList.remove('hidden');
+            const errorMsg = document.getElementById('error-message'); errorMsg.innerText = message; errorMsg.classList.remove('hidden');
         }
 
         function toggleLoading(btnId, textId, loaderId, isLoading) {
-            const btnText = document.getElementById(textId);
-            const loader = document.getElementById(loaderId);
-            const btn = document.getElementById(btnId);
-            if (isLoading) {
-                btnText.classList.add('hidden'); loader.classList.remove('hidden'); btn.disabled = true;
-            } else {
-                btnText.classList.remove('hidden'); loader.classList.add('hidden'); btn.disabled = false;
-            }
+            const btnText = document.getElementById(textId); const loader = document.getElementById(loaderId); const btn = document.getElementById(btnId);
+            if (isLoading) { btnText.classList.add('hidden'); loader.classList.remove('hidden'); btn.disabled = true; } 
+            else { btnText.classList.remove('hidden'); loader.classList.add('hidden'); btn.disabled = false; }
         }
     </script>
 </body>
