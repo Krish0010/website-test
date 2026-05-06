@@ -55,7 +55,7 @@
                         <span id="result-badge" class="px-3 py-1 rounded-lg text-[10px] font-black tracking-tighter"></span>
                     </div>
 
-                    <!-- 🟢 THE NEW DYNAMIC WARNING/CLARIFICATION BOX -->
+                    <!-- 🟢 THE DYNAMIC WARNING/CLARIFICATION BOX -->
                     <div id="status-warning" class="hidden mb-4 p-3 rounded-lg text-[10px] font-bold leading-relaxed shadow-inner border"></div>
                     
                     <div class="mb-6 space-y-4">
@@ -85,12 +85,6 @@
                         <button id="spam-btn" onclick="markAsSpam()" class="text-[10px] font-bold text-gray-400 hover:text-red-500 uppercase tracking-widest transition-colors flex items-center gap-2">
                             <span id="spam-text">Flag as Fake / Spam</span>
                         </button>
-                        
-                        <div class="mt-2 pt-4 border-t border-gray-200 w-full text-center">
-                            <button onclick="openOverrideModal()" class="text-[9px] text-gray-400 hover:text-gray-900 font-bold tracking-widest uppercase transition-colors">
-                                🔒 Manager Access
-                            </button>
-                        </div>
                     </div>
 
                     <div id="undo-container" class="mt-6 hidden text-center bg-gray-50 border border-gray-200 rounded-xl p-4">
@@ -104,6 +98,15 @@
                 </div>
             </div>
         </div>
+
+        <!-- 🟢 MANAGER ACCESS BUTTON MOVED HERE -->
+        <!-- Placed safely at the bottom of the main white container so it NEVER hides -->
+        <div class="border-t border-gray-100 bg-gray-50 py-3 text-center">
+            <button onclick="openOverrideModal()" class="text-[9px] text-gray-400 hover:text-gray-900 font-bold tracking-widest uppercase transition-colors">
+                🔒 Manager Access
+            </button>
+        </div>
+
     </div>
 
     <!-- 🟢 MANAGER OVERRIDE MODAL -->
@@ -348,7 +351,6 @@
                     document.getElementById('result-badge').className = "px-3 py-1 rounded-lg text-[10px] font-black bg-gray-200 text-gray-500";
                     document.getElementById('action-buttons').classList.add('hidden'); 
                     
-                    // Trigger the UI change instantly so it matches the other warning boxes
                     const warningBox = document.getElementById('status-warning');
                     warningBox.className = "mb-4 p-3 rounded-lg text-[10px] font-bold leading-relaxed shadow-inner border bg-gray-100 border-gray-300 text-gray-700";
                     warningBox.innerHTML = '⚠️ <span class="uppercase tracking-wider">Already Claimed:</span> This reward has already been scanned and redeemed. It cannot be used again.';
@@ -488,12 +490,10 @@
             const actionButtons = document.getElementById('action-buttons');
             const warningBox = document.getElementById('status-warning');
             
-            // Reset base classes for warning box
             warningBox.className = "hidden mb-4 p-3 rounded-lg text-[10px] font-bold leading-relaxed shadow-inner border";
 
             const status = data.status.toLowerCase();
             
-            // 🟢 DYNAMIC CLARIFICATION BOX LOGIC
             if (status === 'valid') {
                 badge.innerText = "VALID OFFER";
                 badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-green-100 text-green-700 border border-green-200";
