@@ -66,7 +66,13 @@
                         <div class="bg-gray-200/50 p-3 rounded-xl border border-gray-200 flex justify-between items-center">
                             <div>
                                 <p class="text-[9px] text-gray-500 uppercase font-bold tracking-wider mb-1">Bill Number Check</p>
-                                <p id="result-bill" class="text-base font-black text-gray-900"></p>
+                                <!-- 🟢 NEW: INLINE EDIT BUTTON PLACED HERE -->
+                                <div class="flex items-center gap-2">
+                                    <p id="result-bill" class="text-base font-black text-gray-900"></p>
+                                    <button id="inline-typo-btn" onclick="openTypoModal()" class="hidden text-[9px] bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded uppercase font-bold tracking-wider transition-colors">
+                                        ✏️ Edit
+                                    </button>
+                                </div>
                             </div>
                             <div class="text-right">
                                 <p class="text-[9px] text-gray-500 uppercase font-bold tracking-wider mb-1">Submitted On</p>
@@ -81,14 +87,9 @@
                             <span id="redeem-loader" class="loader hidden" style="border-top-color: white;"></span>
                         </button>
 
-                        <div class="flex w-full gap-2 mt-2">
-                            <button onclick="openTypoModal()" class="w-1/2 bg-gray-200 text-gray-700 text-[10px] font-bold py-3 rounded-lg hover:bg-gray-300 transition-colors uppercase tracking-wider flex items-center justify-center gap-1">
-                                ✏️ Correct Typo
-                            </button>
-                            <button id="spam-btn" onclick="markAsSpam()" class="w-1/2 text-[10px] font-bold text-gray-400 hover:text-red-500 uppercase tracking-wider transition-colors flex items-center justify-center gap-1">
-                                🚫 Flag as Spam
-                            </button>
-                        </div>
+                        <button id="spam-btn" onclick="markAsSpam()" class="mt-2 text-[10px] font-bold text-gray-400 hover:text-red-500 uppercase tracking-wider transition-colors flex items-center justify-center gap-1">
+                            🚫 Flag as Fake / Spam
+                        </button>
                     </div>
 
                     <div id="undo-container" class="mt-6 hidden text-center bg-gray-50 border border-gray-200 rounded-xl p-4">
@@ -105,13 +106,13 @@
 
         <div class="border-t border-gray-100 bg-gray-50 py-3 text-center mt-auto">
             <button onclick="openOverrideModal()" class="text-[9px] text-gray-400 hover:text-gray-900 font-bold tracking-widest uppercase transition-colors">
-                🔒Manager Access
+                🔒 Full Manager Override
             </button>
         </div>
 
     </div>
 
-    <!-- 🟢 TYPO CORRECTION MODAL -->
+    <!-- 🟢 SIMPLIFIED TYPO CORRECTION MODAL (No PIN required) -->
     <div id="typo-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
         <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center relative">
             <button onclick="closeTypoModal()" class="absolute top-4 right-5 text-gray-400 hover:text-gray-800 text-2xl font-bold">&times;</button>
@@ -119,13 +120,9 @@
                 <span class="text-xl">✏️</span>
             </div>
             <h3 class="text-xl font-extrabold text-gray-900 mb-1 tracking-tight">Correct Bill Number</h3>
-            <p class="text-[10px] text-gray-500 font-medium mb-6 uppercase tracking-wider">Fix a customer's honest mistake</p>
+            <p class="text-[10px] text-gray-500 font-medium mb-6 uppercase tracking-wider">Fix an honest typo</p>
 
             <div class="space-y-4 text-left">
-                <div>
-                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">Secret Passphrase</label>
-                    <input type="password" id="typo-pin" placeholder="Enter Manager Key" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-center font-bold">
-                </div>
                 <div>
                     <label class="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">True Bill Number from Receipt</label>
                     <input type="text" id="typo-new-bill" placeholder="e.g. 1005" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-center">
@@ -141,7 +138,7 @@
         </div>
     </div>
 
-    <!-- 🟢 MANAGER OVERRIDE MODAL -->
+    <!-- MANAGER OVERRIDE MODAL -->
     <div id="override-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
         <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center relative">
             <button onclick="closeOverrideModal()" class="absolute top-4 right-5 text-gray-400 hover:text-gray-800 text-2xl font-bold">&times;</button>
@@ -212,44 +209,35 @@
 
     <script>
         // 🔴 IMPORTANT: Replace this with your newly deployed Web App URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzsJ1TB0zL5Aqx9y5bkPIsYRGIRM4PYOgHXyi6D0pazA7N8OnaWbFZ1YeXugLQz26_o/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx1QZv-N_bW8L5JxZ9KZjYjx-rGesOcpDQ_6qtK0bUvJOxsZYq94G5ERHbk8lJhC30B/exec"; 
         const RESTAURANT_NAME = "Temp New"; 
 
         let currentlyVerifiedCode = "";
         let undoInterval;
 
-        // 🛡️ THE SECURE POST HELPER: Sends data invisibly to the backend
+        // 🛡️ THE SECURE POST HELPER
         async function securePost(paramsObj) {
             const formData = new URLSearchParams(paramsObj);
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: formData
-            });
+            const response = await fetch(SCRIPT_URL, { method: 'POST', body: formData });
             return await response.json();
         }
 
         document.addEventListener("DOMContentLoaded", () => {
             document.getElementById('restaurant-name-display').innerText = RESTAURANT_NAME;
+            document.getElementById('discount-code').addEventListener('keypress', function (e) { if (e.key === 'Enter') verifyCode(); });
             
-            document.getElementById('discount-code').addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') verifyCode();
-            });
-
             ['override-pin', 'override-bill', 'override-email'].forEach(id => {
                 document.getElementById(id).addEventListener('keypress', function (e) { if (e.key === 'Enter') generateOverride(); });
             });
             
-            ['typo-pin', 'typo-new-bill'].forEach(id => {
-                document.getElementById(id).addEventListener('keypress', function (e) { if (e.key === 'Enter') executeTypoFix(); });
-            });
+            document.getElementById('typo-new-bill').addEventListener('keypress', function (e) { if (e.key === 'Enter') executeTypoFix(); });
         });
 
-        // 🟢 TYPO CORRECTION LOGIC
+        // 🟢 TYPO CORRECTION LOGIC (Simplified, No PIN)
         function openTypoModal() {
             const modal = document.getElementById('typo-modal');
             const modalBox = modal.querySelector('div');
             
-            document.getElementById('typo-pin').value = '';
             document.getElementById('typo-new-bill').value = '';
             document.getElementById('typo-error').classList.add('hidden');
 
@@ -258,7 +246,7 @@
                 modal.classList.remove('opacity-0');
                 modalBox.classList.remove('scale-90');
                 modalBox.classList.add('scale-100');
-                document.getElementById('typo-pin').focus();
+                document.getElementById('typo-new-bill').focus();
             }, 10);
         }
 
@@ -272,12 +260,11 @@
         }
 
         async function executeTypoFix() {
-            const pin = document.getElementById('typo-pin').value.trim();
             const newBill = document.getElementById('typo-new-bill').value.trim();
             const errorDiv = document.getElementById('typo-error');
 
-            if (!pin || !newBill) {
-                errorDiv.innerText = "Both Passphrase and New Bill Number are required.";
+            if (!newBill) {
+                errorDiv.innerText = "New Bill Number is required.";
                 errorDiv.classList.remove('hidden');
                 return;
             }
@@ -286,8 +273,8 @@
             toggleLoading('typo-btn', 'typo-text', 'typo-loader', true);
 
             try {
-                // Secure POST request
-                const data = await securePost({ action: 'fix_typo', pin: pin, newBillNumber: newBill, code: currentlyVerifiedCode });
+                // Secure POST request - We no longer send the 'pin' parameter
+                const data = await securePost({ action: 'fix_typo', newBillNumber: newBill, code: currentlyVerifiedCode });
 
                 if (data.success) {
                     closeTypoModal();
@@ -370,7 +357,6 @@
             toggleLoading('override-btn', 'override-text', 'override-loader', true);
 
             try {
-                // Secure POST request
                 const data = await securePost({ action: 'override', pin: pin, billNumber: bill, restaurant: RESTAURANT_NAME, email: email, oldCode: currentlyVerifiedCode });
 
                 if (data.success) {
@@ -409,7 +395,6 @@
             toggleLoading('verify-btn', 'verify-text', 'verify-loader', true);
 
             try {
-                // Secure POST request
                 const data = await securePost({ code: fullCode, restaurant: RESTAURANT_NAME, action: 'verify' });
 
                 if (data.success) showResultCard(data.data, fullCode);
@@ -428,13 +413,13 @@
             errorMsg.classList.add('hidden');
 
             try {
-                // Secure POST request
                 const data = await securePost({ code: currentlyVerifiedCode, restaurant: RESTAURANT_NAME, action: 'redeem' });
 
                 if (data.success) {
                     document.getElementById('result-badge').innerText = "REDEEMED";
                     document.getElementById('result-badge').className = "px-3 py-1 rounded-lg text-[10px] font-black bg-gray-200 text-gray-500";
                     document.getElementById('action-buttons').classList.add('hidden'); 
+                    document.getElementById('inline-typo-btn').classList.add('hidden'); // Hide pencil on redeem
                     
                     const warningBox = document.getElementById('status-warning');
                     warningBox.className = "mb-4 p-3 rounded-lg text-[10px] font-bold leading-relaxed shadow-inner border bg-gray-100 border-gray-300 text-gray-700";
@@ -475,7 +460,6 @@
             errorMsg.classList.add('hidden');
 
             try {
-                // Secure POST request
                 const data = await securePost({ code: currentlyVerifiedCode, restaurant: RESTAURANT_NAME, action: 'spam' });
 
                 if (data.success) {
@@ -484,6 +468,7 @@
                     badge.innerText = "FLAGGED AS SPAM";
                     badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-red-900 text-red-100 border border-red-950";
                     document.getElementById('action-buttons').classList.add('hidden'); 
+                    document.getElementById('inline-typo-btn').classList.add('hidden'); // Hide pencil
                     
                     const warningBox = document.getElementById('status-warning');
                     warningBox.className = "mb-4 p-3 rounded-lg text-[10px] font-bold leading-relaxed shadow-inner border bg-red-50 border-red-200 text-red-800";
@@ -524,7 +509,6 @@
             toggleLoading('undo-btn', 'undo-text', 'undo-loader', true);
             
             try {
-                // Secure POST request
                 const data = await securePost({ code: currentlyVerifiedCode, restaurant: RESTAURANT_NAME, action: 'undo_spam' });
 
                 if (data.success) {
@@ -533,6 +517,7 @@
                     badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-green-100 text-green-700 border border-green-200";
                     document.getElementById('undo-container').classList.add('hidden'); 
                     document.getElementById('action-buttons').classList.remove('hidden'); 
+                    document.getElementById('inline-typo-btn').classList.remove('hidden'); // Bring pencil back
                     document.getElementById('status-warning').classList.add('hidden');
                 } else {
                     showError(data.message);
@@ -563,33 +548,46 @@
             const badge = document.getElementById('result-badge');
             const actionButtons = document.getElementById('action-buttons');
             const warningBox = document.getElementById('status-warning');
+            const inlineTypoBtn = document.getElementById('inline-typo-btn');
             
             warningBox.className = "hidden mb-4 p-3 rounded-lg text-[10px] font-bold leading-relaxed shadow-inner border";
 
             const status = data.status.toLowerCase();
             
             if (status === 'valid') {
-                badge.innerText = "VALID OFFER"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-green-100 text-green-700 border border-green-200"; actionButtons.classList.remove('hidden'); 
+                badge.innerText = "VALID OFFER"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-green-100 text-green-700 border border-green-200"; 
+                actionButtons.classList.remove('hidden'); 
+                inlineTypoBtn.classList.remove('hidden'); // Show pencil
             } else if (status === 'redeemed') {
                 badge.innerText = "USED ALREADY"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-gray-100 text-gray-500 border border-gray-200";
                 warningBox.classList.add('bg-gray-100', 'border-gray-300', 'text-gray-700', '!block');
-                warningBox.innerHTML = '⚠️ <span class="uppercase tracking-wider">Already Claimed:</span> This reward has already been scanned and redeemed at the counter. It cannot be used again.'; actionButtons.classList.add('hidden'); 
+                warningBox.innerHTML = '⚠️ <span class="uppercase tracking-wider">Already Claimed:</span> This reward has already been scanned and redeemed at the counter. It cannot be used again.'; 
+                actionButtons.classList.add('hidden'); 
+                inlineTypoBtn.classList.add('hidden'); // Hide pencil
             } else if (status === 'spam') {
                 badge.innerText = "FLAGGED AS SPAM"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-red-900 text-red-100 border border-red-950";
                 warningBox.classList.add('bg-red-50', 'border-red-200', 'text-red-800', '!block');
-                warningBox.innerHTML = '🚫 <span class="uppercase tracking-wider">Security Flag:</span> This code was flagged by the automated anti-abuse system or manually by staff.'; actionButtons.classList.add('hidden');
+                warningBox.innerHTML = '🚫 <span class="uppercase tracking-wider">Security Flag:</span> This code was flagged by the automated anti-abuse system or manually by staff.'; 
+                actionButtons.classList.add('hidden');
+                inlineTypoBtn.classList.add('hidden'); // Hide pencil
             } else if (status === 'voided') {
                 badge.innerText = "VOIDED"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-orange-100 text-orange-700 border border-orange-300";
                 warningBox.classList.add('bg-orange-50', 'border-orange-200', 'text-orange-800', '!block');
-                warningBox.innerHTML = '⚠️ <span class="uppercase tracking-wider">Duplicate Bill Detected:</span> A newer code was already generated for this exact receipt.'; actionButtons.classList.add('hidden'); 
+                warningBox.innerHTML = '⚠️ <span class="uppercase tracking-wider">Duplicate Bill Detected:</span> A newer code was already generated for this exact receipt.'; 
+                actionButtons.classList.add('hidden'); 
+                inlineTypoBtn.classList.add('hidden'); // Hide pencil
             } else if (status === 'overridden') { 
                 badge.innerText = "OVERRIDDEN"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-purple-100 text-purple-700 border border-purple-300";
                 warningBox.classList.add('bg-purple-50', 'border-purple-200', 'text-purple-800', '!block');
-                warningBox.innerHTML = '🛡️ <span class="uppercase tracking-wider">Manager Override:</span> This code was manually replaced by a manager due to a typo or dispute, rendering this original code invalid.'; actionButtons.classList.add('hidden'); 
+                warningBox.innerHTML = '🛡️ <span class="uppercase tracking-wider">Manager Override:</span> This code was manually replaced by a manager due to a typo or dispute, rendering this original code invalid.'; 
+                actionButtons.classList.add('hidden'); 
+                inlineTypoBtn.classList.add('hidden'); // Hide pencil
             } else {
                 badge.innerText = "EXPIRED"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-red-100 text-red-700 border border-red-200";
                 warningBox.classList.add('bg-red-50', 'border-red-200', 'text-red-800', '!block');
-                warningBox.innerHTML = '⏰ <span class="uppercase tracking-wider">Offer Expired:</span> This code has passed its validity window and can no longer be redeemed.'; actionButtons.classList.add('hidden'); 
+                warningBox.innerHTML = '⏰ <span class="uppercase tracking-wider">Offer Expired:</span> This code has passed its validity window and can no longer be redeemed.'; 
+                actionButtons.classList.add('hidden'); 
+                inlineTypoBtn.classList.add('hidden'); // Hide pencil
             }
 
             clearInterval(undoInterval);
