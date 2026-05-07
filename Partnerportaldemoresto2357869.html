@@ -66,7 +66,6 @@
                         <div class="bg-gray-200/50 p-3 rounded-xl border border-gray-200 flex justify-between items-center">
                             <div>
                                 <p class="text-[9px] text-gray-500 uppercase font-bold tracking-wider mb-1">Bill Number Check</p>
-                                <!-- 🟢 NEW: INLINE EDIT BUTTON PLACED HERE -->
                                 <div class="flex items-center gap-2">
                                     <p id="result-bill" class="text-base font-black text-gray-900"></p>
                                     <button id="inline-typo-btn" onclick="openTypoModal()" class="hidden text-[9px] bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded uppercase font-bold tracking-wider transition-colors">
@@ -99,7 +98,6 @@
                             <span id="undo-loader" class="loader hidden" style="border-top-color: white; width: 12px; height: 12px; border-width: 2px;"></span>
                         </button>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -109,10 +107,8 @@
                 🔒 Manager Access
             </button>
         </div>
-
     </div>
 
-    <!-- 🟢 SIMPLIFIED TYPO CORRECTION MODAL (No PIN required) -->
     <div id="typo-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
         <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center relative">
             <button onclick="closeTypoModal()" class="absolute top-4 right-5 text-gray-400 hover:text-gray-800 text-2xl font-bold">&times;</button>
@@ -138,7 +134,6 @@
         </div>
     </div>
 
-    <!-- MANAGER OVERRIDE MODAL -->
     <div id="override-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
         <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center relative">
             <button onclick="closeOverrideModal()" class="absolute top-4 right-5 text-gray-400 hover:text-gray-800 text-2xl font-bold">&times;</button>
@@ -178,7 +173,6 @@
         </div>
     </div>
 
-    <!-- Modals for Success/Warning -->
     <div id="success-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center">
             <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-6">
@@ -191,12 +185,19 @@
     </div>
 
     <div id="warning-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
-        <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center">
-            <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-red-100 mb-6 border-4 border-red-50">
-                <svg class="h-10 w-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4 border-4 border-red-50">
+                <svg class="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
             </div>
             <h3 class="text-xl font-extrabold text-gray-900 mb-2 tracking-tight">Wait, are you sure?</h3>
-            <p class="text-xs text-gray-500 font-medium mb-8">This will permanently kill the code and blacklist the user.</p>
+            <p class="text-xs text-gray-500 font-medium mb-6">This will permanently kill the code and blacklist the user.</p>
+            
+            <div class="text-left mb-6">
+                <label class="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">Reason for Blacklisting (Required)</label>
+                <input type="text" id="spam-reason" placeholder="e.g., Fake receipt, argumentative..." class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-sm font-medium">
+                <div id="spam-error" class="hidden mt-2 text-red-600 text-[10px] font-bold uppercase tracking-wider bg-red-50 p-2 rounded border border-red-100 text-center">Please provide a reason.</div>
+            </div>
+
             <div class="flex gap-3">
                 <button onclick="closeWarningModal()" class="w-1/2 bg-gray-100 text-gray-700 font-bold py-3 px-4 rounded-xl hover:bg-gray-200 active:scale-[0.98] transition-all tracking-wider text-sm">Cancel</button>
                 <button id="confirm-spam-btn" onclick="executeSpamAction()" class="w-1/2 bg-red-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-red-700 active:scale-[0.98] transition-all tracking-wider text-sm flex justify-center items-center shadow-md">
@@ -209,7 +210,7 @@
 
     <script>
         // 🔴 IMPORTANT: Replace this with your newly deployed Web App URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwk1SYCysQmRMJyDYu8ZMwjHCNgGvMoBQAwQKGaObeorSO5c3de6XHlOqUOTE5czEvY/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxpttIt4SwyEdNYKTYIMqPxtlNj1oICtg1QQG16J9DFC_Tnc_wLw4j6bPFq8Tu8rBf9/exec"; 
         const RESTAURANT_NAME = "Temp New"; 
 
         let currentlyVerifiedCode = "";
@@ -231,9 +232,9 @@
             });
             
             document.getElementById('typo-new-bill').addEventListener('keypress', function (e) { if (e.key === 'Enter') executeTypoFix(); });
+            document.getElementById('spam-reason').addEventListener('keypress', function (e) { if (e.key === 'Enter') executeSpamAction(); });
         });
 
-        // 🟢 TYPO CORRECTION LOGIC (Simplified, No PIN)
         function openTypoModal() {
             const modal = document.getElementById('typo-modal');
             const modalBox = modal.querySelector('div');
@@ -273,7 +274,6 @@
             toggleLoading('typo-btn', 'typo-text', 'typo-loader', true);
 
             try {
-                // Secure POST request - We no longer send the 'pin' parameter
                 const data = await securePost({ action: 'fix_typo', newBillNumber: newBill, code: currentlyVerifiedCode });
 
                 if (data.success) {
@@ -419,7 +419,7 @@
                     document.getElementById('result-badge').innerText = "REDEEMED";
                     document.getElementById('result-badge').className = "px-3 py-1 rounded-lg text-[10px] font-black bg-gray-200 text-gray-500";
                     document.getElementById('action-buttons').classList.add('hidden'); 
-                    document.getElementById('inline-typo-btn').classList.add('hidden'); // Hide pencil on redeem
+                    document.getElementById('inline-typo-btn').classList.add('hidden'); 
                     
                     const warningBox = document.getElementById('status-warning');
                     warningBox.className = "mb-4 p-3 rounded-lg text-[10px] font-bold leading-relaxed shadow-inner border bg-gray-100 border-gray-300 text-gray-700";
@@ -439,10 +439,19 @@
 
         function markAsSpam() {
             if (!currentlyVerifiedCode) return;
+            
+            document.getElementById('spam-reason').value = '';
+            document.getElementById('spam-error').classList.add('hidden');
+
             const modal = document.getElementById('warning-modal');
             const modalBox = modal.querySelector('div');
             modal.classList.remove('hidden');
-            setTimeout(() => { modal.classList.remove('opacity-0'); modalBox.classList.remove('scale-90'); modalBox.classList.add('scale-100'); }, 10);
+            setTimeout(() => { 
+                modal.classList.remove('opacity-0'); 
+                modalBox.classList.remove('scale-90'); 
+                modalBox.classList.add('scale-100'); 
+                document.getElementById('spam-reason').focus();
+            }, 10);
         }
 
         function closeWarningModal() {
@@ -455,12 +464,26 @@
         }
 
         async function executeSpamAction() {
+            const reasonInput = document.getElementById('spam-reason').value.trim();
+            const spamError = document.getElementById('spam-error');
+            
+            if (!reasonInput) {
+                spamError.classList.remove('hidden');
+                return;
+            }
+            spamError.classList.add('hidden');
+
             const errorMsg = document.getElementById('error-message');
             toggleLoading('confirm-spam-btn', 'confirm-spam-text', 'confirm-spam-loader', true);
             errorMsg.classList.add('hidden');
 
             try {
-                const data = await securePost({ code: currentlyVerifiedCode, restaurant: RESTAURANT_NAME, action: 'spam' });
+                const data = await securePost({ 
+                    code: currentlyVerifiedCode, 
+                    restaurant: RESTAURANT_NAME, 
+                    action: 'spam',
+                    reason: reasonInput 
+                });
 
                 if (data.success) {
                     closeWarningModal();
@@ -468,7 +491,7 @@
                     badge.innerText = "FLAGGED AS SPAM";
                     badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-red-900 text-red-100 border border-red-950";
                     document.getElementById('action-buttons').classList.add('hidden'); 
-                    document.getElementById('inline-typo-btn').classList.add('hidden'); // Hide pencil
+                    document.getElementById('inline-typo-btn').classList.add('hidden'); 
                     
                     const warningBox = document.getElementById('status-warning');
                     warningBox.className = "mb-4 p-3 rounded-lg text-[10px] font-bold leading-relaxed shadow-inner border bg-red-50 border-red-200 text-red-800";
@@ -517,7 +540,7 @@
                     badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-green-100 text-green-700 border border-green-200";
                     document.getElementById('undo-container').classList.add('hidden'); 
                     document.getElementById('action-buttons').classList.remove('hidden'); 
-                    document.getElementById('inline-typo-btn').classList.remove('hidden'); // Bring pencil back
+                    document.getElementById('inline-typo-btn').classList.remove('hidden'); 
                     document.getElementById('status-warning').classList.add('hidden');
                 } else {
                     showError(data.message);
@@ -557,37 +580,37 @@
             if (status === 'valid') {
                 badge.innerText = "VALID OFFER"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-green-100 text-green-700 border border-green-200"; 
                 actionButtons.classList.remove('hidden'); 
-                inlineTypoBtn.classList.remove('hidden'); // Show pencil
+                inlineTypoBtn.classList.remove('hidden'); 
             } else if (status === 'redeemed') {
                 badge.innerText = "USED ALREADY"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-gray-100 text-gray-500 border border-gray-200";
                 warningBox.classList.add('bg-gray-100', 'border-gray-300', 'text-gray-700', '!block');
                 warningBox.innerHTML = '⚠️ <span class="uppercase tracking-wider">Already Claimed:</span> This reward has already been scanned and redeemed at the counter. It cannot be used again.'; 
                 actionButtons.classList.add('hidden'); 
-                inlineTypoBtn.classList.add('hidden'); // Hide pencil
+                inlineTypoBtn.classList.add('hidden'); 
             } else if (status === 'spam') {
                 badge.innerText = "FLAGGED AS SPAM"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-red-900 text-red-100 border border-red-950";
                 warningBox.classList.add('bg-red-50', 'border-red-200', 'text-red-800', '!block');
                 warningBox.innerHTML = '🚫 <span class="uppercase tracking-wider">Security Flag:</span> This code was flagged by the automated anti-abuse system or manually by staff.'; 
                 actionButtons.classList.add('hidden');
-                inlineTypoBtn.classList.add('hidden'); // Hide pencil
+                inlineTypoBtn.classList.add('hidden'); 
             } else if (status === 'voided') {
                 badge.innerText = "VOIDED"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-orange-100 text-orange-700 border border-orange-300";
                 warningBox.classList.add('bg-orange-50', 'border-orange-200', 'text-orange-800', '!block');
                 warningBox.innerHTML = '⚠️ <span class="uppercase tracking-wider">Duplicate Bill Detected:</span> A newer code was already generated for this exact receipt.'; 
                 actionButtons.classList.add('hidden'); 
-                inlineTypoBtn.classList.add('hidden'); // Hide pencil
+                inlineTypoBtn.classList.add('hidden'); 
             } else if (status === 'overridden') { 
                 badge.innerText = "OVERRIDDEN"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-purple-100 text-purple-700 border border-purple-300";
                 warningBox.classList.add('bg-purple-50', 'border-purple-200', 'text-purple-800', '!block');
                 warningBox.innerHTML = '🛡️ <span class="uppercase tracking-wider">Manager Override:</span> This code was manually replaced by a manager due to a typo or dispute, rendering this original code invalid.'; 
                 actionButtons.classList.add('hidden'); 
-                inlineTypoBtn.classList.add('hidden'); // Hide pencil
+                inlineTypoBtn.classList.add('hidden'); 
             } else {
                 badge.innerText = "EXPIRED"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-red-100 text-red-700 border border-red-200";
                 warningBox.classList.add('bg-red-50', 'border-red-200', 'text-red-800', '!block');
                 warningBox.innerHTML = '⏰ <span class="uppercase tracking-wider">Offer Expired:</span> This code has passed its validity window and can no longer be redeemed.'; 
                 actionButtons.classList.add('hidden'); 
-                inlineTypoBtn.classList.add('hidden'); // Hide pencil
+                inlineTypoBtn.classList.add('hidden'); 
             }
 
             clearInterval(undoInterval);
