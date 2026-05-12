@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <title>Customer Favorites | FOODSTORYTVC</title>
+    <title>Customers' Favourites | IMPACT Kitchen</title>
     <meta name="title" content="Eat Better | Foodstorytvc">
     <meta name="description" content="Taste beyond the guesswork. Discover the highest-rated dishes in town and help restaurants serve you better. Eat Better With Foodstorytvc.">
 
@@ -20,7 +20,7 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
     
     <script>
         tailwind.config = {
@@ -37,7 +37,15 @@
         }
     </script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; color: #e8c064; }
+        /* 🟢 STRICT MOBILE OVERFLOW LOCK */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #0a0a0a; 
+            color: #e8c064; 
+            overflow-x: clip; 
+            width: 100vw;
+        }
+        
         .tagline-font { font-family: 'Playfair Display', serif; }
         
         .page-textured-overlay { background-image: linear-gradient(rgba(10, 10, 10, 0.95), rgba(10, 10, 10, 0.95)), url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"); }
@@ -56,22 +64,23 @@
         .tooltip-text {
             visibility: hidden;
             width: max-content;
-            max-width: 200px;
+            max-width: 220px;
             background-color: #1a1a1a;
             color: #e8c064;
             text-align: center;
             border: 1px solid #e8c06440;
             border-radius: 12px;
-            padding: 8px 12px;
+            padding: 10px 14px;
             position: absolute;
             z-index: 60;
-            bottom: 125%; 
-            left: 0; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            bottom: 135%; 
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
             font-size: 11px;
             font-family: 'Inter', sans-serif;
-            font-weight: 700;
-            line-height: 1.4;
+            font-weight: 600;
+            line-height: 1.5;
             letter-spacing: 0.02em;
             opacity: 0;
             transition: opacity 0.3s, bottom 0.3s, visibility 0.3s;
@@ -81,7 +90,8 @@
             content: "";
             position: absolute;
             top: 100%;
-            left: 20px; 
+            left: 50%;
+            transform: translateX(-50%); 
             border-width: 6px;
             border-style: solid;
             border-color: #e8c06440 transparent transparent transparent;
@@ -91,15 +101,34 @@
         .tooltip-container.active .tooltip-text {
             visibility: visible;
             opacity: 1;
-            bottom: 140%;
+            bottom: 150%;
+        }
+
+        /* 🟢 MOBILE SMART-ALIGNMENT FOR TOOLTIPS */
+        @media (max-width: 640px) {
+            .tooltip-text { max-width: 200px; }
+            .tooltip-project-left .tooltip-text {
+                left: auto;
+                right: -10px;
+                transform: none;
+            }
+            .tooltip-project-left .tooltip-text::after {
+                left: auto;
+                right: 14px;
+                transform: none;
+            }
         }
     </style>
 </head>
-<body class="min-h-screen p-4 sm:p-8 page-textured-overlay flex flex-col items-center overflow-x-hidden">
+<body class="min-h-screen p-4 sm:p-8 page-textured-overlay flex flex-col items-center">
 
-    <div class="w-full max-w-6xl flex flex-col justify-between items-center mb-10 gap-2 text-center">
-        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-widest mb-1 text-white">FOODSTORYTVC</h1>
-        <p class="text-[10px] sm:text-xs font-bold tracking-[0.2em] uppercase text-brand-gold-400">Customer Favorites at IMPACT Resto</p>
+    <div class="w-full max-w-6xl flex flex-col justify-between items-center mb-8 text-center pt-2">
+        <h1 class="whitespace-nowrap text-white" style="font-family: 'Playfair Display', serif; font-style: italic; font-weight: 600; font-size: min(10vw, 3.75rem); line-height: 1.1;">FOODSTORYTVC</h1>
+        <div class="flex items-center justify-center w-full max-w-[95vw] gap-2 sm:gap-4 opacity-90 mt-1">
+            <div class="h-[1px] flex-grow max-w-[3rem] bg-gradient-to-l from-[#e8c064] to-transparent"></div>
+            <p class="font-sans font-bold tracking-[0.2em] uppercase text-brand-gold whitespace-nowrap shrink-0" style="font-size: min(2.5vw, 11px);">Customers' Favourites at IMPACT Kitchen</p>
+            <div class="h-[1px] flex-grow max-w-[3rem] bg-gradient-to-r from-[#e8c064] to-transparent"></div>
+        </div>
     </div>
 
     <div id="loading-screen" class="w-full max-w-6xl flex flex-col items-center justify-center py-20">
@@ -110,9 +139,13 @@
     <div id="dashboard-content" class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 hidden animate-in fade-in duration-500">
         
         <div class="bg-brand-card-black rounded-3xl shadow-2xl border border-brand-gold-muted p-6">
-            <div class="flex items-center gap-2 mb-6">
-                <span class="text-xl">🔥</span>
+            <div class="flex items-center justify-center w-full gap-2 mb-6 text-center">
+                <svg class="w-5 h-5 text-brand-gold" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0"></path></svg>
                 <h2 class="text-lg font-extrabold text-gray-200">Top Rated Dishes</h2>
+                <div id="info-top" class="tooltip-container tooltip-project-left ml-1" onclick="toggleDishTooltip('info-top', event)">
+                    <svg class="w-4 h-4 text-brand-gold/60 hover:text-brand-gold transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"></path></svg>
+                    <span class="tooltip-text">The highest average ratings calculated from all verified customer reviews.</span>
+                </div>
             </div>
             <div class="relative h-[300px] w-full">
                 <canvas id="topRatedChart"></canvas>
@@ -120,26 +153,41 @@
         </div>
 
         <div class="bg-brand-card-black rounded-3xl shadow-2xl border border-brand-gold-muted p-6">
-            <div class="flex items-center gap-2 mb-6">
-                <span class="text-xl">✨</span>
-                <h2 class="text-lg font-extrabold text-gray-200">Dish Popularity By Likes (⭐ 4+)</h2>
+            <div class="flex items-center justify-center w-full gap-2 mb-6 text-center">
+                <svg class="w-5 h-5 text-brand-gold" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"></path></svg>
+                <h2 class="text-lg font-extrabold text-gray-200">Dish Popularity By Likes</h2>
+                <div id="info-pop" class="tooltip-container tooltip-project-left ml-1" onclick="toggleDishTooltip('info-pop', event)">
+                    <svg class="w-4 h-4 text-brand-gold/60 hover:text-brand-gold transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"></path></svg>
+                    <span class="tooltip-text">Shows which dishes received the highest volume of 4 and 5-star ratings (⭐ 4+).</span>
+                </div>
             </div>
-            <div class="relative h-[350px] sm:h-[400px] w-full flex justify-center">
+            <div class="relative h-[400px] sm:h-[450px] w-full flex justify-center">
                 <canvas id="popularityChart"></canvas>
             </div>
         </div>
 
         <div class="bg-gradient-to-r from-[#141414] to-[#1a1a1a] rounded-3xl shadow-2xl border border-brand-gold p-6 flex flex-col justify-center items-center text-center lg:col-span-2">
-            <p class="text-[10px] text-brand-gold uppercase font-black tracking-widest mb-2">💎 Hidden Gem Discovered By Voters</p>
-            <div id="hidden-gem-container" class="flex flex-col items-center justify-center">
+            <div class="flex items-center justify-center w-full gap-2 mb-2">
+                <svg class="w-4 h-4 text-brand-gold" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"></path></svg>
+                <p class="text-[10px] text-brand-gold uppercase font-black tracking-widest">Hidden Gem Discovered By Voters</p>
+                <div id="info-gem" class="tooltip-container tooltip-project-left ml-1" onclick="toggleDishTooltip('info-gem', event)">
+                    <svg class="w-3.5 h-3.5 text-brand-gold/60 hover:text-brand-gold transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"></path></svg>
+                    <span class="tooltip-text">A highly-rated dish that deserves more attention based on its perfect score ratio.</span>
+                </div>
+            </div>
+            <div id="hidden-gem-container" class="flex flex-col items-center justify-center w-full">
                 <h3 class="text-xl sm:text-2xl font-extrabold text-white mb-1">Loading...</h3>
             </div>
         </div>
 
         <div id="trendChartContainer" class="bg-brand-card-black rounded-3xl shadow-2xl border border-brand-gold-muted p-6 lg:col-span-2 hidden">
-            <div class="flex items-center gap-2 mb-6">
-                <span class="text-xl">🔍</span>
-                <h2 class="text-lg font-extrabold text-gray-200">Most Improved Dishes This Week 🚀</h2>
+            <div class="flex items-center justify-center w-full gap-2 mb-6 text-center">
+                <svg class="w-5 h-5 text-brand-gold" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"></path></svg>
+                <h2 class="text-lg font-extrabold text-gray-200">Most Improved Dishes</h2>
+                <div id="info-trend" class="tooltip-container tooltip-project-left ml-1" onclick="toggleDishTooltip('info-trend', event)">
+                    <svg class="w-4 h-4 text-brand-gold/60 hover:text-brand-gold transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"></path></svg>
+                    <span class="tooltip-text">Dishes that saw the biggest surge in star ratings over the last 7 days.</span>
+                </div>
             </div>
             <div class="relative h-[350px] w-full">
                 <canvas id="trendChart"></canvas>
@@ -147,23 +195,31 @@
         </div>
 
         <div class="bg-brand-card-black rounded-3xl shadow-2xl border border-brand-gold-muted p-6 lg:col-span-2">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                <div class="flex items-center gap-2">
-                    <span class="text-xl">📢</span>
+            <div class="flex flex-col items-center justify-center w-full gap-3 mb-6 text-center">
+                <div class="flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5 text-brand-gold" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"></path></svg>
                     <h2 class="text-lg font-extrabold text-gray-200">Live Customer Reviews</h2>
-                </div>
-                
-                <div class="w-full sm:w-auto flex flex-col items-end gap-2">
-                    <input type="text" id="searchInput" placeholder="Search for a dish..." class="w-full sm:w-64 px-4 py-2 rounded-xl text-sm placeholder:text-gray-600 shadow-inner" oninput="renderTable()">
-                    
-                    <div class="flex sm:hidden items-center gap-2 text-brand-gold font-black text-[10px] uppercase tracking-widest animate-pulse pr-2">
-                        <span>Swipe table for Smart Order</span> <span class="text-base leading-none pb-[2px]">👉</span>
+                    <div id="info-table" class="tooltip-container tooltip-project-left ml-1" onclick="toggleDishTooltip('info-table', event)">
+                        <svg class="w-4 h-4 text-brand-gold/60 hover:text-brand-gold transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"></path></svg>
+                        <span class="tooltip-text">A real-time, sortable breakdown of every rated dish. Tap the '+' button to build a Smart Order for your table.</span>
                     </div>
                 </div>
-
+                
+                <p class="text-[11px] sm:text-xs text-brand-muted font-medium tracking-wide flex items-center justify-center gap-1">
+                    Tap <svg class="w-4 h-4 inline text-brand-gold" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"></path><circle cx="12" cy="12.75" r="3.25"></circle></svg> for dish photos
+                </p>
+                
+                <div class="w-full sm:w-80 relative mt-2">
+                    <input type="text" id="searchInput" placeholder="Search for a dish..." class="w-full px-4 py-2.5 rounded-xl text-sm text-center placeholder:text-gray-500 shadow-inner" oninput="renderTable()">
+                </div>
             </div>
             
             <div class="overflow-x-auto">
+                <div class="flex sm:hidden items-center justify-end gap-1.5 text-brand-gold/80 font-bold text-[9px] uppercase tracking-[0.15em] pb-3 pr-2 animate-pulse w-full">
+                    <span>Swipe for Smart Order</span> 
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3"></path></svg>
+                </div>
+                
                 <table class="w-full">
                     <thead>
                         <tr>
@@ -198,16 +254,14 @@
 
                 <img src="https://i.ibb.co/Xx2hfF5j/foostroytvc-logo-new.jpg" alt="FOODSTORYTVC Logo" class="w-20 h-20 rounded-full border-2 border-brand-gold object-cover shadow-[0_0_15px_rgba(232,192,100,0.2)]">
 
-                 <p class="text-[9px] sm:text-[10px] font-bold tracking-widest uppercase text-gray-500 mt-5 mb-1">Explore • Share • Save
-</p>
-                </div>
+                 <p class="text-[9px] sm:text-[10px] font-bold tracking-widest uppercase text-gray-500 mt-5 mb-1">Explore • Share • Save</p>
+            </div>
         
-                <a href="https://www.foodstorytvc.com" target="_blank" class="text-brand-gold font-bold tracking-widest uppercase text-sm hover:text-white transition-colors duration-300 mt-1 mb-8">
-                    www.foodstorytvc.com
-                </a>
+            <a href="https://www.foodstorytvc.com" target="_blank" class="text-brand-gold font-bold tracking-widest uppercase text-sm hover:text-white transition-colors duration-300 mt-1 mb-8">
+                www.foodstorytvc.com
+            </a>
 
             <div class="w-screen h-[1px] bg-gradient-to-r from-transparent via-brand-gold/60 to-transparent mb-24 sm:mb-24"></div>
-
         </div>
     </div>
 
@@ -215,7 +269,8 @@
         
         <div onclick="toggleCart()" class="p-4 border-b border-brand-gold/20 flex justify-between items-center bg-[#141414] rounded-t-2xl cursor-pointer hover:bg-[#1a1a1a] transition-colors">
             <h3 class="font-bold text-brand-gold flex items-center gap-2">
-                <span>📝</span> <span id="cart-title">Smart Order</span>
+                <svg class="w-4 h-4 text-brand-gold" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path></svg>
+                <span id="cart-title">Smart Order</span>
             </h3>
             <span id="cart-toggle-icon" class="text-brand-gold text-xs transition-transform duration-300">▼</span>
         </div>
@@ -224,7 +279,7 @@
             <div id="cart-items" class="p-4 overflow-y-auto flex flex-col gap-3 max-h-[40vh]"></div>
 
             <div class="p-3 text-[10px] text-gray-400 bg-[#101010] border-t border-gray-800 leading-relaxed">
-                ⭐ <strong class="text-brand-gold">Group Note:</strong> Smart Order helps groups avoid ordering confusion. Add everyone's dishes to this list, then simply read it to your waiter to place the order
+                <strong class="text-brand-gold">Group Note:</strong> Smart Order helps groups avoid ordering confusion. Add everyone's dishes to this list, then simply read it to your waiter to place the order
             </div>
             
             <div class="p-3 border-t border-gray-800 bg-[#0a0a0a] rounded-b-2xl flex justify-center">
@@ -250,13 +305,32 @@
 
     <script>
         // ==========================================
-        // 🚨 SCRIPT HERE 🚨
+        // 🚨 CONFIGURATION
         // ==========================================
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxbB1RD-dc3-w-l0gght8bJkUed-ZYcie18-57USS75WwwUNKJjJJs-arK1zYcaETqM/exec"; 
 
         Chart.defaults.color = '#9CA3AF';
         Chart.defaults.font.family = 'Inter';
         Chart.defaults.font.weight = '600';
+
+        // 🟢 PREMIUM TOOLTIP POSITIONERS
+        Chart.Tooltip.positioners.doughnutCenter = function(elements) {
+            if (!elements.length) return false;
+            return { x: this.chart.width / 2, y: this.chart.height / 2 };
+        };
+        
+        Chart.Tooltip.positioners.topEdge = function(elements) {
+            if (!elements.length) return false;
+            return { x: elements[0].element.x, y: 10 }; 
+        };
+
+        // 🟢 ANTI-BLOCK POSITIONER (Exactly in the middle of the green bar)
+        Chart.Tooltip.positioners.middleGreen = function(elements) {
+            if (!elements.length) return false;
+            let el = elements[0].element; 
+            let middleY = el.y + ((el.base - el.y) / 2);
+            return { x: el.x, y: middleY + 15 }; 
+        };
 
         let topRatedChartInstance = null;
         let popularityChartInstance = null;
@@ -482,12 +556,12 @@
                 const isSafeBet = (d.likedPct === '100%' && d.reviews >= 3);
                 const safeBetHtml = isSafeBet 
                     ? `
-                    <div id="${safeId}" class="tooltip-container" onclick="toggleDishTooltip('${safeId}', event)">
+                    <div id="${safeId}" class="tooltip-container tooltip-project-left" onclick="toggleDishTooltip('${safeId}', event)">
                         <span class="inline-flex items-center rounded-full bg-[#143314] text-[#4ade80] border border-[#166534] tracking-widest uppercase shadow-md select-none gap-1 py-0.5 px-2 text-[9px] font-black">
                             <span>Voters' Pick</span> 💖
                         </span>
                         <span class="tooltip-text">
-                            A local favorite! ⭐ 100% Liked based on ${d.reviews} reviews.
+                            A local favourite! ⭐ 100% Liked based on ${d.reviews} reviews.
                         </span>
                     </div>
                     ` : '';
@@ -495,7 +569,7 @@
                 let trendingHtml = '';
                 if (d.recent5Stars >= 3) {
                     trendingHtml = `
-                    <div id="${trendId}" class="tooltip-container" onclick="toggleDishTooltip('${trendId}', event)">
+                    <div id="${trendId}" class="tooltip-container tooltip-project-left" onclick="toggleDishTooltip('${trendId}', event)">
                         <span class="inline-flex items-center rounded-full bg-[#3b1c0a] text-[#f97316] border border-[#7c2d12] tracking-widest uppercase shadow-md select-none gap-1 py-0.5 px-2 text-[9px] font-black">
                             <span>Trending</span> 💯🔥
                         </span>
@@ -505,7 +579,7 @@
                     </div>`;
                 } else if (d.recent4Plus >= 3) {
                     trendingHtml = `
-                    <div id="${trendId}" class="tooltip-container" onclick="toggleDishTooltip('${trendId}', event)">
+                    <div id="${trendId}" class="tooltip-container tooltip-project-left" onclick="toggleDishTooltip('${trendId}', event)">
                         <span class="inline-flex items-center rounded-full bg-[#3b1c0a] text-[#f97316] border border-[#7c2d12] tracking-widest uppercase shadow-md select-none gap-1 py-0.5 px-2 text-[9px] font-black">
                             <span>Trending</span> 🔥
                         </span>
@@ -517,7 +591,9 @@
 
                 // 🟢 CAMERA ICON HTML
                 const cameraHtml = d.imageUrl 
-                    ? `<span onclick="openImageModal('${d.imageUrl}', '${d.name.replace(/'/g, "\\'")}')" class="cursor-pointer hover:scale-125 transition-transform text-lg ml-2" title="View Dish Photo">📸</span>` 
+                    ? `<span onclick="openImageModal('${d.imageUrl}', '${d.name.replace(/'/g, "\\'")}')" class="cursor-pointer hover:scale-125 transition-transform text-lg ml-2" title="View Dish Photo">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 inline text-brand-gold" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"></path><circle cx="12" cy="12.75" r="3.25"></circle></svg>
+                       </span>` 
                     : '';
 
                 return `
@@ -547,6 +623,7 @@
             }).join('');
         }
 
+        // 🟢 CLICK-OUTSIDE DISMISS LOGIC
         function toggleDishTooltip(uniqueId, event) {
             event.stopPropagation(); 
             const tooltipContainer = document.getElementById(uniqueId);
@@ -562,10 +639,20 @@
         }
         
         document.addEventListener('click', (event) => {
+            // Dismiss HTML tooltips
             if (!event.target.closest('.tooltip-container')) {
                 document.querySelectorAll('.tooltip-container.active').forEach(el => {
                     el.classList.remove('active');
                 });
+            }
+            // 🟢 Dismiss Chart.js Tooltips cleanly on mobile tap-away
+            if (window.innerWidth < 640 && !event.target.closest('canvas')) {
+                if (topRatedChartInstance) topRatedChartInstance.tooltip.setActiveElements([], {x:0,y:0});
+                if (popularityChartInstance) popularityChartInstance.tooltip.setActiveElements([], {x:0,y:0});
+                if (trendChartInstance) trendChartInstance.tooltip.setActiveElements([], {x:0,y:0});
+                if (topRatedChartInstance) topRatedChartInstance.update();
+                if (popularityChartInstance) popularityChartInstance.update();
+                if (trendChartInstance) trendChartInstance.update();
             }
         });
 
@@ -575,6 +662,7 @@
              });
         });
 
+        // 🟢 BAR CHART
         function renderBarChart(topRated) {
             const ctx = document.getElementById('topRatedChart').getContext('2d');
             if(topRatedChartInstance) topRatedChartInstance.destroy();
@@ -588,6 +676,8 @@
                         data: topRated.map(d => d.rating),
                         backgroundColor: '#4ade80', 
                         borderRadius: 6,
+                        barPercentage: 0.9, 
+                        categoryPercentage: 0.9,
                     }]
                 },
                 plugins: [ChartDataLabels], 
@@ -595,32 +685,67 @@
                     responsive: true, maintainAspectRatio: false,
                     plugins: { 
                         legend: { display: false },
+                        tooltip: {
+                            position: 'topEdge', 
+                            yAlign: 'top',       
+                            caretSize: 0,        
+                            backgroundColor: 'rgba(26, 26, 26, 0.95)',
+                            titleFont: { size: 13, family: 'Inter' },
+                            bodyFont: { size: 14, weight: 'bold', family: 'Inter' },
+                            padding: 12,
+                            borderColor: '#e8c06440',
+                            borderWidth: 1,
+                        },
                         datalabels: {
                             display: true,
                             color: '#0a0a0a', 
-                            font: { weight: '800', size: 12, family: 'Inter' },
+                            font: { weight: '800', size: window.innerWidth < 640 ? 11 : 13, family: 'Inter' },
                             anchor: 'end',
-                            align: 'start',
-                            offset: 6,
+                            align: 'bottom',
+                            offset: 4,
                             formatter: (value) => value.toFixed(2)
                         }
                     },
                     scales: {
                         y: { max: 5, grid: { color: '#e8c06415' }, border: { display: false } },
-                        x: { grid: { display: false }, border: { display: false }, ticks: { font: {size: 11} } }
+                        x: { 
+                            grid: { display: false }, border: { display: false }, 
+                            ticks: { 
+                                font: {size: 10, family: 'Inter'}, color: '#9CA3AF',
+                                maxRotation: 0, minRotation: 0, 
+                                callback: function(value) {
+                                    const label = this.getLabelForValue(value);
+                                    if (window.innerWidth < 640) {
+                                        const words = label.split(' ').filter(w => w.trim().length > 0);
+                                        // 🟢 SMART MOBILE ABBREVIATION FIX (MULTILINE WRAP)
+                                        if (words.length >= 3) {
+                                            return words.map(w => w[0].toUpperCase()).join('.') + '.';
+                                        } else if (words.length === 2) {
+                                            let w1 = words[0]; let w2 = words[1];
+                                            if (w1.length > 9) w1 = w1.substring(0, 8) + '..';
+                                            if (w2.length > 9) w2 = w2.substring(0, 8) + '..';
+                                            return [w1, w2]; // Stacks cleanly on two lines
+                                        }
+                                        return label.length > 10 ? label.substring(0, 9) + '..' : label;
+                                    }
+                                    return label;
+                                }
+                            } 
+                        }
                     }
                 }
             });
         }
 
+        // 🟢 PREMIUM DOUGHNUT CHART
         function renderPieChart(mostLiked) {
             const ctx = document.getElementById('popularityChart').getContext('2d');
             if(popularityChartInstance) popularityChartInstance.destroy();
 
-            const premiumColors = ['#3b82f6', '#f97316', '#a855f7', '#84cc16', '#06b6d4', '#eab308', '#ec4899', '#6366f1', '#d946ef', '#14b8a6'];
+            const premiumColors = ['#e8c064', '#c9a250', '#a8853b', '#d4a373', '#8b5a2b', '#6b8e23', '#8fbc8f', '#4682b4', '#5f9ea0', '#a9a9a9'];
 
             popularityChartInstance = new Chart(ctx, {
-                type: 'pie', 
+                type: 'doughnut', 
                 data: {
                     labels: mostLiked.map(d => d.name),
                     datasets: [{
@@ -628,23 +753,33 @@
                         backgroundColor: premiumColors.slice(0, mostLiked.length),
                         borderWidth: 2,
                         borderColor: '#141414',
-                        hoverOffset: 12 
+                        hoverOffset: 8 
                     }]
                 },
                 plugins: [ChartDataLabels],
                 options: {
                     responsive: true, 
                     maintainAspectRatio: false,
+                    cutout: '55%', 
                     layout: {
-                        padding: window.innerWidth < 640 ? 20 : 15 
+                        padding: { bottom: 20 } 
                     },
                     plugins: {
                         legend: { 
-                            position: window.innerWidth < 640 ? 'bottom' : 'right', 
-                            labels: { boxWidth: 10, font: {size: 11, family: 'Inter'}, color: '#d1d5db', padding: 15 } 
+                            position: 'bottom', 
+                            labels: { 
+                                usePointStyle: true, 
+                                boxWidth: 6, 
+                                font: {size: 11, family: 'Inter'}, 
+                                color: '#d1d5db', 
+                                padding: 15 
+                            } 
                         },
                         tooltip: { 
                             enabled: true,
+                            position: 'doughnutCenter', 
+                            yAlign: 'center',           
+                            caretSize: 0,               
                             backgroundColor: 'rgba(20, 20, 20, 0.95)',
                             titleFont: { size: 13, family: 'Inter' },
                             bodyFont: { size: 14, weight: 'bold', family: 'Inter' },
@@ -661,20 +796,14 @@
                         datalabels: {
                             color: '#ffffff',
                             textStrokeColor: 'rgba(0, 0, 0, 0.8)',
-                            textStrokeWidth: 4,
-                            anchor: 'end', 
-                            align: 'start', 
-                            offset: window.innerWidth < 640 ? 8 : 15, 
-                            
+                            textStrokeWidth: 3,
+                            anchor: 'center', 
+                            align: 'center', 
+                            offset: 0, 
                             font: function(context) {
                                 const isMobile = window.innerWidth < 640;
-                                return {
-                                    weight: '900',
-                                    family: 'Inter',
-                                    size: isMobile ? 14 : 18 
-                                };
+                                return { weight: '900', family: 'Inter', size: isMobile ? 13 : 16 };
                             },
-                            
                             formatter: (value, context) => {
                                 const total = context.chart._metasets[context.datasetIndex].total;
                                 const percentage = (value / total) * 100;
@@ -686,6 +815,7 @@
             });
         }
 
+        // 🟢 TREND CHART (Stacked Legend + Smart Tooltip)
         function renderTrendChart(trends) {
             const ctx = document.getElementById('trendChart').getContext('2d');
             if(trendChartInstance) trendChartInstance.destroy();
@@ -700,6 +830,8 @@
                             data: trends.map(d => d.lastWeek),
                             backgroundColor: '#4ade80', 
                             borderSkipped: false,
+                            barPercentage: 0.9,
+                            categoryPercentage: 0.9,
                             borderRadius: { bottomLeft: 6, bottomRight: 6, topLeft: 0, topRight: 0 }
                         },
                         {
@@ -707,15 +839,43 @@
                             data: trends.map(d => d.change),
                             backgroundColor: '#e8c064', 
                             borderSkipped: false,
+                            barPercentage: 0.9,
+                            categoryPercentage: 0.9,
                             borderRadius: { bottomLeft: 0, bottomRight: 0, topLeft: 6, topRight: 6 }
                         }
                     ]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false }, 
+                    interaction: { mode: 'index', intersect: false },
+                    layout: {
+                        padding: { top: window.innerWidth < 640 ? 10 : 0 }
+                    },
                     scales: {
-                        x: { stacked: true, grid: { display: false }, border: { display: false }, ticks: { font: {size: 11} } },
+                        x: { 
+                            stacked: true, grid: { display: false }, border: { display: false }, 
+                            ticks: { 
+                                font: {size: 10, family: 'Inter'}, color: '#9CA3AF',
+                                maxRotation: 0, minRotation: 0,
+                                callback: function(value) {
+                                    const label = this.getLabelForValue(value);
+                                    if (window.innerWidth < 640) {
+                                        const words = label.split(' ').filter(w => w.trim().length > 0);
+                                        // 🟢 SMART MOBILE ABBREVIATION FIX
+                                        if (words.length >= 3) {
+                                            return words.map(w => w[0].toUpperCase()).join('.') + '.';
+                                        } else if (words.length === 2) {
+                                            let w1 = words[0]; let w2 = words[1];
+                                            if (w1.length > 9) w1 = w1.substring(0, 8) + '..';
+                                            if (w2.length > 9) w2 = w2.substring(0, 8) + '..';
+                                            return [w1, w2]; 
+                                        }
+                                        return label.length > 10 ? label.substring(0, 9) + '..' : label;
+                                    }
+                                    return label;
+                                }
+                            } 
+                        },
                         y: { 
                             stacked: true, 
                             max: 5, 
@@ -727,9 +887,22 @@
                         }
                     },
                     plugins: {
-                        legend: { position: 'top', labels: { boxWidth: 12, font: {size: 12, family: 'Inter'}, color: '#d1d5db' } },
+                        legend: { 
+                            position: 'bottom', // 🟢 Forces stacked vertical legend on mobile
+                            align: 'start',     // 🟢 Aligns them flush to the left
+                            labels: { 
+                                usePointStyle: true, 
+                                boxWidth: 6, 
+                                font: {size: 11, family: 'Inter'}, 
+                                color: '#9CA3AF',
+                                padding: 12
+                            } 
+                        },
                         datalabels: { display: false },
                         tooltip: {
+                            position: 'middleGreen', // 🟢 Forces tooltip exactly into the middle of the green bar
+                            yAlign: 'center',
+                            caretSize: 0,            // 🟢 Removes the arrow pointer completely
                             backgroundColor: 'rgba(20, 20, 20, 0.95)',
                             titleFont: { size: 14, weight: 'bold', family: 'Inter' },
                             bodyFont: { size: 13, family: 'Inter' },
@@ -739,7 +912,6 @@
                             borderColor: '#e8c06440',
                             borderWidth: 1,
                             callbacks: {
-                                // 🟢 NEW: Rounds the top labels directly generated by ChartJS to 2 decimals
                                 label: function(context) {
                                     let label = context.dataset.label || '';
                                     if (label) {
