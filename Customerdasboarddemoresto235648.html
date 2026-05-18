@@ -394,12 +394,15 @@
                 .replace(/"/g, '&quot;');
         }
 
-        // 🟢 WhatsApp Fix: Prevents history crashes
+        // 🟢 SAFETY FIX: Strip the URL hash without triggering page reloads
+        function removeHash() {
+            try {
+                history.replaceState(null, document.title, window.location.pathname + window.location.search);
+            } catch (e) {}
+        }
+
         function safePushState(hashName) {
             try { window.history.pushState({ modal: hashName }, '', '#' + hashName); } catch (e) {}
-        }
-        function safeHistoryBack() {
-            try { window.history.back(); } catch (e) {}
         }
 
         Chart.Tooltip.positioners.doughnutCenter = function(elements) {
@@ -454,25 +457,26 @@
         }
 
         function closeImageModal(fromPopState = false) {
-            if (!fromPopState && window.location.hash === '#dish-photo') {
-                safeHistoryBack(); return;
-            }
             const modal = document.getElementById('image-modal');
             modal.classList.add('opacity-0');
             setTimeout(() => {
                 modal.classList.remove('flex');
                 modal.classList.add('hidden');
             }, 300);
+            
+            if (!fromPopState) removeHash();
         }
 
         // 🟢 UNIVERSAL ANDROID BACK-BUTTON MANAGER
         window.addEventListener('popstate', function(event) {
+            // Evaluates top-down to close the most recent modal first
             if (!document.getElementById('image-modal').classList.contains('hidden')) { closeImageModal(true); return; }
             if (!document.getElementById('token-modal').classList.contains('hidden')) { closeTokenModal(true); return; }
             if (!document.getElementById('error-modal').classList.contains('hidden')) { closeErrorModal(true); return; }
             if (!document.getElementById('oos-modal').classList.contains('hidden')) { closeOosModal(true); return; }
             if (!document.getElementById('clear-confirm-modal').classList.contains('hidden')) { closeClearConfirmModal(true); return; }
             
+            // If no modals are open, check if the cart is maximized
             if (isCartOpen) { toggleCart(true); return; }
         });
 
@@ -517,14 +521,11 @@
             const icon = document.getElementById('cart-toggle-icon');
             
             if (isCartOpen) {
-                if (!fromPopState && window.location.hash === '#smart-order') {
-                    safeHistoryBack();
-                    return;
-                }
                 isCartOpen = false;
                 hasUserManuallyClosedCart = true;
                 body.style.display = 'none';
                 icon.style.transform = 'rotate(180deg)';
+                if (!fromPopState) removeHash();
             } else {
                 isCartOpen = true;
                 hasUserManuallyClosedCart = false;
@@ -569,9 +570,6 @@
         }
 
         function closeOosModal(fromPopState = false) {
-            if (!fromPopState && window.location.hash === '#stock-warning') {
-                safeHistoryBack(); return;
-            }
             const modal = document.getElementById('oos-modal');
             const box = document.getElementById('oos-box');
             modal.classList.add('opacity-0');
@@ -581,6 +579,8 @@
                 modal.classList.remove('flex');
                 modal.classList.add('hidden');
             }, 300);
+            
+            if (!fromPopState) removeHash();
         }
 
         function forceAddToCart(dishName, event) {
@@ -629,9 +629,6 @@
         }
 
         function closeClearConfirmModal(fromPopState = false) {
-            if (!fromPopState && window.location.hash === '#clear-confirm') {
-                safeHistoryBack(); return;
-            }
             const modal = document.getElementById('clear-confirm-modal');
             const box = document.getElementById('clear-confirm-box');
             modal.classList.add('opacity-0');
@@ -641,6 +638,8 @@
                 modal.classList.remove('flex');
                 modal.classList.add('hidden');
             }, 300);
+            
+            if (!fromPopState) removeHash();
         }
 
         function clearCart(event) {
@@ -688,8 +687,8 @@
             const totalItems = Object.values(smartCart).reduce((a, b) => a + b, 0);
             
             if(dishNames.length === 0) {
-                if (isCartOpen && window.location.hash === '#smart-order') {
-                    safeHistoryBack();
+                if (isCartOpen) {
+                    removeHash();
                 }
                 
                 panel.classList.add('translate-y-[150%]');
@@ -756,9 +755,6 @@
         }
 
         function closeTokenModal(fromPopState = false) {
-            if (!fromPopState && window.location.hash === '#order-token') {
-                safeHistoryBack(); return;
-            }
             const modal = document.getElementById('token-modal');
             const box = document.getElementById('token-box');
             
@@ -769,6 +765,8 @@
                 modal.classList.remove('flex');
                 modal.classList.add('hidden');
             }, 300);
+            
+            if (!fromPopState) removeHash();
         }
 
         function showErrorModal(message) {
@@ -788,9 +786,6 @@
         }
 
         function closeErrorModal(fromPopState = false) {
-            if (!fromPopState && window.location.hash === '#error') {
-                safeHistoryBack(); return;
-            }
             const modal = document.getElementById('error-modal');
             const box = document.getElementById('error-box');
             
@@ -801,6 +796,8 @@
                 modal.classList.remove('flex');
                 modal.classList.add('hidden');
             }, 300);
+            
+            if (!fromPopState) removeHash();
         }
 
         async function submitOrder() {
