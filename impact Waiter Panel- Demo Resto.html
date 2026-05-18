@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Waiter Terminal | IMPACT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'w-bg': '#f1f5f9',      
+                        'w-card': '#ffffff',    
+                        'w-text': '#0f172a',    
+                        'w-accent': '#0284c7',  
+                        'w-success': '#16a34a', 
+                        'w-danger': '#ef4444',  
+                        'w-border': '#e2e8f0',  
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 🟢 STRICT NO-SCROLL VAULT */
+        html, body { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #0f172a; 
+            overflow: hidden; position: fixed; inset: 0; touch-action: manipulation; 
+        }
+        
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+        
+        /* 🟢 ULTRA-COMPACT DYNAMIC SIZING */
+        .numpad-btn {
+            background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px;
+            font-size: min(1.5rem, 3.5vh); font-weight: 800; color: #0f172a;
+            display: flex; align-items: center; justify-content: center;
+            height: min(65px, 7.5vh); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); transition: all 0.1s;
+        }
+        .numpad-btn:active { transform: scale(0.95); background-color: #e2e8f0; }
+
+        .action-btn {
+            background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+            height: min(60px, 7vh); font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em;
+            font-size: 9px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); transition: all 0.1s;
+        }
+        .action-btn:active { transform: scale(0.95); }
+        
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    </style>
+</head>
+<body class="flex flex-col h-[100dvh] w-screen max-h-[100dvh]">
+
+    <header class="bg-w-card border-b border-w-border px-4 py-3 sm:py-4 flex justify-between items-center shadow-sm shrink-0 z-40">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 sm:w-9 sm:h-9 bg-w-accent text-white rounded-lg flex items-center justify-center font-black text-[10px] sm:text-xs tracking-widest shadow-md shadow-blue-500/20">POS</div>
+            <h1 class="font-black text-w-text tracking-tight text-lg sm:text-xl">Staff Terminal</h1>
+        </div>
+        <div class="flex items-center gap-3 sm:gap-4">
+            <span id="sync-status" class="text-[8px] sm:text-[9px] uppercase font-bold tracking-widest text-amber-500 animate-pulse">Syncing...</span>
+            <span id="clock" class="text-xs sm:text-sm font-bold text-gray-400">00:00</span>
+        </div>
+    </header>
+<div id="view-auth" class="flex-1 flex flex-col items-center justify-center p-6 w-full max-w-sm mx-auto z-50 bg-w-bg absolute inset-0">
+        <div class="bg-white p-8 rounded-3xl shadow-xl w-full flex flex-col items-center text-center border border-gray-100">
+            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
+            </div>
+            <h2 class="font-black text-2xl text-gray-900 tracking-tight mb-2">Device Locked</h2>
+            <p class="text-xs text-gray-500 font-medium mb-6 leading-relaxed">This device is not authorized to access the POS network. Please ask a manager to unlock it.</p>
+            
+            <input type="password" id="device-auth-pin" placeholder="Manager PIN" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-4 font-black text-center tracking-[0.3em] text-gray-900 outline-none focus:border-w-accent transition-colors mb-4">
+            
+            <button id="auth-btn" onclick="authorizeDevice()" class="w-full py-4 bg-gray-900 text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-black transition-colors shadow-lg">
+                Authorize Device
+            </button>
+        </div>
+    </div>
+    <div id="view-numpad" class="flex-1 w-full max-w-sm mx-auto flex flex-col justify-center gap-4 px-4 py-4 min-h-0 transition-opacity duration-300">
+        
+        <div class="flex flex-col items-center shrink-0 w-full">
+            <p class="text-gray-400 font-black uppercase tracking-widest text-[10px] sm:text-xs mb-2">Enter Customer Token</p>
+            <div class="w-full bg-white border-2 border-w-accent rounded-2xl h-[8vh] min-h-[55px] max-h-[75px] mb-2 flex items-center justify-center text-4xl font-black text-w-accent tracking-widest shadow-inner">
+                <span id="token-input" class="font-mono"></span>
+                <span id="token-cursor" class="animate-pulse ml-1 text-gray-300">|</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 sm:gap-3 w-full shrink-0">
+            <button onclick="pressKey(1)" class="numpad-btn">1</button>
+            <button onclick="pressKey(2)" class="numpad-btn">2</button>
+            <button onclick="pressKey(3)" class="numpad-btn">3</button>
+            <button onclick="pressKey(4)" class="numpad-btn">4</button>
+            <button onclick="pressKey(5)" class="numpad-btn">5</button>
+            <button onclick="pressKey(6)" class="numpad-btn">6</button>
+            <button onclick="pressKey(7)" class="numpad-btn">7</button>
+            <button onclick="pressKey(8)" class="numpad-btn">8</button>
+            <button onclick="pressKey(9)" class="numpad-btn">9</button>
+            <button onclick="clearNumpad()" class="numpad-btn text-w-danger text-sm uppercase tracking-widest">CLR</button>
+            <button onclick="pressKey(0)" class="numpad-btn">0</button>
+            <button id="fetch-btn" onclick="fetchOrder()" class="numpad-btn bg-w-accent border-w-accent text-white shadow-xl shadow-sky-500/30 hover:bg-sky-600">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg>
+            </button>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-2 mt-2 w-full shrink-0">
+            <button onclick="openTablesModal()" class="action-btn text-w-accent hover:border-w-accent hover:bg-sky-50">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"></path></svg>
+                Active Tables
+            </button>
+            <button onclick="startNewOrder()" class="action-btn text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50 border-emerald-100 shadow-sm">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path></svg>
+                New Walk-In
+            </button>
+            <button onclick="openStockModal()" class="action-btn text-rose-500 hover:border-rose-300 hover:bg-rose-50">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                86 List
+            </button>
+            <button onclick="openManagerModal()" class="action-btn text-amber-500 hover:border-amber-400 hover:bg-amber-50">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
+                Manager
+            </button>
+        </div>
+    </div>
+
+    <div id="view-ticket" class="hidden flex-col flex-1 w-full max-w-2xl mx-auto bg-w-bg relative min-h-0 overflow-hidden">
+        
+        <div class="bg-w-card p-3 border-b border-w-border shadow-sm shrink-0 flex items-center justify-between z-10 relative">
+            <div class="flex flex-col">
+                <p class="text-[9px] uppercase font-bold tracking-widest text-gray-400 mb-0.5">Active Token</p>
+                <span id="active-token-display" class="font-mono font-black text-xl sm:text-2xl text-w-accent leading-none">#----</span>
+            </div>
+            
+            <div class="flex flex-col items-center absolute left-1/2 -translate-x-1/2">
+                <label class="text-[8px] uppercase font-bold tracking-widest text-gray-400 mb-0.5">Assign Table</label>
+                <select id="table-select" class="bg-gray-50 border-2 border-gray-200 text-gray-900 text-xs rounded-xl focus:ring-w-accent focus:border-w-accent block w-28 p-1 font-bold outline-none cursor-pointer appearance-none text-center" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22%239CA3AF%22%3E%3Cpath fill-rule=%22evenodd%22 d=%22M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%22 clip-rule=%22evenodd%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.25rem center; background-size: 1.25em 1.25em;">
+                    <option value="" disabled selected>Select...</option>
+                    <option value="1">Table 1</option><option value="2">Table 2</option><option value="3">Table 3</option>
+                    <option value="4">Table 4</option><option value="5">Table 5</option><option value="6">Table 6</option>
+                    <option value="Bar">Bar Area</option><option value="Takeaway">Takeaway</option>
+                </select>
+            </div>
+            
+            <button onclick="requestCloseTicket()" class="w-8 h-8 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-2 sm:p-3 flex flex-col gap-2" id="order-items-container">
+            </div>
+
+        <div class="bg-w-card border-t border-w-border shadow-[0_-10px_30px_rgba(0,0,0,0.05)] shrink-0 z-10 pb-3">
+            <div class="flex gap-2 p-2 border-b border-w-border bg-gray-50/50">
+                <button onclick="openMenuModal()" class="flex-1 bg-white border border-gray-300 rounded-xl py-2 text-[10px] font-bold text-gray-700 uppercase tracking-widest hover:bg-gray-100 flex items-center justify-center gap-1.5 shadow-sm">
+                    <svg class="w-3.5 h-3.5 text-w-accent" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"></path></svg>
+                    Search Menu
+                </button>
+                <button onclick="openCustomDishModal()" class="flex-1 bg-white border border-gray-300 rounded-xl py-2 text-[10px] font-bold text-gray-700 uppercase tracking-widest hover:bg-gray-100 flex items-center justify-center gap-1.5 shadow-sm">
+                    <svg class="w-3.5 h-3.5 text-w-accent" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path></svg>
+                    Custom Dish
+                </button>
+            </div>
+
+            <div class="px-4 pt-3">
+                <div class="flex justify-between items-end mb-3 px-1">
+                    <div class="flex flex-col">
+                        <p class="text-[9px] uppercase font-bold tracking-widest text-gray-400 mb-0.5">Ticket Summary</p>
+                        <p class="text-sm font-bold text-gray-600"><span id="total-items-count" class="text-w-accent font-black text-lg">0</span> Items</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[9px] uppercase font-bold tracking-widest text-gray-400 mb-0.5">Total Amount</p>
+                        <p class="text-2xl font-black text-gray-900 tracking-tight">₹<span id="ticket-subtotal">0.00</span></p>
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <button onclick="clearTable()" class="w-1/3 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-red-100 transition-colors">
+                        Settle
+                    </button>
+                    <button id="fire-btn" onclick="fireToKitchen()" class="w-2/3 bg-w-success text-white rounded-xl font-black uppercase tracking-widest text-[13px] shadow-lg shadow-green-600/30 hover:bg-green-700 transition-colors flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"></path></svg>
+                        Fire Order
+                    </button>
+                </div>
+
+                <button id="fire-next-btn" onclick="fireNextCourse()" class="mt-2 w-full hidden bg-purple-50 border border-purple-200 text-purple-700 rounded-xl font-black uppercase tracking-widest text-[10px] py-3 shadow-sm hover:bg-purple-100 transition-all active:scale-[0.98] items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"></path></svg>
+                    Alert Kitchen: Fire "Serve Last"
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-dish-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] hidden flex-col justify-center items-center p-4 opacity-0 transition-opacity duration-200">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto transform scale-95 transition-transform duration-200 flex flex-col" id="custom-dish-box">
+            <div class="p-5 border-b border-gray-100 bg-gray-50 flex justify-between items-center sticky top-0 z-10">
+                <h3 class="font-black text-lg text-gray-900 tracking-tight flex items-center gap-2">
+                    <svg class="w-5 h-5 text-w-accent" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path></svg>
+                    Custom Dish
+                </h3>
+                <button onclick="closeCustomDishModal()" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
+            </div>
+            <div class="p-6 flex flex-col gap-4">
+                <div>
+                    <label class="text-[10px] uppercase font-bold tracking-widest text-gray-400 mb-1 block">Dish Name</label>
+                    <input type="text" id="custom-dish-name" placeholder="e.g. Extra Mayo" class="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 outline-none focus:border-w-accent transition-colors">
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase font-bold tracking-widest text-gray-400 mb-1 block">Price (₹)</label>
+                    <input type="number" id="custom-dish-price" placeholder="0.00" class="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 outline-none focus:border-w-accent transition-colors">
+                </div>
+                <button onclick="submitCustomDish()" class="mt-2 w-full py-4 bg-w-accent text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-sky-600 transition-colors shadow-lg">
+                    Add To Ticket
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="menu-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] hidden flex-col justify-end">
+        <div class="bg-white w-full h-[85vh] rounded-t-[32px] shadow-2xl flex flex-col animate-[slideUp_0.3s_ease-out]">
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 rounded-t-[32px] shrink-0">
+                <h3 class="font-black text-xl tracking-tight text-gray-900">Add to Ticket</h3>
+                <button onclick="closeMenuModal()" class="w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-500 font-bold hover:bg-gray-100 shadow-sm">✕</button>
+            </div>
+            <div class="p-4 bg-white relative shrink-0">
+                <svg class="w-5 h-5 text-gray-400 absolute left-8 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"></path></svg>
+                <input type="text" id="menu-search" oninput="renderMenuSearch()" placeholder="Search menu..." class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-12 pr-10 py-3.5 font-bold text-gray-800 outline-none focus:ring-2 focus:ring-w-accent transition-all text-sm">
+                <button onclick="document.getElementById('menu-search').value=''; renderMenuSearch();" class="absolute right-7 top-1/2 -translate-y-1/2 w-6 h-6 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center text-gray-600 font-black text-xs transition-colors">✕</button>
+            </div>
+            <div class="flex gap-2 px-4 pb-3 border-b border-gray-100 bg-white overflow-x-auto shrink-0" style="scrollbar-width: none;">
+                <button onclick="setMenuFilter('all')" id="menu-filter-all" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-gray-900 text-white transition-all shrink-0 shadow-sm">All Items</button>
+                <button onclick="setMenuFilter('in')" id="menu-filter-in" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all shrink-0">In Stock</button>
+                <button onclick="setMenuFilter('out')" id="menu-filter-out" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all shrink-0">86'D (Out)</button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-2 bg-gray-50/30" id="menu-list"></div>
+        </div>
+    </div>
+
+    <div id="open-tables-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden flex-col justify-end">
+        <div class="bg-white w-full h-[70vh] rounded-t-[32px] shadow-2xl flex flex-col animate-[slideUp_0.3s_ease-out]">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 rounded-t-[32px] shrink-0">
+                <h3 class="font-black text-xl tracking-tight text-gray-900">Active Tables</h3>
+                <button onclick="closeTablesModal()" class="w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-500 font-bold hover:bg-gray-100 shadow-sm">✕</button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 bg-gray-50/30" id="open-tables-list"></div>
+        </div>
+    </div>
+
+    <div id="stock-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden flex-col justify-end">
+        <div class="bg-white w-full h-[85vh] rounded-t-[32px] shadow-2xl flex flex-col animate-[slideUp_0.3s_ease-out]">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 rounded-t-[32px] shrink-0">
+                <h3 class="font-black text-xl tracking-tight text-gray-900">Manage 86 List</h3>
+                <button onclick="closeStockModal()" class="w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-500 font-bold hover:bg-gray-100 shadow-sm">✕</button>
+            </div>
+            <div class="p-4 bg-white relative shrink-0">
+                <svg class="w-5 h-5 text-gray-400 absolute left-8 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"></path></svg>
+                <input type="text" id="stock-search" oninput="renderStockSearch()" placeholder="Search dishes to update stock..." class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-12 pr-10 py-3.5 font-bold text-gray-800 outline-none focus:ring-2 focus:ring-w-accent transition-all text-sm">
+                <button onclick="document.getElementById('stock-search').value=''; renderStockSearch();" class="absolute right-7 top-1/2 -translate-y-1/2 w-6 h-6 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center text-gray-600 font-black text-xs transition-colors">✕</button>
+            </div>
+            <div class="flex gap-2 px-4 pb-3 border-b border-gray-100 bg-white overflow-x-auto shrink-0" style="scrollbar-width: none;">
+                <button onclick="setStockFilter('all')" id="stock-filter-all" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-gray-900 text-white transition-all shrink-0 shadow-sm">All Items</button>
+                <button onclick="setStockFilter('out')" id="stock-filter-out" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all shrink-0">86'D (Out)</button>
+                <button onclick="setStockFilter('in')" id="stock-filter-in" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all shrink-0">In Stock</button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-2 bg-gray-50/30" id="stock-list"></div>
+        </div>
+    </div>
+
+    <div id="manager-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] hidden flex-col justify-center items-center p-4 opacity-0 transition-opacity duration-200">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto transform scale-95 transition-transform duration-200 flex flex-col" id="manager-box">
+            <div class="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center sticky top-0 z-10">
+                <h3 class="font-black text-lg text-gray-900 tracking-tight flex items-center gap-2">
+                    <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
+                    Manager Override
+                </h3>
+                <button onclick="closeManagerModal()" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
+            </div>
+            
+            <div class="p-6 flex flex-col gap-4">
+                <div>
+                    <label class="text-[10px] uppercase font-bold tracking-widest text-gray-400 mb-1 block">Select Action</label>
+                    <select id="mgr-action-type" onchange="toggleManagerFields()" class="w-full bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 font-black text-w-accent outline-none focus:border-amber-400 transition-colors appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22%230284c7%22%3E%3Cpath fill-rule=%22evenodd%22 d=%22M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%22 clip-rule=%22evenodd%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1.5em 1.5em;">
+                        <option value="add">Add New Dish</option>
+                        <option value="edit">Edit Dish Price</option>
+                        <option value="delete">Delete Dish</option>
+                    </select>
+                </div>
+
+                <div id="mgr-name-box">
+                    <label class="text-[10px] uppercase font-bold tracking-widest text-gray-400 mb-1 block">New Dish Name</label>
+                    <input type="text" id="mgr-dish-name" placeholder="e.g. Garlic Naan" class="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 outline-none focus:border-amber-400 transition-colors">
+                </div>
+
+                <div id="mgr-select-box" class="hidden">
+                    <label class="text-[10px] uppercase font-bold tracking-widest text-gray-400 mb-1 block">Select Dish</label>
+                    <select id="mgr-dish-select" class="w-full bg-white border-2 border-gray-200 rounded-xl px-3 py-3 font-bold text-gray-900 outline-none focus:border-amber-400 transition-colors appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22%239CA3AF%22%3E%3Cpath fill-rule=%22evenodd%22 d=%22M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%22 clip-rule=%22evenodd%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1.5em 1.5em;">
+                    </select>
+                </div>
+                
+                <div id="mgr-price-cat-box" class="flex gap-3">
+                    <div class="flex-1">
+                        <label class="text-[10px] uppercase font-bold tracking-widest text-gray-400 mb-1 block">Price (₹)</label>
+                        <input type="number" id="mgr-dish-price" placeholder="0.00" class="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 outline-none focus:border-amber-400 transition-colors">
+                    </div>
+                    <div class="flex-1" id="mgr-cat-wrapper">
+                        <label class="text-[10px] uppercase font-bold tracking-widest text-gray-400 mb-1 block">Category</label>
+                        <select id="mgr-dish-category" class="w-full bg-white border-2 border-gray-200 rounded-xl px-3 py-3 font-bold text-gray-900 outline-none focus:border-amber-400 transition-colors appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22%239CA3AF%22%3E%3Cpath fill-rule=%22evenodd%22 d=%22M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%22 clip-rule=%22evenodd%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1.5em 1.5em;">
+                            <option value="Kitchen">Kitchen</option>
+                            <option value="Bar">Bar / Drinks</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-2 p-4 bg-amber-50 rounded-xl border border-amber-200/50">
+                    <label class="text-[10px] uppercase font-black tracking-widest text-amber-700 mb-1 block">Manager PIN Required</label>
+                    <input type="password" id="mgr-pin" placeholder="Enter Passcode" class="w-full bg-white border-2 border-amber-200 rounded-xl px-4 py-3 font-black text-center tracking-[0.2em] text-amber-600 outline-none focus:border-amber-500 transition-colors">
+                </div>
+                
+                <button id="mgr-submit-btn" onclick="submitManagerAction()" class="mt-2 w-full py-4 bg-gray-900 text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-black transition-colors shadow-lg">
+                    Execute Action
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pos-alert-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[300] hidden flex-col justify-center items-center p-6 opacity-0 transition-opacity duration-200">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-200" id="pos-alert-box">
+            <div id="pos-alert-header" class="h-2 w-full bg-w-accent"></div>
+            <div class="p-6 pt-8 text-center">
+                <div id="pos-alert-icon" class="mx-auto w-14 h-14 mb-5 rounded-full flex items-center justify-center bg-gray-100 text-gray-500"></div>
+                <h3 id="pos-alert-title" class="font-black text-xl text-gray-900 mb-2 tracking-tight">Notification</h3>
+                <div id="pos-alert-message" class="w-full mb-8"></div>
+                <div class="flex gap-3 justify-center" id="pos-alert-buttons"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // REPLACE WITH YOUR ACTUAL SCRIPT URL
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzLUygVhxJ3vcCtM93sqtJpHyjUfVC7Lijvz0iI8Z--IixTitYVIhaHlI54t4BQcYSQ/exec"; 
+
+        let currentInput = "";
+        let activeTicket = []; 
+        let cachedMenu = []; 
+        let originalTicketState = ""; // 🟢 Tracks initial cart
+        let currentOrderStatus = "";  // 🟢 Tracks Locked/Fire Next
+
+        // 🟢 FIX: Safe Push State ignores errors during local testing to prevent crashes
+        function safePushState(hashName) {
+            try { window.history.pushState({ modal: hashName }, '', '#' + hashName); } 
+            catch (e) { /* Ignore fallback to prevent popstate loops on local files */ }
+        }
+
+        // --- CUSTOM POS ALERTS ---
+        function showPosAlert(title, message, type = 'info', onConfirm = null, confirmText = "Confirm") {
+            const modal = document.getElementById('pos-alert-modal');
+            const box = document.getElementById('pos-alert-box');
+            const header = document.getElementById('pos-alert-header');
+            const iconContainer = document.getElementById('pos-alert-icon');
+            const btnContainer = document.getElementById('pos-alert-buttons');
+            
+            document.getElementById('pos-alert-title').innerText = title;
+            // 🟢 FIX: innerHTML forces the browser to read the styling tags instead of printing them!
+            document.getElementById('pos-alert-message').innerHTML = message; 
+
+            if (type === 'error' || type === 'warning') {
+                header.className = "h-2 w-full bg-w-danger";
+                iconContainer.className = "mx-auto w-14 h-14 mb-5 rounded-full flex items-center justify-center bg-red-50 text-w-danger border border-red-100";
+                iconContainer.innerHTML = `<svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+            } else if (type === 'success') {
+                header.className = "h-2 w-full bg-w-success";
+                iconContainer.className = "mx-auto w-14 h-14 mb-5 rounded-full flex items-center justify-center bg-green-50 text-w-success border border-green-100";
+                iconContainer.innerHTML = `<svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path></svg>`;
+            } else {
+                header.className = "h-2 w-full bg-w-accent";
+                iconContainer.className = "mx-auto w-14 h-14 mb-5 rounded-full flex items-center justify-center bg-sky-50 text-w-accent border border-sky-100";
+                iconContainer.innerHTML = `<svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"></path></svg>`;
+            }
+
+            if (onConfirm) {
+                btnContainer.innerHTML = `
+                    <button onclick="closePosAlert()" class="flex-1 py-3.5 bg-gray-100 text-gray-600 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-gray-200 transition-colors">Cancel</button>
+                    <button id="pos-confirm-btn" class="flex-1 py-3.5 bg-w-danger text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-red-600 transition-colors shadow-lg">${confirmText}</button>
+                `;
+                document.getElementById('pos-confirm-btn').onclick = () => { closePosAlert(); onConfirm(); };
+            } else {
+                btnContainer.innerHTML = `<button onclick="closePosAlert()" class="px-10 py-3.5 bg-gray-100 text-gray-800 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-gray-200 transition-colors w-full shadow-sm">Got it</button>`;
+            }
+
+            safePushState('alert');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+                box.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closePosAlert(fromPopState = false) {
+            if (!fromPopState && window.location.hash.includes('alert')) { try{window.history.back();}catch(e){} }
+            const modal = document.getElementById('pos-alert-modal');
+            const box = document.getElementById('pos-alert-box');
+            modal.classList.add('opacity-0');
+            box.classList.remove('scale-100');
+            box.classList.add('scale-95');
+            setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 200);
+        }
+
+        // --- 🟢 SECURITY: DEVICE AUTHORIZATION LOGIC ---
+        async function authorizeDevice() {
+            const pin = document.getElementById('device-auth-pin').value;
+            if (!pin) return;
+            
+            const btn = document.getElementById('auth-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<div class="w-5 h-5 border-[3px] border-white border-t-transparent rounded-full animate-spin mx-auto"></div>`;
+            
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "verify_device", pin: pin }) });
+                const data = await response.json();
+                
+                if (data.success) {
+                    localStorage.setItem('impact_device_authorized', 'true');
+                    localStorage.setItem('impact_device_token', data.device_token); // 🟢 Store secret key
+                    document.getElementById('view-auth').classList.add('hidden');
+                    // Boot up the system now that we are unlocked
+                    fetchInitialData();
+                } else {
+                    showPosAlert("Access Denied", "Incorrect Manager PIN.", "error");
+                    document.getElementById('device-auth-pin').value = '';
+                }
+            } catch (err) {
+                showPosAlert("Network Error", "Unable to reach servers.", "error");
+            } finally {
+                btn.innerHTML = originalText;
+            }
+        }
+
+        async function fetchInitialData() {
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_init" }) });
+                const data = await response.json();
+                if(data.success) {
+                    cachedMenu = data.menu || [];
+                    document.getElementById('sync-status').innerText = "System Ready";
+                    document.getElementById('sync-status').className = "text-[8px] sm:text-[9px] uppercase font-bold tracking-widest text-w-success";
+                }
+            } catch (err) {
+                document.getElementById('sync-status').innerText = "Offline Mode";
+                document.getElementById('sync-status').className = "text-[8px] sm:text-[9px] uppercase font-bold tracking-widest text-w-danger animate-pulse";
+            }
+        }
+
+        // --- 🟢 SECURITY: DEVICE AUTHORIZATION LOGIC ---
+        async function authorizeDevice() {
+            const pin = document.getElementById('device-auth-pin').value;
+            if (!pin) return;
+            
+            const btn = document.getElementById('auth-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<div class="w-5 h-5 border-[3px] border-white border-t-transparent rounded-full animate-spin mx-auto"></div>`;
+            
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "verify_device", pin: pin }) });
+                const data = await response.json();
+                
+                if (data.success) {
+                    localStorage.setItem('impact_device_authorized', 'true');
+                    document.getElementById('view-auth').classList.add('hidden');
+                    // Boot up the system now that we are unlocked
+                    fetchInitialData();
+                } else {
+                    // 🟢 Dynamically show the "X attempts remaining" message from the server
+                    showPosAlert("Access Denied", data.message, "error");
+                    document.getElementById('device-auth-pin').value = '';
+                }
+            } catch (err) {
+                showPosAlert("Network Error", "Unable to reach servers.", "error");
+            } finally {
+                btn.innerHTML = originalText;
+            }
+        }
+
+        async function fetchInitialData() {
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_init" }) });
+                const data = await response.json();
+                if(data.success) {
+                    cachedMenu = data.menu || [];
+                    document.getElementById('sync-status').innerText = "System Ready";
+                    document.getElementById('sync-status').className = "text-[8px] sm:text-[9px] uppercase font-bold tracking-widest text-w-success";
+                }
+            } catch (err) {
+                document.getElementById('sync-status').innerText = "Offline Mode";
+                document.getElementById('sync-status').className = "text-[8px] sm:text-[9px] uppercase font-bold tracking-widest text-w-danger animate-pulse";
+            }
+        }
+
+        // --- INIT & BACK BUTTON MANAGER ---
+        document.addEventListener("DOMContentLoaded", async () => {
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }, 1000);
+
+            // 🟢 Check if device is authorized on load
+            const isAuthorized = localStorage.getItem('impact_device_authorized');
+            if (isAuthorized === 'true') {
+                document.getElementById('view-auth').classList.add('hidden');
+                fetchInitialData();
+            }
+
+            document.addEventListener('keydown', (e) => {
+                const numpadView = document.getElementById('view-numpad');
+                const authView = document.getElementById('view-auth');
+                
+                // Only allow numpad typing if the device is authorized
+                if (authView.classList.contains('hidden') && !numpadView.classList.contains('hidden') && !e.target.matches('input') && !e.target.matches('textarea')) {
+                    if (e.key >= '0' && e.key <= '9') pressKey(e.key);
+                    if (e.key === 'Backspace') clearNumpad();
+                    if (e.key === 'Enter') fetchOrder();
+                }
+            });
+        });
+
+        window.addEventListener('popstate', function(event) {
+            if (!document.getElementById('pos-alert-modal').classList.contains('hidden')) { closePosAlert(true); return; }
+            if (!document.getElementById('custom-dish-modal').classList.contains('hidden')) { closeCustomDishModal(true); return; }
+            if (!document.getElementById('manager-modal').classList.contains('hidden')) { closeManagerModal(true); return; }
+            if (!document.getElementById('menu-modal').classList.contains('hidden')) { closeMenuModal(true); return; }
+            if (!document.getElementById('stock-modal').classList.contains('hidden')) { closeStockModal(true); return; }
+            if (!document.getElementById('open-tables-modal').classList.contains('hidden')) { closeTablesModal(true); return; }
+            
+            if (!document.getElementById('view-ticket').classList.contains('hidden')) {
+                safePushState('ticket'); // Trap them
+                requestCloseTicket();
+            }
+        });
+
+        // --- NUMPAD LOGIC ---
+        function pressKey(num) {
+            if (currentInput.length < 4) {
+                currentInput += num;
+                document.getElementById('token-input').innerText = currentInput;
+            }
+        }
+        
+        function clearNumpad() {
+            currentInput = "";
+            document.getElementById('token-input').innerText = "";
+        }
+
+        // 🟢 UX FIX: Instant generation of a "Walk-In" ticket
+        function startNewOrder() {
+            syncMenuBackground();
+            // Generate a random 4 digit token with the "W-" prefix
+            currentInput = "W-" + Math.floor(1000 + Math.random() * 9000);
+            
+            safePushState('ticket');
+            document.getElementById('active-token-display').innerText = `#${currentInput}`;
+            
+            activeTicket = [];
+            currentOrderStatus = "Pending";
+            originalTicketState = "[]";
+            
+            // Clear table selection to prompt the waiter
+            document.getElementById('table-select').value = ""; 
+            
+            renderTicket();
+            document.getElementById('view-numpad').classList.add('hidden');
+            document.getElementById('view-numpad').classList.remove('flex');
+            document.getElementById('view-ticket').classList.remove('hidden');
+            document.getElementById('view-ticket').classList.add('flex');
+        }
+
+        async function syncMenuBackground() {
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_init" }) });
+                const data = await response.json();
+                if(data.success) {
+                    cachedMenu = data.menu || [];
+                    document.getElementById('sync-status').innerText = "System Ready";
+                    document.getElementById('sync-status').className = "text-[8px] sm:text-[9px] uppercase font-bold tracking-widest text-w-success";
+                    if (!document.getElementById('menu-modal').classList.contains('hidden')) renderMenuSearch();
+                    if (!document.getElementById('stock-modal').classList.contains('hidden')) renderStockSearch();
+                }
+            } catch (err) { 
+                document.getElementById('sync-status').innerText = "Offline Mode";
+                document.getElementById('sync-status').className = "text-[8px] sm:text-[9px] uppercase font-bold tracking-widest text-w-danger animate-pulse";
+            }
+        }
+
+        async function fetchOrder() {
+            syncMenuBackground(); 
+            if (currentInput.length !== 4) { showPosAlert("Invalid Token", "Please enter a complete 4-digit code.", "warning"); return; }
+            const fetchBtn = document.getElementById('fetch-btn');
+            fetchBtn.innerHTML = `<div class="w-7 h-7 border-4 border-white border-t-transparent rounded-full animate-spin"></div>`;
+
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_fetch", token: currentInput }) });
+                const data = await response.json();
+                fetchBtn.innerHTML = `<svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg>`;
+
+                if(data.success) {
+                    if(data.status && !data.status.includes("Pending")) {
+                        showPosAlert("Order Already Fired", "This order was already locked and sent to the kitchen.", "warning");
+                    }
+                    
+                    safePushState('ticket');
+                    document.getElementById('active-token-display').innerText = `#${currentInput}`;
+                    activeTicket = [];
+                    
+                    if (Array.isArray(data.cartData)) {
+                        data.cartData.forEach((item, index) => {
+                            let restoredCourse = "main";
+                            if (item.pacing === "Serve First") restoredCourse = "first";
+                            if (item.pacing === "Serve Last") restoredCourse = "last";
+                            activeTicket.push({ id: Date.now() + Math.random(), name: item.name, qty: item.qty, price: item.price || 0, note: item.note || "", course: restoredCourse });
+                        });
+                    } else {
+                        Object.entries(data.cartData).forEach(([dishName, qty], index) => {
+                            const menuItem = cachedMenu.find(m => String(m.name || '').toLowerCase() === dishName.toLowerCase());
+                            const price = menuItem ? menuItem.price : 0;
+                            activeTicket.push({ id: Date.now() + Math.random(), name: dishName, qty: qty, price: price, note: "", course: "main" });
+                        });
+                    }
+
+                    // 🟢 Save snapshots to detect mid-meal edits
+                    currentOrderStatus = data.status || "Pending";
+                    originalTicketState = JSON.stringify(activeTicket);
+
+                    let assignedTable = "";
+                    const fireNextBtn = document.getElementById('fire-next-btn');
+                    if (data.status && (data.status.includes("- LOCKED") || data.status.includes("- FIRE NEXT"))) {
+                        assignedTable = data.status.split("-")[0].replace("Table", "").trim();
+                        fireNextBtn.classList.remove('hidden'); fireNextBtn.classList.add('flex');
+                    } else {
+                        fireNextBtn.classList.add('hidden'); fireNextBtn.classList.remove('flex');
+                    }
+                    const tableDropdown = document.getElementById('table-select');
+                    tableDropdown.value = assignedTable;
+                    if (tableDropdown.selectedIndex === -1) tableDropdown.value = ""; 
+
+                    renderTicket();
+                    document.getElementById('view-numpad').classList.add('hidden');
+                    document.getElementById('view-numpad').classList.remove('flex');
+                    document.getElementById('view-ticket').classList.remove('hidden');
+                    document.getElementById('view-ticket').classList.add('flex');
+                } else {
+                    showPosAlert("Token Not Found", "The token does not exist.", "error");
+                    clearNumpad();
+                }
+            } catch (err) {
+                fetchBtn.innerHTML = `<svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg>`;
+                showPosAlert("Network Error", "Unable to reach the server.", "error");
+            }
+        }
+
+        function requestCloseTicket() {
+            if (activeTicket.length > 0) {
+                showPosAlert(
+                    "Close Active Ticket?", 
+                    "You are currently viewing a ticket. Are you sure you want to close it? Unsaved changes will be lost.", 
+                    "warning", 
+                    () => closeTicket(), 
+                    "Yes, Close"
+                );
+                if (!window.location.hash.includes('ticket')) safePushState('ticket');
+            } else {
+                closeTicket();
+            }
+        }
+
+        function closeTicket(fromPopState = false) {
+            if (!fromPopState && window.location.hash.includes('ticket')) { try { window.history.back(); } catch(e) {} }
+            document.getElementById('view-ticket').classList.add('hidden');
+            document.getElementById('view-ticket').classList.remove('flex');
+            document.getElementById('view-numpad').classList.remove('hidden');
+            document.getElementById('view-numpad').classList.add('flex');
+            clearNumpad();
+            activeTicket = [];
+        }
+
+        function openCustomDishModal() {
+            document.getElementById('custom-dish-name').value = '';
+            document.getElementById('custom-dish-price').value = '';
+            const modal = document.getElementById('custom-dish-modal');
+            const box = document.getElementById('custom-dish-box');
+            safePushState('custom');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+                box.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeCustomDishModal(fromPopState = false) {
+            if (!fromPopState && window.location.hash.includes('custom')) { try { window.history.back(); } catch(e) {} return; }
+            const modal = document.getElementById('custom-dish-modal');
+            const box = document.getElementById('custom-dish-box');
+            modal.classList.add('opacity-0');
+            box.classList.remove('scale-100');
+            box.classList.add('scale-95');
+            setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 200);
+        }
+
+        function submitCustomDish() {
+            const name = document.getElementById('custom-dish-name').value.trim();
+            const price = parseFloat(document.getElementById('custom-dish-price').value);
+
+            if (!name) { showPosAlert("Missing Info", "You must enter a Custom Dish Name.", "warning"); return; }
+            if (isNaN(price)) { showPosAlert("Missing Info", "You must enter a valid Price (use 0 for free).", "warning"); return; }
+
+            activeTicket.push({ id: Date.now() + Math.random(), name: name, qty: 1, price: parseFloat(price), note: "", course: "main" });
+            closeCustomDishModal();
+            renderTicket();
+            const container = document.getElementById('order-items-container');
+            setTimeout(() => { container.scrollTop = container.scrollHeight; }, 100);
+        }
+
+        function sanitizeHTML(str) { return String(str||'').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+        function escapeJS(str) { return String(str||'').replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
+
+        // 🟢 FIX: String conversion prevents fatal TypeError if Google Sheets returns boolean/number
+        function isDishOut(m) {
+            if (!m || !m.inStock) return false;
+            const s = String(m.inStock).toLowerCase().trim();
+            return s === "no" || s === "false" || s === "out" || s === "out of stock" || s === "86";
+        }
+
+        function renderTicket() {
+            const container = document.getElementById('order-items-container');
+            container.innerHTML = "";
+            let subtotal = 0;
+            let totalItemsCount = 0;
+
+            if (activeTicket.length === 0) {
+                container.innerHTML = `<div class="flex-1 flex flex-col items-center justify-center text-gray-400 mt-10"><svg class="w-16 h-16 mb-3 text-gray-200" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"></path></svg><p class="font-bold text-sm tracking-wide">Ticket is empty</p></div>`;
+            }
+
+            activeTicket.forEach((item) => {
+                subtotal += (item.qty * item.price);
+                totalItemsCount += item.qty;
+                if (!item.course) item.course = 'main'; 
+                
+                let cardStyle = 'border-gray-200 shadow-sm bg-white';
+                if (item.course === 'first') cardStyle = 'border-amber-300 shadow-[0_4px_20px_rgba(251,191,36,0.15)] ring-1 ring-amber-400/30 bg-amber-50/10';
+                if (item.course === 'last')  cardStyle = 'border-purple-300 shadow-[0_4px_20px_rgba(168,85,247,0.15)] ring-1 ring-purple-400/30 bg-purple-50/10';
+
+                const menuMatch = cachedMenu.find(m => String(m.name || '').toLowerCase() === String(item.name || '').toLowerCase());
+                let stockBadge = '';
+                if (menuMatch) {
+                    stockBadge = isDishOut(menuMatch) 
+                        ? `<span class="bg-red-100 text-red-700 border border-red-200 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest shrink-0 shadow-sm">OUT OF STOCK</span>`
+                        : `<span class="bg-green-100 text-green-700 border border-green-200 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest shrink-0 shadow-sm">IN STOCK</span>`;
+                } else {
+                    stockBadge = `<span class="bg-gray-100 text-gray-500 border border-gray-200 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest shrink-0 shadow-sm">CUSTOM</span>`;
+                }
+
+                const hasNote = item.note && item.note.trim() !== "";
+
+                container.innerHTML += `
+                <div class="p-3 sm:p-4 rounded-xl border flex flex-col gap-2.5 transition-all duration-200 ${cardStyle}">
+                    <div class="flex justify-between items-center gap-2">
+                        <div class="flex-1 flex items-center gap-2 overflow-hidden pr-2">
+                            <span class="font-black text-gray-900 text-sm truncate" title="${item.name}">${item.name}</span>
+                            ${stockBadge}
+                            <button onclick="toggleNoteVisibility(${item.id})" class="text-gray-300 hover:text-w-accent p-1 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.89 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.89l12.683-12.683zm0 0L19.5 7.125"></path></svg>
+                            </button>
+                        </div>
+                        <button onclick="removeItem(${item.id})" class="text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors p-1.5 shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                    
+                    <div id="note-container-${item.id}" class="flex items-center bg-gray-50/80 rounded-xl px-3 py-2 border border-gray-100 focus-within:border-w-accent focus-within:ring-1 focus-within:ring-w-accent transition-all shadow-inner ${hasNote ? '' : 'hidden'}">
+                        <input type="text" value="${item.note || ''}" placeholder="Kitchen Notes (e.g. extra spicy, no ice)" onchange="updateNote(${item.id}, this.value)" class="text-[11px] font-semibold text-w-accent bg-transparent border-none outline-none focus:ring-0 w-full p-0 placeholder-gray-400">
+                    </div>
+
+                    <div class="flex justify-between items-end mt-1">
+                        <div class="flex bg-gray-100 rounded-xl p-1 border border-gray-200 shadow-inner">
+                            <button onclick="setCourse(${item.id}, 'first')" class="${item.course === 'first' ? 'bg-amber-100 text-amber-700 shadow-sm' : 'text-gray-400 hover:text-gray-700'} px-2 sm:px-3 py-1.5 text-[9px] sm:text-[10px] font-black uppercase rounded-lg transition-all">1st / ASAP</button>
+                            <button onclick="setCourse(${item.id}, 'main')" class="${item.course === 'main' ? 'bg-white text-sky-600 shadow-sm' : 'text-gray-400 hover:text-gray-700'} px-2 sm:px-3 py-1.5 text-[9px] sm:text-[10px] font-black uppercase rounded-lg transition-all">Main</button>
+                            <button onclick="setCourse(${item.id}, 'last')" class="${item.course === 'last' ? 'bg-purple-100 text-purple-700 shadow-sm' : 'text-gray-400 hover:text-gray-700'} px-2 sm:px-3 py-1.5 text-[9px] sm:text-[10px] font-black uppercase rounded-lg transition-all">Last</button>
+                        </div>
+                        <div class="flex items-center gap-3 sm:gap-5">
+                            <div class="flex items-center gap-0.5 pb-1 hidden sm:flex">
+                                <span class="text-gray-400 font-bold text-xs">₹</span>
+                                <input type="number" step="0.01" value="${item.price.toFixed(2)}" onfocus="this.select()" oninput="updatePrice(${item.id}, this.value)" class="w-12 bg-transparent border-b-2 border-gray-200 py-0.5 text-xs font-black text-gray-900 outline-none text-right focus:border-w-accent transition-colors p-0">
+                            </div>
+                            <div class="flex items-center bg-gray-50 rounded-xl p-1 border border-gray-100 shadow-inner">
+                                <button onclick="updateQty(${item.id}, -1)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center text-gray-600 font-black text-lg hover:bg-gray-50 active:bg-gray-200 active:scale-95 transition-all">-</button>
+                                <span class="w-6 sm:w-8 text-center font-black text-sm text-gray-900">${item.qty}</span>
+                                <button onclick="updateQty(${item.id}, 1)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center text-gray-600 font-black text-lg hover:bg-gray-50 active:bg-gray-200 active:scale-95 transition-all">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            });
+            document.getElementById('ticket-subtotal').innerText = subtotal.toFixed(2);
+            document.getElementById('total-items-count').innerText = totalItemsCount;
+
+            // 🟢 DYNAMIC BUTTON LOGIC
+            const fireBtn = document.getElementById('fire-btn');
+            const fireNextBtn = document.getElementById('fire-next-btn');
+            const isModified = originalTicketState !== JSON.stringify(activeTicket);
+            const isLocked = currentOrderStatus.includes("LOCKED");
+            const isFireNext = currentOrderStatus.includes("FIRE NEXT");
+
+            if (isFireNext) {
+                fireBtn.className = "w-2/3 bg-gray-200 text-gray-400 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm flex items-center justify-center gap-2 cursor-not-allowed";
+                fireBtn.innerHTML = `Sent to Kitchen`;
+                fireBtn.disabled = true;
+
+                fireNextBtn.classList.remove('hidden'); fireNextBtn.classList.add('flex');
+                fireNextBtn.className = "mt-2 w-full flex bg-gray-200 text-gray-500 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-[12px] py-3 items-center justify-center gap-2 cursor-not-allowed";
+                fireNextBtn.innerHTML = `Serving Last Course`;
+                fireNextBtn.disabled = true;
+
+            } else if (isLocked) {
+                if (isModified) {
+                    fireBtn.className = "w-2/3 bg-amber-500 text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm shadow-xl shadow-amber-500/30 hover:bg-amber-600 transition-colors flex items-center justify-center gap-2";
+                    fireBtn.innerHTML = `<svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"></path></svg> Update Order`;
+                    fireBtn.disabled = false;
+                } else {
+                    fireBtn.className = "w-2/3 bg-gray-200 text-gray-400 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm flex items-center justify-center gap-2 cursor-not-allowed";
+                    fireBtn.innerHTML = `Sent to Kitchen`;
+                    fireBtn.disabled = true;
+                }
+
+                fireNextBtn.classList.remove('hidden'); fireNextBtn.classList.add('flex');
+                fireNextBtn.className = "mt-2 w-full flex bg-purple-50 border border-purple-200 text-purple-700 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-[12px] py-3 shadow-sm hover:bg-purple-100 transition-all active:scale-[0.98] items-center justify-center gap-2";
+                fireNextBtn.innerHTML = `<svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"></path></svg> Alert Kitchen: Fire "Serve Last"`;
+                fireNextBtn.disabled = false;
+
+            } else {
+                fireBtn.className = "w-2/3 bg-w-success text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm shadow-xl shadow-green-600/30 hover:bg-green-700 transition-colors flex items-center justify-center gap-2";
+                fireBtn.innerHTML = `<svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"></path></svg> Fire Order`;
+                fireBtn.disabled = false;
+                fireNextBtn.classList.add('hidden'); fireNextBtn.classList.remove('flex');
+            }
+        }
+
+        // --- TICKET MODIFIERS ---
+        function toggleNoteVisibility(id) {
+            const noteDiv = document.getElementById(`note-container-${id}`);
+            if (noteDiv) noteDiv.classList.toggle('hidden');
+        }
+        function setCourse(id, courseValue) { const item = activeTicket.find(i => i.id === id); if (item) { item.course = courseValue; renderTicket(); } }
+        function updateQty(id, change) { const item = activeTicket.find(i => i.id === id); if (item) { item.qty += change; if (item.qty <= 0) removeItem(id); else renderTicket(); } }
+        function updatePrice(id, newPrice) {
+            const item = activeTicket.find(i => i.id === id);
+            if (item) {
+                item.price = parseFloat(newPrice) || 0;
+                let newSubtotal = activeTicket.reduce((sum, current) => sum + (current.qty * current.price), 0);
+                document.getElementById('ticket-subtotal').innerText = newSubtotal.toFixed(2);
+            }
+        }
+        function updateNote(id, newNote) { const item = activeTicket.find(i => i.id === id); if (item) item.note = newNote.trim(); }
+        function removeItem(id) { activeTicket = activeTicket.filter(i => i.id !== id); renderTicket(); }
+
+        // --- 🟢 MENU & STOCK FILTERS ---
+        let currentMenuFilter = 'all';
+        let currentStockFilter = 'all';
+
+        function updateFilterStyles(prefix, activeFilter) {
+            ['all', 'in', 'out'].forEach(f => {
+                const btn = document.getElementById(`${prefix}-filter-${f}`);
+                if (!btn) return;
+                if (f === activeFilter) {
+                    btn.className = "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-gray-900 text-white transition-all shrink-0 shadow-sm";
+                } else {
+                    btn.className = "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all shrink-0";
+                }
+            });
+        }
+        function setMenuFilter(filterType) { currentMenuFilter = filterType; updateFilterStyles('menu', filterType); renderMenuSearch(); }
+        function setStockFilter(filterType) { currentStockFilter = filterType; updateFilterStyles('stock', filterType); renderStockSearch(); }
+
+        function openMenuModal() {
+            syncMenuBackground(); 
+            setMenuFilter('all'); 
+            document.getElementById('menu-search').value = ""; 
+            safePushState('menu');
+            document.getElementById('menu-modal').classList.remove('hidden');
+            document.getElementById('menu-modal').classList.add('flex');
+            renderMenuSearch(); 
+        }
+
+        function closeMenuModal(fromPopState = false) {
+            if (!fromPopState && window.location.hash.includes('menu')) { try { window.history.back(); } catch(e) {} return; }
+            document.getElementById('menu-modal').classList.add('hidden');
+            document.getElementById('menu-modal').classList.remove('flex');
+        }
+
+        function renderMenuSearch() {
+            const query = document.getElementById('menu-search').value.toLowerCase();
+            const list = document.getElementById('menu-list');
+            let filtered = cachedMenu.filter(m => String(m.name || '').toLowerCase().includes(query));
+            if (currentMenuFilter === 'in') filtered = filtered.filter(m => !isDishOut(m));
+            if (currentMenuFilter === 'out') filtered = filtered.filter(m => isDishOut(m));
+            
+            if (filtered.length === 0) {
+                list.innerHTML = `<div class="flex flex-col items-center justify-center py-10 text-gray-400"><svg class="w-12 h-12 mb-3 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"></path></svg><p class="font-bold text-sm">No dishes found.</p></div>`;
+                return;
+            }
+
+            list.innerHTML = filtered.map(m => {
+                const isOut = isDishOut(m);
+                return `
+                <div class="p-3 mb-2 bg-white border ${isOut ? 'border-red-100 bg-red-50/30' : 'border-gray-100'} rounded-2xl flex justify-between items-center shadow-sm transition-all">
+                    <div ${!isOut ? `onclick="addFromMenu('${escapeJS(m.name)}', ${m.price})"` : ''} class="flex-1 ${isOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:opacity-70'} flex flex-col justify-center overflow-hidden pr-2">
+                        <p class="font-bold tracking-tight truncate ${isOut ? 'text-gray-400 line-through' : 'text-gray-900'}">${sanitizeHTML(m.name)}</p>
+                        <p class="font-black text-sm ${isOut ? 'text-red-500' : 'text-w-accent'}">${isOut ? 'OUT OF STOCK' : '₹' + m.price.toFixed(2)}</p>
+                    </div>
+                    <button onclick="toggleStockStatus('${escapeJS(m.name)}', '${isOut ? 'Yes' : 'No'}')" class="w-24 h-10 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all active:scale-95 shadow-sm shrink-0 flex items-center justify-center ${isOut ? 'bg-red-100 border-red-300 text-red-700 hover:bg-red-200' : 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'}">
+                        ${isOut ? "MARK IN" : "MARK 86'D"}
+                    </button>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function openStockModal() {
+            syncMenuBackground(); 
+            setStockFilter('all'); 
+            document.getElementById('stock-search').value = ""; 
+            safePushState('stock');
+            document.getElementById('stock-modal').classList.remove('hidden');
+            document.getElementById('stock-modal').classList.add('flex');
+            renderStockSearch();
+        }
+
+        function closeStockModal(fromPopState = false) {
+            if (!fromPopState && window.location.hash.includes('stock')) { try { window.history.back(); } catch(e) {} return; }
+            document.getElementById('stock-modal').classList.add('hidden');
+            document.getElementById('stock-modal').classList.remove('flex');
+        }
+
+        function renderStockSearch() {
+            const query = document.getElementById('stock-search').value.toLowerCase();
+            const list = document.getElementById('stock-list');
+            let filtered = cachedMenu.filter(m => String(m.name || '').toLowerCase().includes(query));
+            if (currentStockFilter === 'in') filtered = filtered.filter(m => !isDishOut(m));
+            if (currentStockFilter === 'out') filtered = filtered.filter(m => isDishOut(m));
+            
+            if (filtered.length === 0) {
+                list.innerHTML = `<p class="text-center text-gray-400 font-bold text-sm py-8">No dishes found.</p>`;
+                return;
+            }
+
+            list.innerHTML = filtered.map(m => {
+                const isOut = isDishOut(m);
+                return `
+                <div class="p-4 mb-2 bg-white border border-gray-100 rounded-2xl flex justify-between items-center shadow-sm">
+                    <p class="font-bold text-gray-900 tracking-tight w-[60%] truncate">${sanitizeHTML(m.name)}</p>
+                    <button onclick="toggleStockStatus('${escapeJS(m.name)}', '${isOut ? 'Yes' : 'No'}')" class="w-28 px-3 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all active:scale-95 shadow-sm ${isOut ? 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100' : 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'}">
+                        ${isOut ? "MARK IN" : "MARK 86'D"}
+                    </button>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function toggleStockStatus(dishName, newStatus) {
+            if (newStatus === "No") {
+                const safeName = sanitizeHTML(dishName);
+                
+                // 🟢 UX FIX: "Data Block" pattern prevents awkward text wrapping forever
+                const cleanMessage = `
+                    <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">
+                        Are you sure you want to 86 this item?
+                    </div>
+                    
+                    <div class="bg-gray-50 border border-gray-100 rounded-xl py-3.5 px-4 mx-2 mb-5 shadow-inner flex items-center justify-center overflow-hidden">
+                        <span class="font-black text-gray-900 text-base sm:text-lg truncate w-full text-center tracking-tight">${safeName}</span>
+                    </div>
+
+                    <div class="text-[11px] sm:text-xs text-gray-400 leading-relaxed px-4">
+                        This gives customers a heads-up that the item is temporarily unavailable. You can mark it back <span class="font-black text-green-600 tracking-wider">IN</span> at any time.
+                    </div>
+                `;
+                
+                showPosAlert("Mark Out of Stock", cleanMessage, "warning", () => executeStockToggle(dishName, newStatus), "Yes, 86 It");
+            } else {
+                executeStockToggle(dishName, newStatus); 
+            }
+        }
+
+        async function executeStockToggle(dishName, newStatus) {
+            const item = cachedMenu.find(m => m.name === dishName);
+            if (!item) return;
+
+            const oldStatus = item.inStock;
+            item.inStock = newStatus;
+            
+            if (!document.getElementById('menu-modal').classList.contains('hidden')) renderMenuSearch();
+            if (!document.getElementById('stock-modal').classList.contains('hidden')) renderStockSearch();
+            if (!document.getElementById('view-ticket').classList.contains('hidden')) renderTicket();
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: "waiter_toggle_stock", dishName: dishName, newStatus: newStatus })
+                });
+                const data = await response.json();
+                if (!data.success) {
+                    item.inStock = oldStatus;
+                    renderStockSearch();
+                    showPosAlert("Error", data.message, "error");
+                }
+            } catch (err) {
+                item.inStock = oldStatus;
+                renderStockSearch();
+                showPosAlert("Network Error", "Unable to reach backend servers.", "error");
+            }
+        }
+
+        function addFromMenu(name, price) {
+            const existing = activeTicket.find(i => i.name === name && i.note === "" && i.course === "main");
+            if (existing) {
+                existing.qty++;
+            } else {
+                activeTicket.push({ id: Date.now() + Math.random(), name: name, qty: 1, price: parseFloat(price), note: "", course: "main" });
+            }
+            renderTicket();
+            closeMenuModal();
+            const container = document.getElementById('order-items-container');
+            setTimeout(() => { container.scrollTop = container.scrollHeight; }, 100);
+        }
+
+        // --- FINAL ACTIONS ---
+        function clearTable() {
+            const table = document.getElementById('table-select').value || "Unassigned";
+            const currentSubtotal = document.getElementById('ticket-subtotal').innerText;
+
+            if (activeTicket.length === 0) { 
+                showPosAlert("Empty Ticket", "There is nothing to settle. Just hit the 'X' to exit.", "info");
+                return; 
+            }
+
+            const premiumMessage = `
+                <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">
+                    Are you sure you want to settle this table?
+                </div>
+                
+                <div class="bg-gray-50 border border-gray-100 rounded-xl py-4 px-4 mx-2 mb-4 shadow-inner flex flex-col items-center justify-center">
+                    <span class="text-[9px] uppercase font-bold tracking-widest text-gray-400 mb-1">Total Amount</span>
+                    <span class="font-black text-gray-900 text-2xl tracking-tight">₹${currentSubtotal}</span>
+                </div>
+
+                <div class="text-[11px] sm:text-xs text-gray-500 leading-relaxed px-4">
+                    This will log the sale to the database and free up the table for new customers.
+                </div>
+            `;
+
+            showPosAlert(
+                "Settle Table", 
+                premiumMessage, 
+                "warning", 
+                async () => { 
+                    const confirmBtn = document.getElementById('pos-confirm-btn');
+                    confirmBtn.innerHTML = `<div class="w-5 h-5 border-[3px] border-white border-t-transparent rounded-full animate-spin mx-auto"></div>`;
+                    confirmBtn.disabled = true;
+
+                    try {
+                        const response = await fetch(SCRIPT_URL, {
+                            method: 'POST', body: JSON.stringify({ action: "waiter_settle", token: currentInput, table: table, totalAmount: currentSubtotal })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            closePosAlert(); closeTicket();   
+                            setTimeout(() => { showPosAlert("Table Settled", `Table successfully cleared and ₹${currentSubtotal} saved to the Daily Sales Log.`, "success"); }, 300);
+                        } else {
+                            showPosAlert("Error", data.message, "error");
+                        }
+                    } catch (err) { showPosAlert("Network Error", "Failed to reach the server. Please try again.", "error"); }
+                }
+            );
+        }
+
+        // --- 🟢 KITCHEN PRE-FLIGHT CHECKS ---
+        async function fireToKitchen() {
+            const table = document.getElementById('table-select').value;
+            if (!table) { showPosAlert("Missing Table", "Please select a Table Number from the dropdown.", "error"); return; }
+            if (activeTicket.length === 0) { showPosAlert("Empty Ticket", "There are no items on this ticket.", "warning"); return; }
+
+            const blankItems = activeTicket.filter(i => !i.name.trim());
+            if (blankItems.length > 0) {
+                showPosAlert("Missing Information", "One or more dishes have a blank name. Please enter a name or remove the item.", "error");
+                return;
+            }
+
+            const outOfStockItems = activeTicket.filter(item => {
+                const menuMatch = cachedMenu.find(m => String(m.name || '').toLowerCase() === item.name.trim().toLowerCase());
+                return menuMatch && isDishOut(menuMatch);
+            });
+
+            if (outOfStockItems.length > 0) {
+                // 🟢 UX FIX: Format each out-of-stock item cleanly
+                const namesHtml = outOfStockItems.map(i => `<span class="block font-black text-gray-900 text-[15px] sm:text-base truncate w-full text-center">${sanitizeHTML(i.name)}</span>`).join('');
+                
+                const premiumMessage = `
+                    <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">
+                        The following items on this ticket are currently out of stock:
+                    </div>
+                    
+                    <div class="bg-red-50/50 border border-red-100 rounded-xl py-3 px-4 mx-2 mb-4 shadow-inner flex flex-col items-center justify-center max-h-32 overflow-y-auto">
+                        ${namesHtml}
+                    </div>
+
+                    <div class="text-[11px] sm:text-xs text-gray-500 leading-relaxed px-4">
+                        Do you want to automatically force them <span class="font-black text-green-600 tracking-wider">IN STOCK</span> and fire the order to the kitchen?
+                    </div>
+                `;
+
+                showPosAlert(
+                    "86'D Items Detected!", 
+                    premiumMessage, 
+                    "warning", 
+                    () => {
+                        outOfStockItems.forEach(item => {
+                            const m = cachedMenu.find(x => String(x.name || '').toLowerCase() === item.name.trim().toLowerCase());
+                            if (m) m.inStock = "Yes";
+                            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_toggle_stock", dishName: item.name.trim(), newStatus: "Yes" })});
+                        });
+                        renderTicket(); 
+                        executeFire(table); 
+                    },
+                    "Force Fire"
+                );
+                return; 
+            }
+
+            const zeroPriceItems = activeTicket.filter(i => parseFloat(i.price) === 0);
+            if (zeroPriceItems.length > 0) {
+                showPosAlert(
+                    "Zero Price Warning", 
+                    "Some items on this ticket are priced at ₹0.00. Are you sure you want to send this to the kitchen?", 
+                    "warning", 
+                    () => { executeFire(table); },
+                    "Fire Anyway"
+                );
+                return;
+            }
+
+            executeFire(table);
+        }
+
+        async function executeFire(table) {
+            const fireBtn = document.getElementById('fire-btn');
+            const originalText = fireBtn.innerHTML;
+            fireBtn.innerHTML = `<div class="w-5 h-5 border-[3px] border-white border-t-transparent rounded-full animate-spin"></div>`;
+            fireBtn.disabled = true;
+
+            let kdsPayload = activeTicket.map(item => {
+                const menuItem = cachedMenu.find(m => String(m.name || '').toLowerCase() === item.name.toLowerCase());
+                const category = menuItem ? menuItem.category : "Kitchen"; 
+                let pacingStr = "Main Course";
+                if (item.course === "first") pacingStr = "Serve First";
+                if (item.course === "last") pacingStr = "Serve Last";
+                return { name: item.name.trim() || "Custom Dish", qty: item.qty, note: item.note ? item.note.trim() : "", category: category, pacing: pacingStr, price: item.price };
+            });
+
+            try {
+                const devToken = localStorage.getItem('impact_device_token') || ""; 
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_fire", token: currentInput, table: table, finalCart: kdsPayload, device_token: devToken }) });
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentOrderStatus = `Table ${table} - LOCKED`;
+                    originalTicketState = JSON.stringify(activeTicket);
+                    renderTicket(); 
+                    showPosAlert("Order Fired!", `Success! The ticket for Table ${table} has been locked and sent to the kitchen.`, "success");
+                
+                // 🟢 UX FIX: Premium "Hard Stop" Alert for Table Collisions
+                } else if (data.errorCode === "TABLE_COLLISION") {
+                    const premiumMessage = `
+                        <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">
+                            You cannot fire this order because the table is currently in use.
+                        </div>
+                        
+                        <div class="bg-red-50 border border-red-100 rounded-xl py-3.5 px-4 mx-2 mb-4 shadow-inner flex flex-col items-center justify-center">
+                            <span class="text-[9px] uppercase font-bold tracking-widest text-red-400 mb-1">Occupied By</span>
+                            <span class="font-black text-red-900 text-xl tracking-tight">Token #${data.occupyingToken}</span>
+                        </div>
+
+                        <div class="text-[11px] sm:text-xs text-gray-500 leading-relaxed px-4">
+                            Please select a different table from the dropdown, or settle the existing table before sending a new order.
+                        </div>
+                    `;
+                    showPosAlert(`Table ${table} Occupied!`, premiumMessage, "error");
+                
+                } else {
+                    showPosAlert("Error", data.message, "error");
+                }
+            } catch (err) {
+                showPosAlert("Network Error", "Unable to connect to the kitchen system. Please check your WiFi and try again.", "error");
+            } finally {
+                fireBtn.innerHTML = originalText;
+                fireBtn.disabled = false;
+            }
+        }
+
+        async function fireNextCourse() {
+            const table = document.getElementById('table-select').value;
+            if (!table) return;
+            const btn = document.getElementById('fire-next-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<div class="w-5 h-5 border-[3px] border-purple-400 border-t-transparent rounded-full animate-spin"></div>`;
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_fire_next", token: currentInput, table: table }) });
+                const data = await response.json();
+                if (data.success) { 
+                    currentOrderStatus = `Table ${table} - FIRE NEXT`;
+                    renderTicket();
+                    showPosAlert("Kitchen Alerted!", `The kitchen has been notified to start preparing the "Serve Last" items for Table ${table}.`, "success");
+                } else { showPosAlert("Error", data.message, "error"); }
+            } catch (err) { showPosAlert("Network Error", "Unable to connect to the kitchen system.", "error");
+            } finally { btn.innerHTML = originalText; btn.disabled = false; }
+        }
+
+        async function openTablesModal() {
+            const modal = document.getElementById('open-tables-modal');
+            const list = document.getElementById('open-tables-list');
+            safePushState('tables');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            list.innerHTML = `<div class="flex items-center justify-center h-full mt-10"><div class="w-8 h-8 border-4 border-w-accent border-t-transparent rounded-full animate-spin"></div></div>`;
+
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_get_open_tables" }) });
+                const data = await response.json();
+                if(data.success && data.openTables.length > 0) {
+                    list.innerHTML = data.openTables.map(t => `
+                        <div onclick="selectOpenTable('${t.token}')" class="p-4 sm:p-5 mb-3 bg-white border border-gray-100 rounded-2xl flex justify-between items-center cursor-pointer hover:border-w-accent hover:shadow-md transition-all active:scale-[0.98]">
+                            <p class="font-black text-base sm:text-lg text-gray-900 tracking-tight">${t.table}</p>
+                            <div class="bg-sky-50 px-3 py-1.5 rounded-lg border border-sky-100">
+                                <p class="font-bold text-w-accent text-[10px] sm:text-xs tracking-widest uppercase">Token #${t.token}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    list.innerHTML = `<div class="flex flex-col items-center justify-center py-10 text-gray-400 mt-10"><svg class="w-12 h-12 mb-3 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"></path></svg><p class="font-bold text-sm">No active tables found.</p></div>`;
+                }
+            } catch (err) { list.innerHTML = `<p class="text-center text-w-danger font-bold mt-10">Network error fetching tables.</p>`; }
+        }
+
+        function closeTablesModal(fromPopState = false) {
+            if (!fromPopState && window.location.hash.includes('tables')) { try { window.history.back(); } catch(e) {} return; }
+            document.getElementById('open-tables-modal').classList.add('hidden');
+            document.getElementById('open-tables-modal').classList.remove('flex');
+        }
+
+        function selectOpenTable(token) {
+            closeTablesModal();
+            currentInput = token; 
+            document.getElementById('token-input').innerText = currentInput;
+            fetchOrder(); 
+        }
+
+        // --- 🟢 DYNAMIC MANAGER CONTROL PANEL ---
+        function toggleManagerFields() {
+            const action = document.getElementById('mgr-action-type').value;
+            const nameBox = document.getElementById('mgr-name-box');
+            const selectBox = document.getElementById('mgr-select-box');
+            const priceCatBox = document.getElementById('mgr-price-cat-box');
+            const catWrapper = document.getElementById('mgr-cat-wrapper');
+            const btn = document.getElementById('mgr-submit-btn');
+
+            if (action === 'add') {
+                nameBox.classList.remove('hidden'); selectBox.classList.add('hidden');
+                priceCatBox.classList.remove('hidden'); catWrapper.classList.remove('hidden');
+                btn.innerText = "ADD TO MENU";
+                btn.className = "mt-2 w-full py-4 bg-gray-900 text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-black transition-colors shadow-lg";
+            } else if (action === 'edit') {
+                nameBox.classList.add('hidden'); selectBox.classList.remove('hidden');
+                priceCatBox.classList.remove('hidden'); catWrapper.classList.add('hidden'); 
+                btn.innerText = "UPDATE PRICE";
+                btn.className = "mt-2 w-full py-4 bg-w-accent text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-sky-700 transition-colors shadow-lg";
+            } else if (action === 'delete') {
+                nameBox.classList.add('hidden'); selectBox.classList.remove('hidden'); priceCatBox.classList.add('hidden');
+                btn.innerText = "PERMANENTLY DELETE";
+                btn.className = "mt-2 w-full py-4 bg-w-danger text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20";
+            }
+        }
+
+        function openManagerModal() {
+            syncMenuBackground(); 
+            document.getElementById('mgr-action-type').value = 'add';
+            document.getElementById('mgr-dish-name').value = '';
+            document.getElementById('mgr-dish-price').value = '';
+            document.getElementById('mgr-pin').value = '';
+            
+            const selectEl = document.getElementById('mgr-dish-select');
+            let sortedMenu = [...cachedMenu].sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+            selectEl.innerHTML = sortedMenu.map(m => `<option value="${escapeJS(m.name)}">${sanitizeHTML(m.name)} (₹${m.price.toFixed(2)})</option>`).join('');
+
+            toggleManagerFields();
+            safePushState('manager');
+            const modal = document.getElementById('manager-modal');
+            const box = document.getElementById('manager-box');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+                box.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeManagerModal(fromPopState = false) {
+            if (!fromPopState && window.location.hash.includes('manager')) { try { window.history.back(); } catch(e) {} return; }
+            const modal = document.getElementById('manager-modal');
+            const box = document.getElementById('manager-box');
+            modal.classList.add('opacity-0');
+            box.classList.remove('scale-100');
+            box.classList.add('scale-95');
+            setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 200);
+        }
+
+        function submitManagerAction() {
+            const actionType = document.getElementById('mgr-action-type').value;
+            const name = actionType === 'add' ? document.getElementById('mgr-dish-name').value.trim() : document.getElementById('mgr-dish-select').value;
+            const price = document.getElementById('mgr-dish-price').value;
+            const category = document.getElementById('mgr-dish-category').value;
+            const pin = document.getElementById('mgr-pin').value;
+
+            if (!pin) { showPosAlert("Missing Info", "Manager PIN is required.", "warning"); return; }
+            if (actionType === 'add' && (!name || !price)) { showPosAlert("Missing Info", "Name and Price required.", "warning"); return; }
+            if (actionType === 'edit' && !price) { showPosAlert("Missing Info", "New Price required.", "warning"); return; }
+
+            if (actionType === 'delete') {
+                const safeName = sanitizeHTML(name);
+                const premiumMessage = `
+                    <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">
+                        Are you sure you want to delete this dish?
+                    </div>
+                    
+                    <div class="bg-red-50 border border-red-100 rounded-xl py-3.5 px-4 mx-2 mb-4 shadow-inner flex items-center justify-center overflow-hidden">
+                        <span class="font-black text-red-900 text-base sm:text-lg truncate w-full text-center tracking-tight">${safeName}</span>
+                    </div>
+
+                    <div class="text-[11px] sm:text-xs text-gray-500 leading-relaxed px-4">
+                        This will permanently remove it from the database. This action <span class="font-bold text-red-600">cannot be undone</span>.
+                    </div>
+                `;
+
+                showPosAlert("Permanently Delete", premiumMessage, "warning", () => {
+                    executeManagerAction(actionType, name, 0, category, pin);
+                }, "Yes, Delete");
+                return;
+            }
+            executeManagerAction(actionType, name, price, category, pin);
+        }
+
+        async function executeManagerAction(actionType, name, price, category, pin) {
+            const btn = document.getElementById('mgr-submit-btn');
+            const originalText = btn.innerText;
+            btn.innerHTML = `<div class="w-5 h-5 border-[3px] border-white border-t-transparent rounded-full animate-spin mx-auto"></div>`;
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: "manager_action", mgrType: actionType, name: name, price: price, category: category, pin: pin })
+                });
+                const data = await response.json();
+                
+                closeManagerModal(); 
+                await new Promise(r => setTimeout(r, 300)); 
+
+                if (data.success) {
+                    showPosAlert("Success!", data.message, "success");
+                    fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_init" }) })
+                        .then(res => res.json())
+                        .then(resData => { if(resData.success) cachedMenu = resData.menu || []; });
+                } else {
+                    showPosAlert("Access Denied", data.message, "error");
+                }
+            } catch (err) {
+                showPosAlert("Network Error", "Unable to connect to servers.", "error");
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
