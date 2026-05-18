@@ -461,51 +461,6 @@
             }
         }
 
-        // --- 🟢 SECURITY: DEVICE AUTHORIZATION LOGIC ---
-        async function authorizeDevice() {
-            const pin = document.getElementById('device-auth-pin').value;
-            if (!pin) return;
-            
-            const btn = document.getElementById('auth-btn');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = `<div class="w-5 h-5 border-[3px] border-white border-t-transparent rounded-full animate-spin mx-auto"></div>`;
-            
-            try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "verify_device", pin: pin }) });
-                const data = await response.json();
-                
-                if (data.success) {
-                    localStorage.setItem('impact_device_authorized', 'true');
-                    document.getElementById('view-auth').classList.add('hidden');
-                    // Boot up the system now that we are unlocked
-                    fetchInitialData();
-                } else {
-                    // 🟢 Dynamically show the "X attempts remaining" message from the server
-                    showPosAlert("Access Denied", data.message, "error");
-                    document.getElementById('device-auth-pin').value = '';
-                }
-            } catch (err) {
-                showPosAlert("Network Error", "Unable to reach servers.", "error");
-            } finally {
-                btn.innerHTML = originalText;
-            }
-        }
-
-        async function fetchInitialData() {
-            try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_init" }) });
-                const data = await response.json();
-                if(data.success) {
-                    cachedMenu = data.menu || [];
-                    document.getElementById('sync-status').innerText = "System Ready";
-                    document.getElementById('sync-status').className = "text-[8px] sm:text-[9px] uppercase font-bold tracking-widest text-w-success";
-                }
-            } catch (err) {
-                document.getElementById('sync-status').innerText = "Offline Mode";
-                document.getElementById('sync-status').className = "text-[8px] sm:text-[9px] uppercase font-bold tracking-widest text-w-danger animate-pulse";
-            }
-        }
-
         // --- INIT & BACK BUTTON MANAGER ---
         document.addEventListener("DOMContentLoaded", async () => {
             setInterval(() => {
