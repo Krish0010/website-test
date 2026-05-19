@@ -590,7 +590,16 @@
 
         async function fetchOrder() {
             syncMenuBackground(); 
-            if (currentInput.length !== 4) { showPosAlert("Invalid Token", "Please enter a complete 4-digit code.", "warning"); return; }
+            
+            // 🟢 UX FIX: Allow 4-digit Smart Orders OR 6-character Walk-In tokens (W-XXXX)
+            const isValidSmartOrder = currentInput.length === 4;
+            const isValidWalkIn = currentInput.startsWith('W-') && currentInput.length === 6;
+            
+            if (!isValidSmartOrder && !isValidWalkIn) { 
+                showPosAlert("Invalid Token", "Please enter a complete 4-digit code or a valid Walk-In token.", "warning"); 
+                return; 
+            }
+            
             const fetchBtn = document.getElementById('fetch-btn');
             fetchBtn.innerHTML = `<div class="w-7 h-7 border-4 border-white border-t-transparent rounded-full animate-spin"></div>`;
 
