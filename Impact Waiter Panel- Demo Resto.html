@@ -142,7 +142,7 @@
             
             <div class="flex flex-col items-center absolute left-1/2 -translate-x-1/2">
                 <label class="text-[8px] uppercase font-bold tracking-widest text-gray-400 mb-0.5">Assign Table</label>
-                <select id="table-select" onchange="saveDraft()" class="bg-gray-50 border-2 border-gray-200 text-gray-900 text-xs rounded-xl focus:ring-w-accent focus:border-w-accent block w-28 p-1 font-bold outline-none cursor-pointer appearance-none text-center" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22%239CA3AF%22%3E%3Cpath fill-rule=%22evenodd%22 d=%22M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%22 clip-rule=%22evenodd%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.25rem center; background-size: 1.25em 1.25em;">
+                <select id="table-select" class="bg-gray-50 border-2 border-gray-200 text-gray-900 text-xs rounded-xl focus:ring-w-accent focus:border-w-accent block w-28 p-1 font-bold outline-none cursor-pointer appearance-none text-center" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22%239CA3AF%22%3E%3Cpath fill-rule=%22evenodd%22 d=%22M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%22 clip-rule=%22evenodd%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.25rem center; background-size: 1.25em 1.25em;">
                     <option value="" disabled selected>Select...</option>
                     <option value="1">Table 1</option><option value="2">Table 2</option><option value="3">Table 3</option>
                     <option value="4">Table 4</option><option value="5">Table 5</option><option value="6">Table 6</option>
@@ -182,11 +182,11 @@
                     </div>
                 </div>
 
-                <div class="flex gap-2 w-full transition-all">
-                    <button id="settle-btn" onclick="clearTable()" class="w-1/3 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-red-100 transition-colors hidden">
+                <div class="flex gap-2">
+                    <button onclick="clearTable()" class="w-1/3 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-red-100 transition-colors">
                         Settle
                     </button>
-                    <button id="fire-btn" onclick="fireToKitchen()" class="w-full bg-w-success text-white rounded-xl font-black uppercase tracking-widest text-[13px] shadow-lg shadow-green-600/30 hover:bg-green-700 transition-all flex items-center justify-center gap-2">
+                    <button id="fire-btn" onclick="fireToKitchen()" class="w-2/3 bg-w-success text-white rounded-xl font-black uppercase tracking-widest text-[13px] shadow-lg shadow-green-600/30 hover:bg-green-700 transition-colors flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"></path></svg>
                         Fire Order
                     </button>
@@ -351,54 +351,13 @@
         let currentInput = "";
         let activeTicket = []; 
         let cachedMenu = []; 
-        let originalTicketState = ""; 
-        let currentOrderStatus = "";  
+        let originalTicketState = ""; // 🟢 Tracks initial cart
+        let currentOrderStatus = "";  // 🟢 Tracks Locked/Fire Next
 
-        // 🟢 SAFETY FIX: Save Draft logic
-        function saveDraft() {
-            if (currentOrderStatus === "Pending" && activeTicket.length > 0) {
-                const draft = {
-                    token: currentInput,
-                    cart: activeTicket,
-                    table: document.getElementById('table-select').value,
-                    timestamp: Date.now()
-                };
-                localStorage.setItem('waiter_draft', JSON.stringify(draft));
-            } else if (activeTicket.length === 0 || currentOrderStatus !== "Pending") {
-                localStorage.removeItem('waiter_draft');
-            }
-        }
-
-        // 🟢 SAFETY FIX: Restore Draft logic
-        function checkAndLoadDraft() {
-            const draftStr = localStorage.getItem('waiter_draft');
-            if (draftStr) {
-                const draft = JSON.parse(draftStr);
-                // Only recover if it's less than 12 hours old
-                if (Date.now() - draft.timestamp < 12 * 60 * 60 * 1000) {
-                    currentInput = draft.token;
-                    activeTicket = draft.cart;
-                    currentOrderStatus = "Pending";
-                    originalTicketState = "[]";
-                    
-                    safePushState('ticket');
-                    document.getElementById('active-token-display').innerText = `#${currentInput}`;
-                    document.getElementById('table-select').value = draft.table || "";
-                    
-                    renderTicket();
-                    document.getElementById('view-numpad').classList.add('hidden');
-                    document.getElementById('view-numpad').classList.remove('flex');
-                    document.getElementById('view-ticket').classList.remove('hidden');
-                    document.getElementById('view-ticket').classList.add('flex');
-                    
-                    showPosAlert("Draft Recovered", "Your unsaved order was safely restored after the page reloaded.", "success");
-                }
-            }
-        }
-
+        // 🟢 FIX: Safe Push State ignores errors during local testing to prevent crashes
         function safePushState(hashName) {
             try { window.history.pushState({ modal: hashName }, '', '#' + hashName); } 
-            catch (e) { }
+            catch (e) { /* Ignore fallback to prevent popstate loops on local files */ }
         }
 
         // --- CUSTOM POS ALERTS ---
@@ -410,6 +369,7 @@
             const btnContainer = document.getElementById('pos-alert-buttons');
             
             document.getElementById('pos-alert-title').innerText = title;
+            // 🟢 FIX: innerHTML forces the browser to read the styling tags instead of printing them!
             document.getElementById('pos-alert-message').innerHTML = message; 
 
             if (type === 'error' || type === 'warning') {
@@ -456,6 +416,7 @@
             setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 200);
         }
 
+        // --- 🟢 SECURITY: DEVICE AUTHORIZATION LOGIC ---
         async function authorizeDevice() {
             const pin = document.getElementById('device-auth-pin').value;
             if (!pin) return;
@@ -470,11 +431,12 @@
                 
                 if (data.success) {
                     localStorage.setItem('impact_device_authorized', 'true');
-                    localStorage.setItem('impact_device_token', data.device_token); 
+                    localStorage.setItem('impact_device_token', data.device_token); // 🟢 Store secret key
                     document.getElementById('view-auth').classList.add('hidden');
+                    // Boot up the system now that we are unlocked
                     fetchInitialData();
                 } else {
-                    showPosAlert("Access Denied", data.message, "error");
+                    showPosAlert("Access Denied", "Incorrect Manager PIN.", "error");
                     document.getElementById('device-auth-pin').value = '';
                 }
             } catch (err) {
@@ -499,23 +461,25 @@
             }
         }
 
+        // --- INIT & BACK BUTTON MANAGER ---
         document.addEventListener("DOMContentLoaded", async () => {
             setInterval(() => {
                 const now = new Date();
                 document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             }, 1000);
 
+            // 🟢 Check if device is authorized on load
             const isAuthorized = localStorage.getItem('impact_device_authorized');
             if (isAuthorized === 'true') {
                 document.getElementById('view-auth').classList.add('hidden');
                 fetchInitialData();
-                checkAndLoadDraft(); // 🟢 Check for an unsaved order draft on boot
             }
 
             document.addEventListener('keydown', (e) => {
                 const numpadView = document.getElementById('view-numpad');
                 const authView = document.getElementById('view-auth');
                 
+                // Only allow numpad typing if the device is authorized
                 if (authView.classList.contains('hidden') && !numpadView.classList.contains('hidden') && !e.target.matches('input') && !e.target.matches('textarea')) {
                     if (e.key >= '0' && e.key <= '9') pressKey(e.key);
                     if (e.key === 'Backspace') clearNumpad();
@@ -533,11 +497,12 @@
             if (!document.getElementById('open-tables-modal').classList.contains('hidden')) { closeTablesModal(true); return; }
             
             if (!document.getElementById('view-ticket').classList.contains('hidden')) {
-                safePushState('ticket'); 
+                safePushState('ticket'); // Trap them
                 requestCloseTicket();
             }
         });
 
+        // --- NUMPAD LOGIC ---
         function pressKey(num) {
             if (currentInput.length < 4) {
                 currentInput += num;
@@ -550,8 +515,10 @@
             document.getElementById('token-input').innerText = "";
         }
 
+        // 🟢 UX FIX: Instant generation of a "Walk-In" ticket
         function startNewOrder() {
             syncMenuBackground();
+            // Generate a random 4 digit token with the "W-" prefix
             currentInput = "W-" + Math.floor(1000 + Math.random() * 9000);
             
             safePushState('ticket');
@@ -561,6 +528,7 @@
             currentOrderStatus = "Pending";
             originalTicketState = "[]";
             
+            // Clear table selection to prompt the waiter
             document.getElementById('table-select').value = ""; 
             
             renderTicket();
@@ -568,8 +536,6 @@
             document.getElementById('view-numpad').classList.remove('flex');
             document.getElementById('view-ticket').classList.remove('hidden');
             document.getElementById('view-ticket').classList.add('flex');
-            
-            saveDraft(); // 🟢 Save empty draft
         }
 
         async function syncMenuBackground() {
@@ -624,6 +590,7 @@
                         });
                     }
 
+                    // 🟢 Save snapshots to detect mid-meal edits
                     currentOrderStatus = data.status || "Pending";
                     originalTicketState = JSON.stringify(activeTicket);
 
@@ -644,8 +611,6 @@
                     document.getElementById('view-numpad').classList.remove('flex');
                     document.getElementById('view-ticket').classList.remove('hidden');
                     document.getElementById('view-ticket').classList.add('flex');
-                    
-                    saveDraft(); // 🟢 Save draft of fetched ticket
                 } else {
                     showPosAlert("Token Not Found", "The token does not exist.", "error");
                     clearNumpad();
@@ -679,7 +644,6 @@
             document.getElementById('view-numpad').classList.add('flex');
             clearNumpad();
             activeTicket = [];
-            localStorage.removeItem('waiter_draft'); // 🟢 Ticket closed, delete draft
         }
 
         function openCustomDishModal() {
@@ -717,7 +681,6 @@
             activeTicket.push({ id: Date.now() + Math.random(), name: name, qty: 1, price: parseFloat(price), note: "", course: "main" });
             closeCustomDishModal();
             renderTicket();
-            saveDraft(); // 🟢 Save draft
             const container = document.getElementById('order-items-container');
             setTimeout(() => { container.scrollTop = container.scrollHeight; }, 100);
         }
@@ -725,6 +688,7 @@
         function sanitizeHTML(str) { return String(str||'').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
         function escapeJS(str) { return String(str||'').replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
 
+        // 🟢 FIX: String conversion prevents fatal TypeError if Google Sheets returns boolean/number
         function isDishOut(m) {
             if (!m || !m.inStock) return false;
             const s = String(m.inStock).toLowerCase().trim();
@@ -768,34 +732,34 @@
                         <div class="flex-1 flex items-center gap-2 overflow-hidden pr-2">
                             <span class="font-black text-gray-900 text-sm truncate" title="${item.name}">${item.name}</span>
                             ${stockBadge}
-                            <button onclick="toggleNoteVisibility('${item.id}')" class="text-gray-300 hover:text-w-accent p-1 transition-colors">
+                            <button onclick="toggleNoteVisibility(${item.id})" class="text-gray-300 hover:text-w-accent p-1 transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.89 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.89l12.683-12.683zm0 0L19.5 7.125"></path></svg>
                             </button>
                         </div>
-                        <button onclick="removeItem('${item.id}')" class="text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors p-1.5 shrink-0">
+                        <button onclick="removeItem(${item.id})" class="text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors p-1.5 shrink-0">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     </div>
                     
                     <div id="note-container-${item.id}" class="flex items-center bg-gray-50/80 rounded-xl px-3 py-2 border border-gray-100 focus-within:border-w-accent focus-within:ring-1 focus-within:ring-w-accent transition-all shadow-inner ${hasNote ? '' : 'hidden'}">
-                        <input type="text" value="${item.note || ''}" placeholder="Kitchen Notes (e.g. extra spicy, no ice)" onchange="updateNote('${item.id}', this.value)" class="text-[11px] font-semibold text-w-accent bg-transparent border-none outline-none focus:ring-0 w-full p-0 placeholder-gray-400">
+                        <input type="text" value="${item.note || ''}" placeholder="Kitchen Notes (e.g. extra spicy, no ice)" onchange="updateNote(${item.id}, this.value)" class="text-[11px] font-semibold text-w-accent bg-transparent border-none outline-none focus:ring-0 w-full p-0 placeholder-gray-400">
                     </div>
 
                     <div class="flex justify-between items-end mt-1">
                         <div class="flex bg-gray-100 rounded-xl p-1 border border-gray-200 shadow-inner">
-                            <button onclick="setCourse('${item.id}', 'first')" class="${item.course === 'first' ? 'bg-amber-100 text-amber-700 shadow-sm' : 'text-gray-400 hover:text-gray-700'} px-2 sm:px-3 py-1.5 text-[9px] sm:text-[10px] font-black uppercase rounded-lg transition-all">1st / ASAP</button>
-                            <button onclick="setCourse('${item.id}', 'main')" class="${item.course === 'main' ? 'bg-white text-sky-600 shadow-sm' : 'text-gray-400 hover:text-gray-700'} px-2 sm:px-3 py-1.5 text-[9px] sm:text-[10px] font-black uppercase rounded-lg transition-all">Main</button>
-                            <button onclick="setCourse('${item.id}', 'last')" class="${item.course === 'last' ? 'bg-purple-100 text-purple-700 shadow-sm' : 'text-gray-400 hover:text-gray-700'} px-2 sm:px-3 py-1.5 text-[9px] sm:text-[10px] font-black uppercase rounded-lg transition-all">Last</button>
+                            <button onclick="setCourse(${item.id}, 'first')" class="${item.course === 'first' ? 'bg-amber-100 text-amber-700 shadow-sm' : 'text-gray-400 hover:text-gray-700'} px-2 sm:px-3 py-1.5 text-[9px] sm:text-[10px] font-black uppercase rounded-lg transition-all">1st / ASAP</button>
+                            <button onclick="setCourse(${item.id}, 'main')" class="${item.course === 'main' ? 'bg-white text-sky-600 shadow-sm' : 'text-gray-400 hover:text-gray-700'} px-2 sm:px-3 py-1.5 text-[9px] sm:text-[10px] font-black uppercase rounded-lg transition-all">Main</button>
+                            <button onclick="setCourse(${item.id}, 'last')" class="${item.course === 'last' ? 'bg-purple-100 text-purple-700 shadow-sm' : 'text-gray-400 hover:text-gray-700'} px-2 sm:px-3 py-1.5 text-[9px] sm:text-[10px] font-black uppercase rounded-lg transition-all">Last</button>
                         </div>
                         <div class="flex items-center gap-3 sm:gap-5">
                             <div class="flex items-center gap-0.5 pb-1 hidden sm:flex">
                                 <span class="text-gray-400 font-bold text-xs">₹</span>
-                                <input type="number" step="0.01" value="${item.price.toFixed(2)}" onfocus="this.select()" oninput="updatePrice('${item.id}', this.value)" class="w-12 bg-transparent border-b-2 border-gray-200 py-0.5 text-xs font-black text-gray-900 outline-none text-right focus:border-w-accent transition-colors p-0">
+                                <input type="number" step="0.01" value="${item.price.toFixed(2)}" onfocus="this.select()" oninput="updatePrice(${item.id}, this.value)" class="w-12 bg-transparent border-b-2 border-gray-200 py-0.5 text-xs font-black text-gray-900 outline-none text-right focus:border-w-accent transition-colors p-0">
                             </div>
                             <div class="flex items-center bg-gray-50 rounded-xl p-1 border border-gray-100 shadow-inner">
-                                <button onclick="updateQty('${item.id}', -1)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center text-gray-600 font-black text-lg hover:bg-gray-50 active:bg-gray-200 active:scale-95 transition-all">-</button>
+                                <button onclick="updateQty(${item.id}, -1)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center text-gray-600 font-black text-lg hover:bg-gray-50 active:bg-gray-200 active:scale-95 transition-all">-</button>
                                 <span class="w-6 sm:w-8 text-center font-black text-sm text-gray-900">${item.qty}</span>
-                                <button onclick="updateQty('${item.id}', 1)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center text-gray-600 font-black text-lg hover:bg-gray-50 active:bg-gray-200 active:scale-95 transition-all">+</button>
+                                <button onclick="updateQty(${item.id}, 1)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center text-gray-600 font-black text-lg hover:bg-gray-50 active:bg-gray-200 active:scale-95 transition-all">+</button>
                             </div>
                         </div>
                     </div>
@@ -807,22 +771,10 @@
 
             // 🟢 DYNAMIC BUTTON LOGIC
             const fireBtn = document.getElementById('fire-btn');
-            const settleBtn = document.getElementById('settle-btn');
             const fireNextBtn = document.getElementById('fire-next-btn');
             const isModified = originalTicketState !== JSON.stringify(activeTicket);
             const isLocked = currentOrderStatus.includes("LOCKED");
             const isFireNext = currentOrderStatus.includes("FIRE NEXT");
-
-            // 🟢 SAFETY FIX: Settle button is only visible if the order has been fired/locked
-            if (isLocked || isFireNext) {
-                settleBtn.classList.remove('hidden');
-                fireBtn.classList.remove('w-full');
-                fireBtn.classList.add('w-2/3');
-            } else {
-                settleBtn.classList.add('hidden');
-                fireBtn.classList.remove('w-2/3');
-                fireBtn.classList.add('w-full');
-            }
 
             if (isFireNext) {
                 fireBtn.className = "w-2/3 bg-gray-200 text-gray-400 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm flex items-center justify-center gap-2 cursor-not-allowed";
@@ -851,7 +803,7 @@
                 fireNextBtn.disabled = false;
 
             } else {
-                fireBtn.className = "w-full bg-w-success text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm shadow-xl shadow-green-600/30 hover:bg-green-700 transition-colors flex items-center justify-center gap-2";
+                fireBtn.className = "w-2/3 bg-w-success text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm shadow-xl shadow-green-600/30 hover:bg-green-700 transition-colors flex items-center justify-center gap-2";
                 fireBtn.innerHTML = `<svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"></path></svg> Fire Order`;
                 fireBtn.disabled = false;
                 fireNextBtn.classList.add('hidden'); fireNextBtn.classList.remove('flex');
@@ -863,19 +815,18 @@
             const noteDiv = document.getElementById(`note-container-${id}`);
             if (noteDiv) noteDiv.classList.toggle('hidden');
         }
-        function setCourse(id, courseValue) { const item = activeTicket.find(i => String(i.id) === String(id)); if (item) { item.course = courseValue; renderTicket(); saveDraft(); } }
-        function updateQty(id, change) { const item = activeTicket.find(i => String(i.id) === String(id)); if (item) { item.qty += change; if (item.qty <= 0) removeItem(id); else { renderTicket(); saveDraft(); } } }
+        function setCourse(id, courseValue) { const item = activeTicket.find(i => i.id === id); if (item) { item.course = courseValue; renderTicket(); } }
+        function updateQty(id, change) { const item = activeTicket.find(i => i.id === id); if (item) { item.qty += change; if (item.qty <= 0) removeItem(id); else renderTicket(); } }
         function updatePrice(id, newPrice) {
-            const item = activeTicket.find(i => String(i.id) === String(id));
+            const item = activeTicket.find(i => i.id === id);
             if (item) {
                 item.price = parseFloat(newPrice) || 0;
                 let newSubtotal = activeTicket.reduce((sum, current) => sum + (current.qty * current.price), 0);
                 document.getElementById('ticket-subtotal').innerText = newSubtotal.toFixed(2);
-                saveDraft();
             }
         }
-        function updateNote(id, newNote) { const item = activeTicket.find(i => String(i.id) === String(id)); if (item) { item.note = newNote.trim(); saveDraft(); } }
-        function removeItem(id) { activeTicket = activeTicket.filter(i => String(i.id) !== String(id)); renderTicket(); saveDraft(); }
+        function updateNote(id, newNote) { const item = activeTicket.find(i => i.id === id); if (item) item.note = newNote.trim(); }
+        function removeItem(id) { activeTicket = activeTicket.filter(i => i.id !== id); renderTicket(); }
 
         // --- 🟢 MENU & STOCK FILTERS ---
         let currentMenuFilter = 'all';
@@ -1042,7 +993,6 @@
                 activeTicket.push({ id: Date.now() + Math.random(), name: name, qty: 1, price: parseFloat(price), note: "", course: "main" });
             }
             renderTicket();
-            saveDraft(); // 🟢 Save draft
             closeMenuModal();
             const container = document.getElementById('order-items-container');
             setTimeout(() => { container.scrollTop = container.scrollHeight; }, 100);
@@ -1190,7 +1140,6 @@
                     currentOrderStatus = `Table ${table} - LOCKED`;
                     originalTicketState = JSON.stringify(activeTicket);
                     renderTicket(); 
-                    localStorage.removeItem('waiter_draft'); // 🟢 Order sent, delete draft
                     showPosAlert("Order Fired!", `Success! The ticket for Table ${table} has been locked and sent to the kitchen.`, "success");
                 
                 // 🟢 UX FIX: Premium "Hard Stop" Alert for Table Collisions
@@ -1242,6 +1191,45 @@
             } finally { btn.innerHTML = originalText; btn.disabled = false; }
         }
 
+        async function openTablesModal() {
+            const modal = document.getElementById('open-tables-modal');
+            const list = document.getElementById('open-tables-list');
+            safePushState('tables');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            list.innerHTML = `<div class="flex items-center justify-center h-full mt-10"><div class="w-8 h-8 border-4 border-w-accent border-t-transparent rounded-full animate-spin"></div></div>`;
+
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_get_open_tables" }) });
+                const data = await response.json();
+                if(data.success && data.openTables.length > 0) {
+                    list.innerHTML = data.openTables.map(t => `
+                        <div onclick="selectOpenTable('${t.token}')" class="p-4 sm:p-5 mb-3 bg-white border border-gray-100 rounded-2xl flex justify-between items-center cursor-pointer hover:border-w-accent hover:shadow-md transition-all active:scale-[0.98]">
+                            <p class="font-black text-base sm:text-lg text-gray-900 tracking-tight">${t.table}</p>
+                            <div class="bg-sky-50 px-3 py-1.5 rounded-lg border border-sky-100">
+                                <p class="font-bold text-w-accent text-[10px] sm:text-xs tracking-widest uppercase">Token #${t.token}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    list.innerHTML = `<div class="flex flex-col items-center justify-center py-10 text-gray-400 mt-10"><svg class="w-12 h-12 mb-3 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"></path></svg><p class="font-bold text-sm">No active tables found.</p></div>`;
+                }
+            } catch (err) { list.innerHTML = `<p class="text-center text-w-danger font-bold mt-10">Network error fetching tables.</p>`; }
+        }
+
+        function closeTablesModal(fromPopState = false) {
+            if (!fromPopState && window.location.hash.includes('tables')) { try { window.history.back(); } catch(e) {} return; }
+            document.getElementById('open-tables-modal').classList.add('hidden');
+            document.getElementById('open-tables-modal').classList.remove('flex');
+        }
+
+        function selectOpenTable(token) {
+            closeTablesModal();
+            currentInput = token; 
+            document.getElementById('token-input').innerText = currentInput;
+            fetchOrder(); 
+        }
+
+        // --- 🟢 DYNAMIC MANAGER CONTROL PANEL ---
         function toggleManagerFields() {
             const action = document.getElementById('mgr-action-type').value;
             const nameBox = document.getElementById('mgr-name-box');
