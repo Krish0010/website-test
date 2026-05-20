@@ -113,9 +113,13 @@
         </div>
         
         <div class="grid grid-cols-2 gap-2 mt-2 w-full shrink-0">
-            <button onclick="openTablesModal()" class="action-btn text-w-accent hover:border-w-accent hover:bg-sky-50">
+            <button onclick="openTablesModal()" class="action-btn text-w-accent hover:border-w-accent hover:bg-sky-50 relative">
                 <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"></path></svg>
                 Active Tables
+                <span id="ready-badge" class="hidden absolute top-1.5 right-1.5 flex h-3.5 w-3.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-500 border-2 border-white"></span>
+                </span>
             </button>
             <button onclick="startNewOrder()" class="action-btn text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50 border-emerald-100 shadow-sm">
                 <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path></svg>
@@ -346,7 +350,7 @@
 
     <script>
         // REPLACE WITH YOUR ACTUAL SCRIPT URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzLUygVhxJ3vcCtM93sqtJpHyjUfVC7Lijvz0iI8Z--IixTitYVIhaHlI54t4BQcYSQ/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyEUEYLpiW_OKtNfx1VAChkG9HfAlbDmZiCAMZcO9DRgbPx78PV21BkIOIeo0WbUDj9/exec"; 
 
         let currentInput = "";
         let activeTicket = []; 
@@ -367,21 +371,27 @@
         function checkAndLoadDraft() {
             const draftStr = localStorage.getItem('waiter_draft');
             if (draftStr) {
-                const draft = JSON.parse(draftStr);
-                if (Date.now() - draft.timestamp < 12 * 60 * 60 * 1000) { // Valid for 12 hours
-                    currentInput = draft.token;
-                    activeTicket = draft.cart;
-                    currentOrderStatus = "Pending";
-                    originalTicketState = "[]";
-                    safePushState('ticket');
-                    document.getElementById('active-token-display').innerText = `#${currentInput}`;
-                    document.getElementById('table-select').value = draft.table || "";
-                    renderTicket();
-                    document.getElementById('view-numpad').classList.add('hidden');
-                    document.getElementById('view-numpad').classList.remove('flex');
-                    document.getElementById('view-ticket').classList.remove('hidden');
-                    document.getElementById('view-ticket').classList.add('flex');
-                    showPosAlert("Draft Recovered", "The page reloaded, but your un-fired order was safely restored.", "success");
+                try {
+                    const draft = JSON.parse(draftStr);
+                    if (Date.now() - draft.timestamp < 12 * 60 * 60 * 1000) { // Valid for 12 hours
+                        currentInput = draft.token;
+                        activeTicket = draft.cart;
+                        currentOrderStatus = "Pending";
+                        originalTicketState = "[]";
+                        safePushState('ticket');
+                        document.getElementById('active-token-display').innerText = `#${currentInput}`;
+                        document.getElementById('table-select').value = draft.table || "";
+                        renderTicket();
+                        document.getElementById('view-numpad').classList.add('hidden');
+                        document.getElementById('view-numpad').classList.remove('flex');
+                        document.getElementById('view-ticket').classList.remove('hidden');
+                        document.getElementById('view-ticket').classList.add('flex');
+                        showPosAlert("Draft Recovered", "The page reloaded, but your un-fired order was safely restored.", "success");
+                        syncMenuBackground(); // Fetch the latest 86 list
+                    }
+                } catch (error) {
+                    console.error("Draft corrupted, clearing memory.");
+                    localStorage.removeItem('waiter_draft');
                 }
             }
         }
@@ -467,6 +477,7 @@
                     document.getElementById('view-auth').classList.add('hidden');
                     // Boot up the system now that we are unlocked
                     fetchInitialData();
+                    startReadyPoller(); // 🟢 Start listening for READY food
                 } else {
                     showPosAlert("Access Denied", "Incorrect Manager PIN.", "error");
                     document.getElementById('device-auth-pin').value = '';
@@ -638,9 +649,9 @@
 
                     let assignedTable = "";
                     const fireNextBtn = document.getElementById('fire-next-btn');
-                    if (data.status && (data.status.includes("- LOCKED") || data.status.includes("- FIRE NEXT"))) {
+                    if (data.status && (data.status.includes("- LOCKED") || data.status.includes("- FIRE NEXT") || data.status.includes("- READY"))) {
                         assignedTable = data.status.split("-")[0].replace("Table", "").trim();
-                        fireNextBtn.classList.remove('hidden'); fireNextBtn.classList.add('flex');
+                        if (!data.status.includes("- READY")) { fireNextBtn.classList.remove('hidden'); fireNextBtn.classList.add('flex'); }
                     } else {
                         fireNextBtn.classList.add('hidden'); fireNextBtn.classList.remove('flex');
                     }
@@ -719,7 +730,7 @@
             const price = parseFloat(document.getElementById('custom-dish-price').value);
 
             if (!name) { showPosAlert("Missing Info", "You must enter a Custom Dish Name.", "warning"); return; }
-            if (isNaN(price)) { showPosAlert("Missing Info", "You must enter a valid Price (use 0 for free).", "warning"); return; }
+            if (isNaN(price) || price < 0) { showPosAlert("Invalid Price", "Price must be valid.", "warning"); return; }
 
             activeTicket.push({ id: Date.now() + Math.random(), name: name, qty: 1, price: parseFloat(price), note: "", course: "main" });
             closeCustomDishModal();
@@ -817,7 +828,7 @@
             const settleBtn = document.getElementById('settle-btn');
             const fireNextBtn = document.getElementById('fire-next-btn');
             const isModified = originalTicketState !== JSON.stringify(activeTicket);
-            const isLocked = currentOrderStatus.includes("LOCKED");
+            const isLocked = currentOrderStatus.includes("LOCKED") || currentOrderStatus.includes("READY");
             const isFireNext = currentOrderStatus.includes("FIRE NEXT");
 
             // 🟢 SETTLE BUTTON LOGIC: Grey out until fired
@@ -1063,7 +1074,17 @@
                 return; 
             }
 
+            // 🟢 Waiter Accountability Check
+            const isReady = currentOrderStatus.includes("READY");
+            const readyVerificationHtml = isReady ? `
+                <div class="bg-green-50 text-green-700 border border-green-200 rounded-xl py-3 px-4 mx-2 mb-4 text-[11px] font-black text-center uppercase tracking-widest flex flex-col items-center gap-1.5 shadow-sm">
+                    <svg class="w-6 h-6 mb-0.5 text-green-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Kitchen verified ready.<br>Did you serve the food?
+                </div>
+            ` : "";
+
             const premiumMessage = `
+                ${readyVerificationHtml}
                 <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">
                     Are you sure you want to settle this table?
                 </div>
@@ -1184,7 +1205,7 @@
                 let pacingStr = "Main Course";
                 if (item.course === "first") pacingStr = "Serve First";
                 if (item.course === "last") pacingStr = "Serve Last";
-                return { name: item.name.trim() || "Custom Dish", qty: item.qty, note: item.note ? item.note.trim() : "", category: category, pacing: pacingStr, price: item.price };
+                return { id: item.id, name: item.name.trim() || "Custom Dish", qty: item.qty, note: item.note ? item.note.trim() : "", category: category, pacing: pacingStr, price: item.price };
             });
 
             try {
@@ -1263,14 +1284,26 @@
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_get_open_tables" }) });
                 const data = await response.json();
                 if(data.success && data.openTables.length > 0) {
-                    list.innerHTML = data.openTables.map(t => `
-                        <div onclick="selectOpenTable('${t.token}')" class="p-4 sm:p-5 mb-3 bg-white border border-gray-100 rounded-2xl flex justify-between items-center cursor-pointer hover:border-w-accent hover:shadow-md transition-all active:scale-[0.98]">
-                            <p class="font-black text-base sm:text-lg text-gray-900 tracking-tight">${t.table}</p>
-                            <div class="bg-sky-50 px-3 py-1.5 rounded-lg border border-sky-100">
-                                <p class="font-bold text-w-accent text-[10px] sm:text-xs tracking-widest uppercase">Token #${t.token}</p>
+                    list.innerHTML = data.openTables.map(t => {
+                        // 🟢 Dynamic Status UI Logic
+                        const isReady = t.fullStatus && t.fullStatus.includes("READY");
+                        const statusColor = isReady ? "bg-green-100 text-green-700 border-green-200" : "bg-sky-50 text-w-accent border-sky-100";
+                        const statusText = isReady ? "FOOD READY" : "COOKING";
+                        const borderStyle = isReady ? "border-green-400 shadow-md ring-1 ring-green-400/50" : "border-gray-100 hover:border-w-accent hover:shadow-md";
+                        
+                        return `
+                        <div onclick="selectOpenTable('${t.token}')" class="p-4 sm:p-5 mb-3 bg-white border ${borderStyle} rounded-2xl flex justify-between items-center cursor-pointer transition-all active:scale-[0.98]">
+                            <div class="flex flex-col">
+                                <p class="font-black text-base sm:text-lg text-gray-900 tracking-tight">${t.table}</p>
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-0.5">Token #${t.token}</span>
+                            </div>
+                            <div class="${statusColor} px-3 py-2 rounded-xl border flex items-center gap-2">
+                                ${isReady ? '<span class="relative flex h-2.5 w-2.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-600"></span></span>' : ''}
+                                <p class="font-black text-[10px] sm:text-xs tracking-widest uppercase">${statusText}</p>
                             </div>
                         </div>
-                    `).join('');
+                        `;
+                    }).join('');
                 } else {
                     list.innerHTML = `<div class="flex flex-col items-center justify-center py-10 text-gray-400 mt-10"><svg class="w-12 h-12 mb-3 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"></path></svg><p class="font-bold text-sm">No active tables found.</p></div>`;
                 }
@@ -1416,6 +1449,46 @@
                 btn.disabled = false;
             }
         }
+
+        // --- 🟢 BACKGROUND POLLER FOR READY TABLES ---
+        let readyPollerInterval = null;
+        
+        function startReadyPoller() {
+            if (readyPollerInterval) clearInterval(readyPollerInterval);
+            pollReadyTables(); // Run immediately
+            readyPollerInterval = setInterval(pollReadyTables, 15000); // Run every 15 seconds
+        }
+
+        async function pollReadyTables() {
+            // Only poll if device is authorized
+            if (localStorage.getItem('impact_device_authorized') !== 'true') return;
+            
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_get_open_tables" }) });
+                const data = await response.json();
+                
+                const badge = document.getElementById('ready-badge');
+                if (badge) {
+                    // Check if ANY table has the "READY" status
+                    const hasReadyTable = data.success && data.openTables.some(t => t.fullStatus && t.fullStatus.includes("READY"));
+                    
+                    if (hasReadyTable) {
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                }
+            } catch (err) {
+                // Fail silently in background to avoid annoying UI alerts for momentary Wi-Fi drops
+            }
+        }
+
+        // Start poller automatically on page load if already authorized
+        document.addEventListener("DOMContentLoaded", () => {
+            if (localStorage.getItem('impact_device_authorized') === 'true') {
+                startReadyPoller();
+            }
+        });
     </script>
 </body>
 </html>
