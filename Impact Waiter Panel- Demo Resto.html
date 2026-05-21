@@ -1847,33 +1847,16 @@
         }
 
         async function pollReadyTables() {
+            // Only poll if device is authorized
             if (localStorage.getItem('impact_device_authorized') !== 'true') return;
             
             try {
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_get_open_tables" }) });
                 const data = await response.json();
                 
-                if (data.success) {
-                    currentOpenTables = data.openTables; // 🟢 Updates our master collision tracker
-                    
-                    const badge = document.getElementById('ready-badge');
-                    if (badge) {
-                        const readyTables = data.openTables.filter(t => t.fullStatus && t.fullStatus.includes("READY"));
-                        if (readyTables.length > 0) {
-                            badge.classList.remove('hidden');
-                            readyTables.forEach(t => {
-                                if (!alertedReadyTables.has(t.token)) {
-                                    showToastNotification("Order Ready", `Food for ${t.table} is ready to serve.`);
-                                    alertedReadyTables.add(t.token);
-                                }
-                            });
-                        } else {
-                            badge.classList.add('hidden');
-                        }
-                    }
-                }
-            } catch (err) {}
-        }
+                const badge = document.getElementById('ready-badge');
+                if (badge && data.success) {
+                    const readyTables = data.openTables.filter(t => t.fullStatus && t.fullStatus.includes("READY"));
                     
                     if (readyTables.length > 0) {
                         badge.classList.remove('hidden');
