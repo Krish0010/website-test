@@ -928,16 +928,19 @@
             const item = activeTicket.find(i => String(i.id) === String(id)); 
             if (item && !item.isLocked) { item.note = newNote.trim(); saveDraft(); } 
         }
-        function removeItem(id) { activeTicket = activeTicket.filter(i => String(i.id) !== String(id)); renderTicket(); saveDraft(); }
+        function removeItem(id) { 
+            const item = activeTicket.find(i => String(i.id) === String(id));
+            if (item && !item.isLocked) {
+                activeTicket = activeTicket.filter(i => String(i.id) !== String(id)); 
+                renderTicket(); saveDraft(); 
+            }
+        }
 
         // --- 🟢 TOAST NOTIFICATION LOGIC ---
         function showToastNotification(title, message) {
             const container = document.getElementById('toast-container');
-            if (!container) return;
-            
             const toast = document.createElement('div');
-            // Premium dark-mode styling with smooth transform animations
-            toast.className = "bg-gray-900 border border-gray-700 shadow-2xl rounded-2xl p-4 flex items-center gap-4 transform -translate-y-full opacity-0 transition-all duration-500 ease-out pointer-events-auto";
+            toast.className = "bg-gray-900 border border-gray-700 shadow-2xl rounded-2xl p-4 flex items-center gap-4 transform translate-y-[-100%] opacity-0 transition-all duration-500 ease-out pointer-events-auto";
             
             toast.innerHTML = `
                 <div class="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center shrink-0 border border-green-500/30">
@@ -953,11 +956,15 @@
             container.appendChild(toast);
             
             // Animate in
-            setTimeout(() => { toast.classList.remove('-translate-y-full', 'opacity-0'); }, 10);
+            setTimeout(() => {
+                toast.classList.remove('translate-y-[-100%]', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            }, 10);
 
             // Auto-remove after 6 seconds
             setTimeout(() => {
-                toast.classList.add('-translate-y-full', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-[-100%]', 'opacity-0');
                 setTimeout(() => { if (toast.parentNode) toast.remove(); }, 500);
             }, 6000);
         }
@@ -1292,13 +1299,8 @@
                 
                 if (data.success) {
                     currentOrderStatus = `Table ${table} - LOCKED`;
-                    
-                    // 🟢 THE ENTERPRISE FIX: Instantly lock all items in local memory.
-                    // This prevents mid-meal additions from merging into dishes the kitchen has already cooked!
-                    activeTicket.forEach(item => { item.isLocked = true; });
-                    
                     originalTicketState = JSON.stringify(activeTicket);
-                    localStorage.removeItem('waiter_draft'); // Order successfully fired, clear draft
+                    localStorage.removeItem('waiter_draft'); // 🟢 Order successfully fired, clear draft
                     renderTicket(); 
                     showPosAlert("Order Fired!", `Success! The ticket for Table ${table} has been locked and sent to the kitchen.`, "success");
                 
@@ -1542,8 +1544,6 @@
             readyPollerInterval = setInterval(pollReadyTables, 15000); // Run every 15 seconds
         }
 
-        let alertedReadyTables = new Set(); // 🟢 Prevents the toast from spamming every 15 seconds
-
         async function pollReadyTables() {
             // Only poll if device is authorized
             if (localStorage.getItem('impact_device_authorized') !== 'true') return;
@@ -1562,7 +1562,7 @@
                         // 🟢 Trigger sleek toast for newly ready tables
                         readyTables.forEach(t => {
                             if (!alertedReadyTables.has(t.token)) {
-                                showToastNotification("Order Ready", `Food for ${t.table} is ready to serve.`);
+                                showToastNotification("Order Ready", `${t.table} is ready to serve.`);
                                 alertedReadyTables.add(t.token);
                             }
                         });
