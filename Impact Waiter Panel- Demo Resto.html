@@ -424,16 +424,18 @@
                     osc.type = 'sine'; 
                     osc.frequency.setValueAtTime(freq, startTime);
                     gain.gain.setValueAtTime(0, startTime);
-                    gain.gain.linearRampToValueAtTime(0.3, startTime + 0.05); 
+                    gain.gain.linearRampToValueAtTime(0.5, startTime + 0.05); // Increased volume
                     gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
                     osc.connect(gain); gain.connect(globalAudioCtx.destination);
                     osc.start(startTime); osc.stop(startTime + duration);
                 };
                 const now = globalAudioCtx.currentTime;
-                // 3 quick beeps for the Waiter alert
-                playTone(880, now, 0.2);
-                playTone(880, now + 0.3, 0.2);
-                playTone(1046.50, now + 0.6, 0.4);
+                // 🟢 UX FIX: Loops a ringing pattern for a full 3 seconds
+                for (let i = 0; i < 3; i++) {
+                    playTone(880, now + (i * 1.0), 0.2);
+                    playTone(880, now + (i * 1.0) + 0.25, 0.2);
+                    playTone(1046.50, now + (i * 1.0) + 0.5, 0.4);
+                }
             } catch(e) {}
         }
 
@@ -466,20 +468,16 @@
             }
         }
 
-        // Intercept existing alerts to add sound and logging
-        const originalShowPosAlert = showPosAlert;
-        showPosAlert = function(title, message, type, onConfirm, confirmText) {
-            logNotification(title, message.replace(/<[^>]*>?/gm, '')); 
-            playWaiterAlert(); // 🟢 Play the 3-beep chime
-            originalShowPosAlert(title, message, type, onConfirm, confirmText);
-        };
-
+        // 🟢 FIX: We ONLY intercept the Toast Notification (which comes from the Kitchen)
+        // This stops "Order Fired!" or "Empty Ticket" alerts from clogging the history or playing audio.
         const originalShowToastNotification = showToastNotification;
         showToastNotification = function(title, message) {
             logNotification(title, message);
-            playWaiterAlert(); // 🟢 Play the 3-beep chime
+            playWaiterAlert(); // Play the 3-second kitchen chime
             originalShowToastNotification(title, message);
         };
+
+        // 🟢 AUTO-SAVE LOGIC
 
         // 🟢 AUTO-SAVE LOGIC
         function saveDraft() {
