@@ -1503,11 +1503,13 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    currentOrderStatus = `Table ${table} - LOCKED`;
-                    originalTicketState = JSON.stringify(activeTicket);
-                    localStorage.removeItem('waiter_draft'); // 🟢 Order successfully fired, clear draft
-                    renderTicket(); 
-                    showPosAlert("Order Fired!", `Success! The ticket for Table ${table} has been locked and sent to the kitchen.`, "success");
+                    localStorage.removeItem('waiter_draft'); 
+                    closePosAlert(); // Close the processing spinner
+                    closeTicket();   // 🟢 SECURITY FIX: Kick waiter to home screen to prevent ghost-editing!
+                    
+                    setTimeout(() => {
+                        showPosAlert("Order Fired!", `Success! The ticket for Table ${table} has been locked and sent to the kitchen.`, "success");
+                    }, 300);
                 
                 // 🟢 UX FIX: Premium "Hard Stop" Alert for Table Collisions
                 } else if (data.errorCode === "TABLE_COLLISION") {
@@ -1554,9 +1556,11 @@
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_fire_next", token: currentInput, table: table }) });
                 const data = await response.json();
                 if (data.success) { 
-                    currentOrderStatus = `Table ${table} - FIRE NEXT`;
-                    renderTicket();
-                    showPosAlert("Kitchen Alerted!", `The kitchen has been notified to start preparing the "Serve Last" items for Table ${table}.`, "success");
+                    closePosAlert();
+                    closeTicket(); // 🟢 SECURITY FIX: Kick to home screen
+                    setTimeout(() => {
+                        showPosAlert("Kitchen Alerted!", `The kitchen has been notified to start preparing the "Serve Last" items for Table ${table}.`, "success");
+                    }, 300);
                 } else { showPosAlert("Error", data.message, "error"); }
             } catch (err) { showPosAlert("Network Error", "Unable to connect to the kitchen system.", "error");
             } finally { btn.innerHTML = originalText; btn.disabled = false; }
