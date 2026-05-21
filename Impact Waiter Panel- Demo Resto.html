@@ -735,9 +735,11 @@
             if (!name) { showPosAlert("Missing Info", "You must enter a Custom Dish Name.", "warning"); return; }
             if (isNaN(price) || price < 0) { showPosAlert("Invalid Price", "Price must be valid.", "warning"); return; }
 
-            activeTicket.push({ id: Date.now() + Math.random(), name: name, qty: 1, price: parseFloat(price), note: "", course: "main" });
+            // 🟢 SECURITY: Explicitly tag as unlocked so it can be edited before firing
+            activeTicket.push({ id: Date.now() + Math.random(), name: name, qty: 1, price: parseFloat(price), note: "", course: "main", isLocked: false });
             closeCustomDishModal();
             renderTicket();
+            saveDraft(); // 🟢 Save draft
             const container = document.getElementById('order-items-container');
             setTimeout(() => { container.scrollTop = container.scrollHeight; }, 100);
         }
@@ -1127,7 +1129,7 @@
         }
 
         function addFromMenu(name, price) {
-            // 🟢 ENTERPRISE FIX: Only merge if the existing item is NOT locked
+            // 🟢 ENTERPRISE FIX: Added !i.isLocked. It will NEVER merge a new item with an item already in the kitchen!
             const existing = activeTicket.find(i => i.name === name && i.note === "" && i.course === "main" && !i.isLocked);
             if (existing) {
                 existing.qty++;
@@ -1135,7 +1137,7 @@
                 activeTicket.push({ id: Date.now() + Math.random(), name: name, qty: 1, price: parseFloat(price), note: "", course: "main", isLocked: false });
             }
             renderTicket();
-            saveDraft(); 
+            saveDraft(); // 🟢 Save draft
             closeMenuModal();
             const container = document.getElementById('order-items-container');
             setTimeout(() => { container.scrollTop = container.scrollHeight; }, 100);
