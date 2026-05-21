@@ -157,25 +157,32 @@
 
     <div id="view-ticket" class="hidden flex-col flex-1 w-full max-w-2xl mx-auto bg-w-bg relative min-h-0 overflow-hidden">
         
-        <div class="bg-w-card p-3 border-b border-w-border shadow-sm shrink-0 flex items-center justify-between z-10 relative">
-            <div class="flex flex-col">
-                <p class="text-[9px] uppercase font-bold tracking-widest text-gray-400 mb-0.5">Active Token</p>
-                <span id="active-token-display" class="font-mono font-black text-xl sm:text-2xl text-w-accent leading-none">#----</span>
+        <div class="bg-w-card p-4 border-b border-w-border shadow-sm shrink-0 flex flex-col gap-3 z-10 relative">
+            <div class="flex items-center justify-between">
+                <div class="flex flex-col">
+                    <p class="text-[9px] uppercase font-bold tracking-widest text-gray-400 mb-0.5">Active Token</p>
+                    <span id="active-token-display" class="font-mono font-black text-xl sm:text-2xl text-w-accent leading-none">#----</span>
+                </div>
+                <button onclick="requestCloseTicket()" class="w-8 h-8 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
             </div>
             
-            <div class="flex flex-col items-center absolute left-1/2 -translate-x-1/2">
-                <label class="text-[8px] uppercase font-bold tracking-widest text-gray-400 mb-0.5">Assign Table</label>
-                <select id="table-select" onchange="saveDraft()" class="bg-gray-50 border-2 border-gray-200 text-gray-900 text-xs rounded-xl focus:ring-w-accent focus:border-w-accent block w-28 p-1 font-bold outline-none cursor-pointer appearance-none text-center" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22%239CA3AF%22%3E%3Cpath fill-rule=%22evenodd%22 d=%22M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%22 clip-rule=%22evenodd%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.25rem center; background-size: 1.25em 1.25em;">
-                    <option value="" disabled selected>Select...</option>
-                    <option value="1">Table 1</option><option value="2">Table 2</option><option value="3">Table 3</option>
-                    <option value="4">Table 4</option><option value="5">Table 5</option><option value="6">Table 6</option>
-                    <option value="Bar">Bar Area</option><option value="Takeaway">Takeaway</option>
-                </select>
+            <div class="w-full flex items-center gap-3">
+                <div class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"></path></svg>
+                </div>
+                <div class="flex-1 relative">
+                    <select id="table-select" onchange="handleTableSelection()" class="w-full bg-white border-2 border-gray-200 text-gray-900 text-sm sm:text-base rounded-xl focus:ring-w-accent focus:border-w-accent p-2.5 font-black outline-none cursor-pointer appearance-none shadow-sm transition-colors" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22%239CA3AF%22%3E%3Cpath fill-rule=%22evenodd%22 d=%22M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%22 clip-rule=%22evenodd%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.5em 1.5em;">
+                        <option value="" disabled selected>Tap to Select Table...</option>
+                        <option value="1">Table 1</option><option value="2">Table 2</option><option value="3">Table 3</option>
+                        <option value="4">Table 4</option><option value="5">Table 5</option><option value="6">Table 6</option>
+                        <option value="7">Table 7</option><option value="8">Table 8</option><option value="9">Table 9</option>
+                       <option value="10">Table 10</option><option value="11">Table 11</option><option value="12">Table 12</option>
+                        <option value="Bar">Bar Area</option><option value="Takeaway">Takeaway</option>
+                    </select>
+                </div>
             </div>
-            
-            <button onclick="requestCloseTicket()" class="w-8 h-8 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
         </div>
 
         <div class="flex-1 overflow-y-auto p-2 sm:p-3 flex flex-col gap-2 relative" id="order-items-container" ondragover="handleDragOverContainer(event)" ondragleave="stopAutoScroll()" ondrop="stopAutoScroll()">
@@ -516,6 +523,7 @@
                     cachedMenu = data.menu || [];
                     document.getElementById('sync-status').innerText = "System Ready";
                     document.getElementById('sync-status').className = "text-[8px] sm:text-[9px] uppercase font-bold tracking-widest text-w-success";
+                    fetchOpenTablesSilently(); // 🟢 PRE-FETCH OPEN TABLES
                 }
             } catch (err) {
                 document.getElementById('sync-status').innerText = "Offline Mode";
@@ -692,6 +700,68 @@
                 fetchBtn.innerHTML = `<svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg>`;
                 showPosAlert("Network Error", "Unable to reach the server.", "error");
             }
+        }
+
+         // --- 🟢 UX: FRICTIONLESS TABLE SELECTION ---
+        let currentOpenTables = []; // Stores the latest table states
+
+        async function handleTableSelection() {
+            const selectedTable = document.getElementById('table-select').value;
+            if (!selectedTable) return;
+
+            // 1. Check if the table is currently occupied by someone else
+            const occupiedTable = currentOpenTables.find(t => t.table === selectedTable);
+            
+            if (occupiedTable && occupiedTable.token !== currentInput) {
+                // Table is occupied by a DIFFERENT token!
+                document.getElementById('table-select').value = ""; // Reset selection
+                
+                const premiumMessage = `
+                    <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">
+                        This table is currently in use.
+                    </div>
+                    
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl py-3.5 px-4 mx-2 mb-4 shadow-inner flex flex-col items-center justify-center">
+                        <span class="text-[9px] uppercase font-bold tracking-widest text-amber-600 mb-1">Occupied By</span>
+                        <span class="font-black text-amber-900 text-xl tracking-tight">Token #${occupiedTable.token}</span>
+                    </div>
+
+                    <div class="text-[11px] sm:text-xs text-gray-500 leading-relaxed px-4">
+                        Do you want to jump to that order, or return and select a different table?
+                    </div>
+                `;
+
+                showPosAlert("Table Occupied!", premiumMessage, "warning", () => {
+                    // Action: Jump to the occupied order
+                    closePosAlert();
+                    currentInput = occupiedTable.token;
+                    document.getElementById('token-input').innerText = currentInput;
+                    fetchOrder();
+                }, "Open Order");
+                return;
+            }
+
+            // 2. If table is free (or belongs to this token), save it and unlock the menu
+            saveDraft();
+            renderTicket();
+        }
+
+        // We need to keep our local list of tables fresh
+        async function fetchOpenTablesSilently() {
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_get_open_tables" }) });
+                const data = await response.json();
+                if (data.success) {
+                    currentOpenTables = data.openTables;
+                }
+            } catch (e) {}
+        }
+
+        // Update the list when we start a new walk-in
+        const originalStartNewOrder = startNewOrder;
+        startNewOrder = function() {
+            fetchOpenTablesSilently(); // Pre-fetch tables so the dropdown check works instantly
+            originalStartNewOrder();
         }
 
         function requestCloseTicket() {
@@ -874,6 +944,31 @@
             const fireBtn = document.getElementById('fire-btn');
             const settleBtn = document.getElementById('settle-btn');
             const fireNextBtn = document.getElementById('fire-next-btn');
+            
+            // 🟢 UX FIX: Lock the menu buttons until a table is selected
+            const tableSelected = document.getElementById('table-select').value !== "";
+            const menuBtn = document.querySelector('[onclick="openMenuModal()"]');
+            const customBtn = document.querySelector('[onclick="openCustomDishModal()"]');
+            
+            if (tableSelected) {
+                menuBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                customBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+            } else {
+                menuBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                customBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                
+                // Show prompt if empty
+                if (activeTicket.length === 0) {
+                    container.innerHTML = `
+                        <div class="flex-1 flex flex-col items-center justify-center text-gray-400 mt-10">
+                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3 border-2 border-gray-200">
+                                <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zm-7.518-.267A8.25 8.25 0 1120.25 10.5M8.288 14.212A5.25 5.25 0 1117.25 10.5"></path></svg>
+                            </div>
+                            <p class="font-black text-sm tracking-widest uppercase">Select a Table First</p>
+                        </div>
+                    `;
+                }
+            }
             
             // The master override: Are there ANY items on the screen that haven't been sent yet?
             const hasUnlockedItems = activeTicket.some(item => !item.isLocked);
