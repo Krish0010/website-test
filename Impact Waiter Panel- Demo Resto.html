@@ -9,6 +9,19 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800;900&display=swap" rel="stylesheet">
     
+    <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0/index.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0/default.css">
+    <script>
+        // Initializes the touch interface silently
+        window.addEventListener('DOMContentLoaded', () => {
+            MobileDragDrop.polyfill({
+                dragImageTranslateOverride: window.MobileDragDrop.scrollBehaviourDragImageTranslateOverride
+            });
+            // Prevents the browser from accidentally scrolling the page while the user is trying to drag a card
+            window.addEventListener('touchmove', function() {}, {passive: false});
+        });
+    </script>
+    
     <script>
         tailwind.config = {
             theme: {
@@ -161,7 +174,7 @@
             </button>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-2 sm:p-3 flex flex-col gap-2" id="order-items-container">
+        <div class="flex-1 overflow-y-auto p-2 sm:p-3 flex flex-col gap-2 relative" id="order-items-container" ondragover="handleDragOverContainer(event)" ondragleave="stopAutoScroll()" ondrop="stopAutoScroll()">
             </div>
 
         <div class="bg-w-card border-t border-w-border shadow-[0_-10px_30px_rgba(0,0,0,0.05)] shrink-0 z-10 pb-3">
@@ -913,14 +926,15 @@
             }
         }
 
-        // --- 🟢 TICKET MODIFIERS (WITH IMMUTABLE LOCKS) ---
+        // --- 🟢 TICKET MODIFIERS & AUTO-SCROLL DRAG ENGINE ---
         let draggedItemId = null;
+        let autoScrollInterval = null;
 
         function dragStart(e, id) {
             draggedItemId = id;
             e.dataTransfer.effectAllowed = 'move';
-            // Slight delay prevents the drag image from becoming invisible
-            setTimeout(() => e.target.classList.add('opacity-40', 'scale-[0.98]'), 0);
+            // 🟢 UX: Added shadow-2xl and z-50 so the dragged item visually "floats" above the list
+            setTimeout(() => e.target.classList.add('opacity-50', 'scale-[0.98]', 'shadow-2xl', 'z-50'), 0);
         }
 
         function dragOver(e) {
@@ -928,15 +942,50 @@
             e.dataTransfer.dropEffect = 'move';
         }
 
+        // 🟢 The Edge-Scrolling Physics Engine
+        function handleDragOverContainer(e) {
+            e.preventDefault();
+            const container = document.getElementById('order-items-container');
+            const rect = container.getBoundingClientRect();
+            
+            // The invisible "hitbox" near the top and bottom (75 pixels)
+            const threshold = 75; 
+            const y = e.clientY - rect.top;
+
+            if (y < threshold) {
+                startAutoScroll(container, -1); // Scroll Up
+            } else if (y > rect.height - threshold) {
+                startAutoScroll(container, 1);  // Scroll Down
+            } else {
+                stopAutoScroll(); // Stop if in the safe middle zone
+            }
+        }
+
+        function startAutoScroll(container, direction) {
+            if (autoScrollInterval) return;
+            // 🟢 Runs at 60fps, scrolling 15 pixels per frame
+            autoScrollInterval = setInterval(() => {
+                container.scrollTop += direction * 15; 
+            }, 16); 
+        }
+
+        function stopAutoScroll() {
+            if (autoScrollInterval) {
+                clearInterval(autoScrollInterval);
+                autoScrollInterval = null;
+            }
+        }
+
         function dropItem(e, targetId) {
             e.preventDefault();
+            stopAutoScroll(); // Halt scrolling the moment the item drops
+            
             if (draggedItemId === targetId || !draggedItemId) return;
             
             const draggedIndex = activeTicket.findIndex(i => String(i.id) === String(draggedItemId));
             const targetIndex = activeTicket.findIndex(i => String(i.id) === String(targetId));
             
             if (draggedIndex > -1 && targetIndex > -1) {
-                // Remove the dragged item and insert it at the target position
                 const [draggedItem] = activeTicket.splice(draggedIndex, 1);
                 activeTicket.splice(targetIndex, 0, draggedItem);
                 renderTicket();
@@ -946,7 +995,8 @@
         }
 
         function dragEnd(e) {
-            e.target.classList.remove('opacity-40', 'scale-[0.98]');
+            e.target.classList.remove('opacity-50', 'scale-[0.98]', 'shadow-2xl', 'z-50');
+            stopAutoScroll(); // Failsafe shutoff
             draggedItemId = null;
         }
 
