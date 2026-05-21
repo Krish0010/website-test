@@ -829,9 +829,12 @@
                 `;
 
                 container.innerHTML += `
-                <div class="p-3 sm:p-4 rounded-xl border flex flex-col gap-2.5 transition-all duration-200 ${isLocked ? 'border-gray-200 bg-gray-50 opacity-90' : cardStyle}">
+                <div draggable="true" ondragstart="dragStart(event, '${item.id}')" ondragover="dragOver(event)" ondrop="dropItem(event, '${item.id}')" ondragend="dragEnd(event)" class="p-3 sm:p-4 rounded-xl border flex flex-col gap-2.5 transition-all duration-200 cursor-move ${isLocked ? 'border-gray-200 bg-gray-50 opacity-90' : cardStyle}">
                     <div class="flex justify-between items-center gap-2">
                         <div class="flex-1 flex items-center gap-2 overflow-hidden pr-2">
+                            <div class="text-gray-300 hover:text-gray-500 px-1 py-2" title="Drag to reorder">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8h16M4 16h16"></path></svg>
+                            </div>
                             <span class="font-black ${isLocked ? 'text-gray-500' : 'text-gray-900'} text-sm truncate" title="${item.name}">${item.name}</span>
                             ${stockBadge}
                             ${!isLocked ? `<button onclick="toggleNoteVisibility('${item.id}')" class="text-gray-300 hover:text-w-accent p-1 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.89 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.89l12.683-12.683zm0 0L19.5 7.125"></path></svg></button>` : ''}
@@ -850,16 +853,18 @@
             document.getElementById('ticket-subtotal').innerText = subtotal.toFixed(2);
             document.getElementById('total-items-count').innerText = totalItemsCount;
 
-            // 🟢 DYNAMIC BUTTON LOGIC
+            // 🟢 DYNAMIC BUTTON LOGIC (Bulletproof Evaluation)
             const fireBtn = document.getElementById('fire-btn');
             const settleBtn = document.getElementById('settle-btn');
             const fireNextBtn = document.getElementById('fire-next-btn');
-            const isModified = originalTicketState !== JSON.stringify(activeTicket);
+            
+            // The master override: Are there ANY items on the screen that haven't been sent yet?
+            const hasUnlockedItems = activeTicket.some(item => !item.isLocked);
             const isLocked = currentOrderStatus.includes("LOCKED") || currentOrderStatus.includes("READY");
             const isFireNext = currentOrderStatus.includes("FIRE NEXT");
 
-            // 🟢 SETTLE BUTTON LOGIC: Grey out until fired
-            if (isLocked || isFireNext) {
+            // SETTLE BUTTON LOGIC: Locked completely if there are unsent items.
+            if ((isLocked || isFireNext) && !hasUnlockedItems) {
                 settleBtn.disabled = false;
                 settleBtn.className = "w-1/3 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-red-100 transition-colors cursor-pointer";
             } else {
@@ -867,7 +872,25 @@
                 settleBtn.className = "w-1/3 py-3 bg-gray-100 text-gray-400 border border-gray-200 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-colors cursor-not-allowed";
             }
 
-            if (isFireNext) {
+            // FIRE BUTTON LOGIC:
+            if (hasUnlockedItems) {
+                // Regardless of table state, if there is a new item, they MUST be able to fire/update.
+                fireBtn.className = isLocked || isFireNext 
+                    ? "w-2/3 bg-amber-500 text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm shadow-xl shadow-amber-500/30 hover:bg-amber-600 transition-colors flex items-center justify-center gap-2"
+                    : "w-full bg-w-success text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm shadow-xl shadow-green-600/30 hover:bg-green-700 transition-colors flex items-center justify-center gap-2";
+                
+                fireBtn.innerHTML = (isLocked || isFireNext) 
+                    ? `<svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"></path></svg> Update Order`
+                    : `<svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"></path></svg> Fire Order`;
+                
+                fireBtn.disabled = false;
+                
+                // Hide Fire Next if there are unsent items
+                fireNextBtn.classList.add('hidden'); 
+                fireNextBtn.classList.remove('flex');
+                
+            } else if (isFireNext) {
+                // Table is fully sent, and Fire Next has been triggered
                 fireBtn.className = "w-2/3 bg-gray-200 text-gray-400 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm flex items-center justify-center gap-2 cursor-not-allowed";
                 fireBtn.innerHTML = `Sent to Kitchen`;
                 fireBtn.disabled = true;
@@ -878,30 +901,55 @@
                 fireNextBtn.disabled = true;
 
             } else if (isLocked) {
-                if (isModified) {
-                    fireBtn.className = "w-2/3 bg-amber-500 text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm shadow-xl shadow-amber-500/30 hover:bg-amber-600 transition-colors flex items-center justify-center gap-2";
-                    fireBtn.innerHTML = `<svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"></path></svg> Update Order`;
-                    fireBtn.disabled = false;
-                } else {
-                    fireBtn.className = "w-2/3 bg-gray-200 text-gray-400 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm flex items-center justify-center gap-2 cursor-not-allowed";
-                    fireBtn.innerHTML = `Sent to Kitchen`;
-                    fireBtn.disabled = true;
-                }
+                // Table is fully sent, waiting for Fire Next trigger
+                fireBtn.className = "w-2/3 bg-gray-200 text-gray-400 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm flex items-center justify-center gap-2 cursor-not-allowed";
+                fireBtn.innerHTML = `Sent to Kitchen`;
+                fireBtn.disabled = true;
 
                 fireNextBtn.classList.remove('hidden'); fireNextBtn.classList.add('flex');
-                fireNextBtn.className = "mt-2 w-full flex bg-purple-50 border border-purple-200 text-purple-700 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-[12px] py-3 shadow-sm hover:bg-purple-100 transition-all active:scale-[0.98] items-center justify-center gap-2";
+                fireNextBtn.className = "mt-2 w-full flex bg-purple-50 border border-purple-200 text-purple-700 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-[12px] py-3 shadow-sm hover:bg-purple-100 transition-all active:scale-[0.98] items-center justify-center gap-2 cursor-pointer";
                 fireNextBtn.innerHTML = `<svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"></path></svg> Alert Kitchen: Fire "Serve Last"`;
                 fireNextBtn.disabled = false;
-
-            } else {
-                fireBtn.className = "w-full bg-w-success text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm shadow-xl shadow-green-600/30 hover:bg-green-700 transition-colors flex items-center justify-center gap-2";
-                fireBtn.innerHTML = `<svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"></path></svg> Fire Order`;
-                fireBtn.disabled = false;
-                fireNextBtn.classList.add('hidden'); fireNextBtn.classList.remove('flex');
             }
         }
 
         // --- 🟢 TICKET MODIFIERS (WITH IMMUTABLE LOCKS) ---
+        let draggedItemId = null;
+
+        function dragStart(e, id) {
+            draggedItemId = id;
+            e.dataTransfer.effectAllowed = 'move';
+            // Slight delay prevents the drag image from becoming invisible
+            setTimeout(() => e.target.classList.add('opacity-40', 'scale-[0.98]'), 0);
+        }
+
+        function dragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function dropItem(e, targetId) {
+            e.preventDefault();
+            if (draggedItemId === targetId || !draggedItemId) return;
+            
+            const draggedIndex = activeTicket.findIndex(i => String(i.id) === String(draggedItemId));
+            const targetIndex = activeTicket.findIndex(i => String(i.id) === String(targetId));
+            
+            if (draggedIndex > -1 && targetIndex > -1) {
+                // Remove the dragged item and insert it at the target position
+                const [draggedItem] = activeTicket.splice(draggedIndex, 1);
+                activeTicket.splice(targetIndex, 0, draggedItem);
+                renderTicket();
+                saveDraft();
+            }
+            draggedItemId = null;
+        }
+
+        function dragEnd(e) {
+            e.target.classList.remove('opacity-40', 'scale-[0.98]');
+            draggedItemId = null;
+        }
+
         function toggleNoteVisibility(id) {
             const noteDiv = document.getElementById(`note-container-${id}`);
             if (noteDiv) noteDiv.classList.toggle('hidden');
@@ -1154,8 +1202,8 @@
             }
 
             // 🟢 SECURITY: The Ghost Charge Vulnerability Lock
-            const isModified = originalTicketState !== JSON.stringify(activeTicket);
-            if (isModified) {
+            const hasUnlockedItems = activeTicket.some(item => !item.isLocked);
+            if (hasUnlockedItems) {
                 showPosAlert("Unsaved Changes", "You have added items to this order but haven't fired them to the kitchen yet.<br><br>Please tap <b>Update Order</b> to send them, or delete the unsent items before settling.", "error");
                 return;
             }
