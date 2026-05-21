@@ -60,6 +60,8 @@
 </head>
 <body class="flex flex-col h-[100dvh] w-screen max-h-[100dvh]">
 
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[1000] flex flex-col gap-2 pointer-events-none w-[90%] max-w-sm"></div>
+
     <header class="bg-w-card border-b border-w-border px-4 py-3 sm:py-4 flex justify-between items-center shadow-sm shrink-0 z-40">
         <div class="flex items-center gap-3">
             <div class="w-8 h-8 sm:w-9 sm:h-9 bg-w-accent text-white rounded-lg flex items-center justify-center font-black text-[10px] sm:text-xs tracking-widest shadow-md shadow-blue-500/20">POS</div>
@@ -633,7 +635,8 @@
                             let restoredCourse = "main";
                             if (item.pacing === "Serve First") restoredCourse = "first";
                             if (item.pacing === "Serve Last") restoredCourse = "last";
-                            activeTicket.push({ id: Date.now() + Math.random(), name: item.name, qty: item.qty, price: item.price || 0, note: item.note || "", course: restoredCourse });
+                            // 🟢 ENTERPRISE LOCK: Tag items already sent to the kitchen as immutable
+                            activeTicket.push({ id: item.id || (Date.now() + Math.random()), name: item.name, qty: item.qty, price: item.price || 0, note: item.note || "", course: restoredCourse, isLocked: true });
                         });
                     } else {
                         Object.entries(data.cartData).forEach(([dishName, qty], index) => {
@@ -779,43 +782,65 @@
                 }
 
                 const hasNote = item.note && item.note.trim() !== "";
-
-                container.innerHTML += `
-                <div class="p-3 sm:p-4 rounded-xl border flex flex-col gap-2.5 transition-all duration-200 ${cardStyle}">
-                    <div class="flex justify-between items-center gap-2">
-                        <div class="flex-1 flex items-center gap-2 overflow-hidden pr-2">
-                            <span class="font-black text-gray-900 text-sm truncate" title="${item.name}">${item.name}</span>
-                            ${stockBadge}
-                            <button onclick="toggleNoteVisibility('${item.id}')" class="text-gray-300 hover:text-w-accent p-1 transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.89 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.89l12.683-12.683zm0 0L19.5 7.125"></path></svg>
-                            </button>
-                        </div>
-                        <button onclick="removeItem('${item.id}')" class="text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors p-1.5 shrink-0">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        </button>
+                const isLocked = item.isLocked === true;
+                
+                // 🟢 UX: If the item is locked, remove edit controls and gray it out slightly
+                const controlsHTML = isLocked ? `
+                    <div class="bg-gray-100 border border-gray-200 text-gray-500 px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-inner">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
+                        <span class="text-[9px] font-black uppercase tracking-widest">In Kitchen</span>
                     </div>
-                    
+                    <div class="flex items-center gap-1 px-2">
+                        <span class="text-gray-400 font-bold text-xs">₹</span>
+                        <span class="text-xs font-black text-gray-500">${item.price.toFixed(2)}</span>
+                    </div>
+                    <div class="font-black text-base text-gray-500 px-4">x${item.qty}</div>
+                ` : `
+                    <div class="flex bg-gray-100 rounded-xl p-1 border border-gray-200 shadow-inner">
+                        <button onclick="setCourse('${item.id}', 'first')" class="${item.course === 'first' ? 'bg-amber-100 text-amber-700 shadow-sm' : 'text-gray-400 hover:text-gray-700'} px-2 sm:px-3 py-1.5 text-[9px] sm:text-[10px] font-black uppercase rounded-lg transition-all">1st / ASAP</button>
+                        <button onclick="setCourse('${item.id}', 'main')" class="${item.course === 'main' ? 'bg-white text-sky-600 shadow-sm' : 'text-gray-400 hover:text-gray-700'} px-2 sm:px-3 py-1.5 text-[9px] sm:text-[10px] font-black uppercase rounded-lg transition-all">Main</button>
+                        <button onclick="setCourse('${item.id}', 'last')" class="${item.course === 'last' ? 'bg-purple-100 text-purple-700 shadow-sm' : 'text-gray-400 hover:text-gray-700'} px-2 sm:px-3 py-1.5 text-[9px] sm:text-[10px] font-black uppercase rounded-lg transition-all">Last</button>
+                    </div>
+                    <div class="flex items-center gap-3 sm:gap-5">
+                        <div class="flex items-center gap-0.5 pb-1 hidden sm:flex">
+                            <span class="text-gray-400 font-bold text-xs">₹</span>
+                            <input type="number" step="0.01" value="${item.price.toFixed(2)}" onfocus="this.select()" oninput="updatePrice('${item.id}', this.value)" class="w-12 bg-transparent border-b-2 border-gray-200 py-0.5 text-xs font-black text-gray-900 outline-none text-right focus:border-w-accent transition-colors p-0">
+                        </div>
+                        <div class="flex items-center bg-gray-50 rounded-xl p-1 border border-gray-100 shadow-inner">
+                            <button onclick="updateQty('${item.id}', -1)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center text-gray-600 font-black text-lg hover:bg-gray-50 active:bg-gray-200 active:scale-95 transition-all">-</button>
+                            <span class="w-6 sm:w-8 text-center font-black text-sm text-gray-900">${item.qty}</span>
+                            <button onclick="updateQty('${item.id}', 1)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center text-gray-600 font-black text-lg hover:bg-gray-50 active:bg-gray-200 active:scale-95 transition-all">+</button>
+                        </div>
+                    </div>
+                `;
+
+                const noteDisplayHTML = isLocked ? (hasNote ? `<div class="text-[11px] font-bold text-gray-500 mt-1 uppercase tracking-wide bg-gray-50 px-2 py-1 rounded-md border border-gray-100 shadow-inner">Note: ${escapeHTML(item.note)}</div>` : "") : `
                     <div id="note-container-${item.id}" class="flex items-center bg-gray-50/80 rounded-xl px-3 py-2 border border-gray-100 focus-within:border-w-accent focus-within:ring-1 focus-within:ring-w-accent transition-all shadow-inner ${hasNote ? '' : 'hidden'}">
                         <input type="text" value="${item.note || ''}" placeholder="Kitchen Notes (e.g. extra spicy, no ice)" onchange="updateNote('${item.id}', this.value)" class="text-[11px] font-semibold text-w-accent bg-transparent border-none outline-none focus:ring-0 w-full p-0 placeholder-gray-400">
                     </div>
+                `;
+
+                const deleteBtnHTML = isLocked ? "" : `
+                    <button onclick="removeItem('${item.id}')" class="text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors p-1.5 shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                `;
+
+                container.innerHTML += `
+                <div class="p-3 sm:p-4 rounded-xl border flex flex-col gap-2.5 transition-all duration-200 ${isLocked ? 'border-gray-200 bg-gray-50 opacity-90' : cardStyle}">
+                    <div class="flex justify-between items-center gap-2">
+                        <div class="flex-1 flex items-center gap-2 overflow-hidden pr-2">
+                            <span class="font-black ${isLocked ? 'text-gray-500' : 'text-gray-900'} text-sm truncate" title="${item.name}">${item.name}</span>
+                            ${stockBadge}
+                            ${!isLocked ? `<button onclick="toggleNoteVisibility('${item.id}')" class="text-gray-300 hover:text-w-accent p-1 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.89 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.89l12.683-12.683zm0 0L19.5 7.125"></path></svg></button>` : ''}
+                        </div>
+                        ${deleteBtnHTML}
+                    </div>
+                    
+                    ${noteDisplayHTML}
 
                     <div class="flex justify-between items-end mt-1">
-                        <div class="flex bg-gray-100 rounded-xl p-1 border border-gray-200 shadow-inner">
-                            <button onclick="setCourse('${item.id}', 'first')" class="${item.course === 'first' ? 'bg-amber-100 text-amber-700 shadow-sm' : 'text-gray-400 hover:text-gray-700'} px-2 sm:px-3 py-1.5 text-[9px] sm:text-[10px] font-black uppercase rounded-lg transition-all">1st / ASAP</button>
-                            <button onclick="setCourse('${item.id}', 'main')" class="${item.course === 'main' ? 'bg-white text-sky-600 shadow-sm' : 'text-gray-400 hover:text-gray-700'} px-2 sm:px-3 py-1.5 text-[9px] sm:text-[10px] font-black uppercase rounded-lg transition-all">Main</button>
-                            <button onclick="setCourse('${item.id}', 'last')" class="${item.course === 'last' ? 'bg-purple-100 text-purple-700 shadow-sm' : 'text-gray-400 hover:text-gray-700'} px-2 sm:px-3 py-1.5 text-[9px] sm:text-[10px] font-black uppercase rounded-lg transition-all">Last</button>
-                        </div>
-                        <div class="flex items-center gap-3 sm:gap-5">
-                            <div class="flex items-center gap-0.5 pb-1 hidden sm:flex">
-                                <span class="text-gray-400 font-bold text-xs">₹</span>
-                                <input type="number" step="0.01" value="${item.price.toFixed(2)}" onfocus="this.select()" oninput="updatePrice('${item.id}', this.value)" class="w-12 bg-transparent border-b-2 border-gray-200 py-0.5 text-xs font-black text-gray-900 outline-none text-right focus:border-w-accent transition-colors p-0">
-                            </div>
-                            <div class="flex items-center bg-gray-50 rounded-xl p-1 border border-gray-100 shadow-inner">
-                                <button onclick="updateQty('${item.id}', -1)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center text-gray-600 font-black text-lg hover:bg-gray-50 active:bg-gray-200 active:scale-95 transition-all">-</button>
-                                <span class="w-6 sm:w-8 text-center font-black text-sm text-gray-900">${item.qty}</span>
-                                <button onclick="updateQty('${item.id}', 1)" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center text-gray-600 font-black text-lg hover:bg-gray-50 active:bg-gray-200 active:scale-95 transition-all">+</button>
-                            </div>
-                        </div>
+                        ${controlsHTML}
                     </div>
                 </div>
                 `;
@@ -874,24 +899,68 @@
             }
         }
 
-        // --- TICKET MODIFIERS ---
+        // --- 🟢 TICKET MODIFIERS (WITH IMMUTABLE LOCKS) ---
         function toggleNoteVisibility(id) {
             const noteDiv = document.getElementById(`note-container-${id}`);
             if (noteDiv) noteDiv.classList.toggle('hidden');
         }
-        function setCourse(id, courseValue) { const item = activeTicket.find(i => String(i.id) === String(id)); if (item) { item.course = courseValue; renderTicket(); saveDraft(); } }
-        function updateQty(id, change) { const item = activeTicket.find(i => String(i.id) === String(id)); if (item) { item.qty += change; if (item.qty <= 0) removeItem(id); else { renderTicket(); saveDraft(); } } }
+        function setCourse(id, courseValue) { 
+            const item = activeTicket.find(i => String(i.id) === String(id)); 
+            if (item && !item.isLocked) { item.course = courseValue; renderTicket(); saveDraft(); } 
+        }
+        function updateQty(id, change) { 
+            const item = activeTicket.find(i => String(i.id) === String(id)); 
+            if (item && !item.isLocked) { 
+                item.qty += change; 
+                if (item.qty <= 0) removeItem(id); else { renderTicket(); saveDraft(); } 
+            } 
+        }
         function updatePrice(id, newPrice) {
             const item = activeTicket.find(i => String(i.id) === String(id));
-            if (item) {
+            if (item && !item.isLocked) {
                 item.price = parseFloat(newPrice) || 0;
                 let newSubtotal = activeTicket.reduce((sum, current) => sum + (current.qty * current.price), 0);
                 document.getElementById('ticket-subtotal').innerText = newSubtotal.toFixed(2);
                 saveDraft();
             }
         }
-        function updateNote(id, newNote) { const item = activeTicket.find(i => String(i.id) === String(id)); if (item) { item.note = newNote.trim(); saveDraft(); } }
+        function updateNote(id, newNote) { 
+            const item = activeTicket.find(i => String(i.id) === String(id)); 
+            if (item && !item.isLocked) { item.note = newNote.trim(); saveDraft(); } 
+        }
         function removeItem(id) { activeTicket = activeTicket.filter(i => String(i.id) !== String(id)); renderTicket(); saveDraft(); }
+
+        // --- 🟢 TOAST NOTIFICATION LOGIC ---
+        function showToastNotification(title, message) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            
+            const toast = document.createElement('div');
+            // Premium dark-mode styling with smooth transform animations
+            toast.className = "bg-gray-900 border border-gray-700 shadow-2xl rounded-2xl p-4 flex items-center gap-4 transform -translate-y-full opacity-0 transition-all duration-500 ease-out pointer-events-auto";
+            
+            toast.innerHTML = `
+                <div class="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center shrink-0 border border-green-500/30">
+                    <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <div class="flex flex-col flex-1">
+                    <span class="text-white font-black text-sm uppercase tracking-widest leading-tight">${title}</span>
+                    <span class="text-gray-400 text-xs font-bold mt-0.5">${message}</span>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-gray-500 hover:text-white p-2">✕</button>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => { toast.classList.remove('-translate-y-full', 'opacity-0'); }, 10);
+
+            // Auto-remove after 6 seconds
+            setTimeout(() => {
+                toast.classList.add('-translate-y-full', 'opacity-0');
+                setTimeout(() => { if (toast.parentNode) toast.remove(); }, 500);
+            }, 6000);
+        }
 
         // --- 🟢 MENU & STOCK FILTERS ---
         let currentMenuFilter = 'all';
@@ -1051,14 +1120,15 @@
         }
 
         function addFromMenu(name, price) {
-            const existing = activeTicket.find(i => i.name === name && i.note === "" && i.course === "main");
+            // 🟢 ENTERPRISE FIX: Only merge if the existing item is NOT locked
+            const existing = activeTicket.find(i => i.name === name && i.note === "" && i.course === "main" && !i.isLocked);
             if (existing) {
                 existing.qty++;
             } else {
-                activeTicket.push({ id: Date.now() + Math.random(), name: name, qty: 1, price: parseFloat(price), note: "", course: "main" });
+                activeTicket.push({ id: Date.now() + Math.random(), name: name, qty: 1, price: parseFloat(price), note: "", course: "main", isLocked: false });
             }
             renderTicket();
-            saveDraft(); // 🟢 Save draft
+            saveDraft(); 
             closeMenuModal();
             const container = document.getElementById('order-items-container');
             setTimeout(() => { container.scrollTop = container.scrollHeight; }, 100);
@@ -1072,6 +1142,13 @@
             if (activeTicket.length === 0) { 
                 showPosAlert("Empty Ticket", "There is nothing to settle. Just hit the 'X' to exit.", "info");
                 return; 
+            }
+
+            // 🟢 SECURITY: The Ghost Charge Vulnerability Lock
+            const isModified = originalTicketState !== JSON.stringify(activeTicket);
+            if (isModified) {
+                showPosAlert("Unsaved Changes", "You have added items to this order but haven't fired them to the kitchen yet.<br><br>Please tap <b>Update Order</b> to send them, or delete the unsent items before settling.", "error");
+                return;
             }
 
             // 🟢 Waiter Accountability Check
@@ -1215,8 +1292,13 @@
                 
                 if (data.success) {
                     currentOrderStatus = `Table ${table} - LOCKED`;
+                    
+                    // 🟢 THE ENTERPRISE FIX: Instantly lock all items in local memory.
+                    // This prevents mid-meal additions from merging into dishes the kitchen has already cooked!
+                    activeTicket.forEach(item => { item.isLocked = true; });
+                    
                     originalTicketState = JSON.stringify(activeTicket);
-                    localStorage.removeItem('waiter_draft'); // 🟢 Order successfully fired, clear draft
+                    localStorage.removeItem('waiter_draft'); // Order successfully fired, clear draft
                     renderTicket(); 
                     showPosAlert("Order Fired!", `Success! The ticket for Table ${table} has been locked and sent to the kitchen.`, "success");
                 
@@ -1452,12 +1534,15 @@
 
         // --- 🟢 BACKGROUND POLLER FOR READY TABLES ---
         let readyPollerInterval = null;
+        let alertedReadyTables = new Set(); // 🟢 Prevent toast spam
         
         function startReadyPoller() {
             if (readyPollerInterval) clearInterval(readyPollerInterval);
             pollReadyTables(); // Run immediately
             readyPollerInterval = setInterval(pollReadyTables, 15000); // Run every 15 seconds
         }
+
+        let alertedReadyTables = new Set(); // 🟢 Prevents the toast from spamming every 15 seconds
 
         async function pollReadyTables() {
             // Only poll if device is authorized
@@ -1468,12 +1553,19 @@
                 const data = await response.json();
                 
                 const badge = document.getElementById('ready-badge');
-                if (badge) {
-                    // Check if ANY table has the "READY" status
-                    const hasReadyTable = data.success && data.openTables.some(t => t.fullStatus && t.fullStatus.includes("READY"));
+                if (badge && data.success) {
+                    const readyTables = data.openTables.filter(t => t.fullStatus && t.fullStatus.includes("READY"));
                     
-                    if (hasReadyTable) {
+                    if (readyTables.length > 0) {
                         badge.classList.remove('hidden');
+                        
+                        // 🟢 Trigger sleek toast for newly ready tables
+                        readyTables.forEach(t => {
+                            if (!alertedReadyTables.has(t.token)) {
+                                showToastNotification("Order Ready", `Food for ${t.table} is ready to serve.`);
+                                alertedReadyTables.add(t.token);
+                            }
+                        });
                     } else {
                         badge.classList.add('hidden');
                     }
