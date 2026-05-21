@@ -804,12 +804,22 @@
             const selectedTable = document.getElementById('table-select').value;
             if (!selectedTable) return;
 
+            // 🟢 UX FIX: Dim the dropdown and pulse it so the waiter knows it is verifying
+            const tableContainer = document.getElementById('table-select').parentElement;
+            tableContainer.classList.add('opacity-50', 'pointer-events-none', 'animate-pulse');
+
+            // 🟢 SECURITY FIX: Force a live fetch from the database to guarantee 100% accuracy
+            await pollReadyTables();
+            
+            tableContainer.classList.remove('opacity-50', 'pointer-events-none', 'animate-pulse');
+
             // 1. Check if the table is currently occupied by someone else
             const occupiedTable = currentOpenTables.find(t => t.table === selectedTable);
             
             if (occupiedTable && occupiedTable.token !== currentInput) {
                 // Table is occupied by a DIFFERENT token!
                 document.getElementById('table-select').value = ""; // Reset selection
+                renderTicket(); // 🟢 CRITICAL FIX: Explicitly re-lock the menu buttons!
                 
                 const premiumMessage = `
                     <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">
@@ -827,7 +837,6 @@
                 `;
 
                 showPosAlert("Table Occupied!", premiumMessage, "warning", () => {
-                    // Action: Jump to the occupied order
                     closePosAlert();
                     currentInput = occupiedTable.token;
                     document.getElementById('token-input').innerText = currentInput;
@@ -841,21 +850,10 @@
             renderTicket();
         }
 
-        // We need to keep our local list of tables fresh
-        async function fetchOpenTablesSilently() {
-            try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_get_open_tables" }) });
-                const data = await response.json();
-                if (data.success) {
-                    currentOpenTables = data.openTables;
-                }
-            } catch (e) {}
-        }
-
-        // Update the list when we start a new walk-in
+        // Initialize walk-ins properly
         const originalStartNewOrder = startNewOrder;
         startNewOrder = function() {
-            fetchOpenTablesSilently(); // Pre-fetch tables so the dropdown check works instantly
+            pollReadyTables(); // Pre-fetch tables in background
             originalStartNewOrder();
         }
 
@@ -1849,16 +1847,33 @@
         }
 
         async function pollReadyTables() {
-            // Only poll if device is authorized
             if (localStorage.getItem('impact_device_authorized') !== 'true') return;
             
             try {
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_get_open_tables" }) });
                 const data = await response.json();
                 
-                const badge = document.getElementById('ready-badge');
-                if (badge && data.success) {
-                    const readyTables = data.openTables.filter(t => t.fullStatus && t.fullStatus.includes("READY"));
+                if (data.success) {
+                    currentOpenTables = data.openTables; // 🟢 Updates our master collision tracker
+                    
+                    const badge = document.getElementById('ready-badge');
+                    if (badge) {
+                        const readyTables = data.openTables.filter(t => t.fullStatus && t.fullStatus.includes("READY"));
+                        if (readyTables.length > 0) {
+                            badge.classList.remove('hidden');
+                            readyTables.forEach(t => {
+                                if (!alertedReadyTables.has(t.token)) {
+                                    showToastNotification("Order Ready", `Food for ${t.table} is ready to serve.`);
+                                    alertedReadyTables.add(t.token);
+                                }
+                            });
+                        } else {
+                            badge.classList.add('hidden');
+                        }
+                    }
+                }
+            } catch (err) {}
+        }
                     
                     if (readyTables.length > 0) {
                         badge.classList.remove('hidden');
