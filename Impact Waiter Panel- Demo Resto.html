@@ -12,16 +12,20 @@
     <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0/index.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0/default.css">
     <script>
-        // Initializes the touch interface silently
         window.addEventListener('DOMContentLoaded', () => {
             MobileDragDrop.polyfill({
-                dragImageTranslateOverride: window.MobileDragDrop.scrollBehaviourDragImageTranslateOverride
+                dragImageTranslateOverride: window.MobileDragDrop.scrollBehaviourDragImageTranslateOverride,
+                holdToDrag: 250 // 🟢 Waiter must hold for 250ms to pick up an item. Allows normal fast-scrolling!
             });
-            // Prevents the browser from accidentally scrolling the page while the user is trying to drag a card
-            window.addEventListener('touchmove', function() {}, {passive: false});
+            // 🟢 Locks the screen from native scrolling ONLY when actively dragging a card
+            window.addEventListener('touchmove', function(e) {
+                if (typeof draggedItemId !== 'undefined' && draggedItemId !== null) {
+                    e.preventDefault();
+                }
+            }, {passive: false});
         });
     </script>
-    
+
     <script>
         tailwind.config = {
             theme: {
@@ -929,12 +933,13 @@
         // --- 🟢 TICKET MODIFIERS & AUTO-SCROLL DRAG ENGINE ---
         let draggedItemId = null;
         let autoScrollInterval = null;
+        let scrollDirection = 0;
 
         function dragStart(e, id) {
             draggedItemId = id;
             e.dataTransfer.effectAllowed = 'move';
-            // 🟢 UX: Added shadow-2xl and z-50 so the dragged item visually "floats" above the list
-            setTimeout(() => e.target.classList.add('opacity-50', 'scale-[0.98]', 'shadow-2xl', 'z-50'), 0);
+            // 🟢 UX: Added blue border and deep shadow so it visually pops off the screen
+            setTimeout(() => e.target.classList.add('opacity-60', 'scale-[0.98]', 'shadow-2xl', 'z-50', 'border-w-accent'), 0);
         }
 
         function dragOver(e) {
@@ -942,30 +947,35 @@
             e.dataTransfer.dropEffect = 'move';
         }
 
-        // 🟢 The Edge-Scrolling Physics Engine
+        // 🟢 Mobile-Optimized Edge-Scrolling Physics
         function handleDragOverContainer(e) {
             e.preventDefault();
             const container = document.getElementById('order-items-container');
             const rect = container.getBoundingClientRect();
             
-            // The invisible "hitbox" near the top and bottom (75 pixels)
-            const threshold = 75; 
-            const y = e.clientY - rect.top;
+            // Extract Y reliably (handles both desktop mouse and mobile polyfill touches)
+            const clientY = e.clientY || (e.touches && e.touches.length > 0 ? e.touches[0].clientY : 0);
+            
+            // Large 120px invisible hitboxes at the top and bottom of the list for thumbs
+            const threshold = 120; 
+            const y = clientY - rect.top;
 
-            if (y < threshold) {
-                startAutoScroll(container, -1); // Scroll Up
-            } else if (y > rect.height - threshold) {
-                startAutoScroll(container, 1);  // Scroll Down
+            if (y >= 0 && y < threshold) {
+                scrollDirection = -1; // Scroll Up
+                startAutoScroll(container);
+            } else if (y <= rect.height && y > rect.height - threshold) {
+                scrollDirection = 1;  // Scroll Down
+                startAutoScroll(container);
             } else {
-                stopAutoScroll(); // Stop if in the safe middle zone
+                stopAutoScroll(); // Stop scrolling if finger is safely in the middle
             }
         }
 
-        function startAutoScroll(container, direction) {
+        function startAutoScroll(container) {
             if (autoScrollInterval) return;
-            // 🟢 Runs at 60fps, scrolling 15 pixels per frame
+            // 🟢 60fps smooth scrolling
             autoScrollInterval = setInterval(() => {
-                container.scrollTop += direction * 15; 
+                container.scrollTop += scrollDirection * 12; 
             }, 16); 
         }
 
@@ -978,7 +988,7 @@
 
         function dropItem(e, targetId) {
             e.preventDefault();
-            stopAutoScroll(); // Halt scrolling the moment the item drops
+            stopAutoScroll(); 
             
             if (draggedItemId === targetId || !draggedItemId) return;
             
@@ -995,8 +1005,8 @@
         }
 
         function dragEnd(e) {
-            e.target.classList.remove('opacity-50', 'scale-[0.98]', 'shadow-2xl', 'z-50');
-            stopAutoScroll(); // Failsafe shutoff
+            e.target.classList.remove('opacity-60', 'scale-[0.98]', 'shadow-2xl', 'z-50', 'border-w-accent');
+            stopAutoScroll(); 
             draggedItemId = null;
         }
 
