@@ -15,8 +15,9 @@
         window.addEventListener('DOMContentLoaded', () => {
             MobileDragDrop.polyfill({
                 dragImageTranslateOverride: window.MobileDragDrop.scrollBehaviourDragImageTranslateOverride,
-                holdToDrag: 250 // 🟢 Waiter must hold for 250ms to pick up an item
+                holdToDrag: 250 // 🟢 Waiter must hold for 250ms to pick up an item. Allows normal fast-scrolling!
             });
+            // 🟢 Locks the screen from native scrolling ONLY when actively dragging a card
             window.addEventListener('touchmove', function(e) {
                 if (typeof draggedItemId !== 'undefined' && draggedItemId !== null) {
                     e.preventDefault();
@@ -43,15 +44,18 @@
         }
     </script>
     <style>
+        /* 🟢 STRICT NO-SCROLL VAULT */
         html, body { 
             margin: 0; padding: 0; width: 100%; height: 100%; 
             font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #0f172a; 
             overflow: hidden; position: fixed; inset: 0; touch-action: manipulation; 
         }
+        
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
         
+        /* 🟢 ULTRA-COMPACT DYNAMIC SIZING */
         .numpad-btn {
             background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px;
             font-size: min(1.5rem, 3.5vh); font-weight: 800; color: #0f172a;
@@ -84,17 +88,25 @@
             <span id="sync-status" class="text-[8px] sm:text-[9px] uppercase font-bold tracking-widest text-amber-500 animate-pulse">Syncing...</span>
             <span id="clock" class="text-xs sm:text-sm font-bold text-gray-400">00:00</span>
             
-            <button onclick="toggleNotificationModal()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:text-w-accent hover:bg-sky-50 transition-colors relative">
+            <button onclick="toggleNotificationHistory()" class="relative w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"></path></svg>
-                <span id="bell-badge" class="hidden absolute top-0 right-0 flex h-2.5 w-2.5">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 border border-white"></span>
-                </span>
+                <span id="notif-badge" class="hidden absolute -top-1 -right-1 flex h-2.5 w-2.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 border border-white"></span></span>
             </button>
         </div>
     </header>
-
-    <div id="view-auth" class="flex-1 flex flex-col items-center justify-center p-6 w-full max-w-sm mx-auto z-50 bg-w-bg absolute inset-0">
+    
+    <div id="notif-history-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[700] hidden flex-col justify-end">
+        <div class="bg-white w-full md:w-96 md:absolute md:right-4 md:top-20 h-[70vh] md:h-[60vh] rounded-t-[32px] md:rounded-[24px] shadow-2xl flex flex-col animate-[slideUp_0.3s_ease-out]">
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 rounded-t-[32px] shrink-0">
+                <h3 class="font-black text-lg tracking-tight text-gray-900">Alert History</h3>
+                <button onclick="toggleNotificationHistory()" class="w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-500 font-bold hover:bg-gray-100 shadow-sm">✕</button>
+            </div>
+            <div id="notif-history-list" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/30">
+                <p class="text-center text-gray-400 font-bold text-sm py-8">No recent alerts.</p>
+            </div>
+        </div>
+    </div>
+<div id="view-auth" class="flex-1 flex flex-col items-center justify-center p-6 w-full max-w-sm mx-auto z-50 bg-w-bg absolute inset-0">
         <div class="bg-white p-8 rounded-3xl shadow-xl w-full flex flex-col items-center text-center border border-gray-100">
             <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
@@ -109,7 +121,6 @@
             </button>
         </div>
     </div>
-
     <div id="view-numpad" class="flex-1 w-full max-w-sm mx-auto flex flex-col justify-center gap-4 px-4 py-4 min-h-0 transition-opacity duration-300">
         
         <div class="flex flex-col items-center shrink-0 w-full">
@@ -218,11 +229,11 @@
                     </div>
                 </div>
 
-                <div class="flex gap-2 w-full transition-all">
-                    <button id="settle-btn" onclick="clearTable()" class="w-1/3 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-red-100 transition-colors hidden">
+                <div class="flex gap-2">
+                    <button id="settle-btn" onclick="clearTable()" class="w-1/3 py-3 bg-gray-100 text-gray-400 border border-gray-200 rounded-xl font-bold uppercase tracking-widest text-[10px] cursor-not-allowed transition-colors" disabled>
                         Settle
                     </button>
-                    <button id="fire-btn" onclick="fireToKitchen()" class="w-full bg-w-success text-white rounded-xl font-black uppercase tracking-widest text-[13px] shadow-lg shadow-green-600/30 hover:bg-green-700 transition-all flex items-center justify-center gap-2">
+                    <button id="fire-btn" onclick="fireToKitchen()" class="w-2/3 bg-w-success text-white rounded-xl font-black uppercase tracking-widest text-[13px] shadow-lg shadow-green-600/30 hover:bg-green-700 transition-colors flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"></path></svg>
                         Fire Order
                     </button>
@@ -233,20 +244,6 @@
                     Alert Kitchen: Fire "Serve Last"
                 </button>
             </div>
-        </div>
-    </div>
-
-    <div id="notification-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] hidden flex-col justify-end sm:justify-center items-center sm:p-4 opacity-0 transition-opacity duration-200">
-        <div class="bg-white w-full sm:max-w-md h-[60vh] sm:h-[70vh] rounded-t-[32px] sm:rounded-3xl shadow-2xl flex flex-col transform transition-transform duration-200 translate-y-full sm:translate-y-0 sm:scale-95" id="notification-box">
-            <div class="p-5 border-b border-gray-100 bg-gray-50 flex justify-between items-center sticky top-0 z-10 rounded-t-[32px] sm:rounded-t-3xl">
-                <h3 class="font-black text-lg text-gray-900 tracking-tight flex items-center gap-2">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"></path></svg>
-                    Notification History
-                </h3>
-                <button onclick="closeNotificationModal()" class="text-gray-400 hover:text-gray-600 font-bold w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">✕</button>
-            </div>
-            <div id="notification-list" class="flex-1 overflow-y-auto p-4 flex flex-col gap-3 bg-gray-50/50">
-                </div>
         </div>
     </div>
 
@@ -403,22 +400,22 @@
         let cachedMenu = []; 
         let originalTicketState = ""; // 🟢 Tracks initial cart
         let currentOrderStatus = "";  // 🟢 Tracks Locked/Fire Next
-        
-        // 🟢 NOTIFICATION VAULT
+
+        // 🟢 NEW: Waiter Audio Context & Alert History
+        let globalAudioCtx = null;
         let notificationHistory = [];
 
-        // 🟢 AUDIO ENGINE (Unlocks silently when Waiter types PIN)
-        let globalAudioCtx = null;
-        function initAudio() {
+        // Unlock audio context on first tap anywhere
+        document.addEventListener('click', () => {
             if (!globalAudioCtx) {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
                 globalAudioCtx = new AudioContext();
             }
             if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
-        }
+        }, { once: true, capture: true });
 
-        function playWaiterAlertSound() {
-            if (!globalAudioCtx) return; 
+        function playWaiterAlert() {
+            if (!globalAudioCtx) return;
             try {
                 if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
                 const playTone = (freq, startTime, duration) => {
@@ -433,71 +430,56 @@
                     osc.start(startTime); osc.stop(startTime + duration);
                 };
                 const now = globalAudioCtx.currentTime;
-                // Double chime
-                playTone(1046.50, now, 0.4); 
-                playTone(1318.51, now + 0.2, 0.6); 
+                // 3 quick beeps for the Waiter alert
+                playTone(880, now, 0.2);
+                playTone(880, now + 0.3, 0.2);
+                playTone(1046.50, now + 0.6, 0.4);
             } catch(e) {}
         }
 
-        function logNotification(title, message, isError = false) {
-            notificationHistory.unshift({ title, message, time: new Date(), isError });
-            if (notificationHistory.length > 10) notificationHistory.pop();
+        function logNotification(title, message) {
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            notificationHistory.unshift({ title, message, time });
+            if (notificationHistory.length > 10) notificationHistory.pop(); // Keep only last 10
             
-            // Show red dot on bell
-            const badge = document.getElementById('bell-badge');
-            if (badge) badge.classList.remove('hidden');
+            document.getElementById('notif-badge').classList.remove('hidden'); // Show red dot
+            
+            const list = document.getElementById('notif-history-list');
+            list.innerHTML = notificationHistory.map(n => `
+                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="font-black text-[11px] uppercase tracking-widest text-w-accent">${n.title}</span>
+                        <span class="text-[9px] text-gray-400 font-bold">${n.time}</span>
+                    </div>
+                    <p class="text-xs text-gray-600 font-medium">${n.message}</p>
+                </div>
+            `).join('');
         }
 
-        function toggleNotificationModal() {
-            const badge = document.getElementById('bell-badge');
-            if (badge) badge.classList.add('hidden'); // Clear dot when viewed
-            
-            const modal = document.getElementById('notification-modal');
-            const box = document.getElementById('notification-box');
-            const list = document.getElementById('notification-list');
-            
+        function toggleNotificationHistory() {
+            const modal = document.getElementById('notif-history-modal');
+            document.getElementById('notif-badge').classList.add('hidden'); // Clear red dot
             if (modal.classList.contains('hidden')) {
-                // Open
-                list.innerHTML = notificationHistory.length === 0 
-                    ? `<p class="text-center text-gray-400 font-bold text-sm py-10">No recent notifications</p>`
-                    : notificationHistory.map(n => `
-                        <div class="p-3 bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col gap-1">
-                            <div class="flex justify-between items-start">
-                                <span class="font-black text-[10px] uppercase tracking-widest ${n.isError ? 'text-red-500' : 'text-w-accent'}">${n.title}</span>
-                                <span class="text-[9px] text-gray-400 font-bold">${n.time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                            </div>
-                            <span class="text-xs text-gray-700 font-medium">${n.message}</span>
-                        </div>
-                    `).join('');
-                
-                safePushState('notifications');
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-                setTimeout(() => {
-                    modal.classList.remove('opacity-0');
-                    if(window.innerWidth < 640) {
-                        box.classList.remove('translate-y-full');
-                    } else {
-                        box.classList.remove('scale-95');
-                        box.classList.add('scale-100');
-                    }
-                }, 10);
+                modal.classList.remove('hidden'); modal.classList.add('flex');
+            } else {
+                modal.classList.add('hidden'); modal.classList.remove('flex');
             }
         }
 
-        function closeNotificationModal(fromPopState = false) {
-            if (!fromPopState && window.location.hash.includes('notifications')) { try { window.history.back(); } catch(e) {} return; }
-            const modal = document.getElementById('notification-modal');
-            const box = document.getElementById('notification-box');
-            modal.classList.add('opacity-0');
-            if(window.innerWidth < 640) {
-                box.classList.add('translate-y-full');
-            } else {
-                box.classList.remove('scale-100');
-                box.classList.add('scale-95');
-            }
-            setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 200);
-        }
+        // Intercept existing alerts to add sound and logging
+        const originalShowPosAlert = showPosAlert;
+        showPosAlert = function(title, message, type, onConfirm, confirmText) {
+            logNotification(title, message.replace(/<[^>]*>?/gm, '')); 
+            playWaiterAlert(); // 🟢 Play the 3-beep chime
+            originalShowPosAlert(title, message, type, onConfirm, confirmText);
+        };
+
+        const originalShowToastNotification = showToastNotification;
+        showToastNotification = function(title, message) {
+            logNotification(title, message);
+            playWaiterAlert(); // 🟢 Play the 3-beep chime
+            originalShowToastNotification(title, message);
+        };
 
         // 🟢 AUTO-SAVE LOGIC
         function saveDraft() {
@@ -537,9 +519,10 @@
             }
         }
 
+        // 🟢 FIX: Safe Push State ignores errors during local testing to prevent crashes
         function safePushState(hashName) {
             try { window.history.pushState({ modal: hashName }, '', '#' + hashName); } 
-            catch (e) { }
+            catch (e) { /* Ignore fallback to prevent popstate loops on local files */ }
         }
 
         // --- CUSTOM POS ALERTS ---
@@ -551,13 +534,10 @@
             const btnContainer = document.getElementById('pos-alert-buttons');
             
             document.getElementById('pos-alert-title').innerText = title;
+            // 🟢 FIX: innerHTML forces the browser to read the styling tags instead of printing them!
             document.getElementById('pos-alert-message').innerHTML = message; 
 
-            // Log to history
-            const isErr = type === 'error' || type === 'warning';
-            logNotification(title, message.replace(/<[^>]*>?/gm, ''), isErr);
-
-            if (isErr) {
+            if (type === 'error' || type === 'warning') {
                 header.className = "h-2 w-full bg-w-danger";
                 iconContainer.className = "mx-auto w-14 h-14 mb-5 rounded-full flex items-center justify-center bg-red-50 text-w-danger border border-red-100";
                 iconContainer.innerHTML = `<svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
@@ -603,7 +583,6 @@
 
         // --- 🟢 SECURITY: DEVICE AUTHORIZATION LOGIC ---
         async function authorizeDevice() {
-            initAudio(); // 🟢 Wake up audio engine
             const pin = document.getElementById('device-auth-pin').value;
             if (!pin) return;
             
@@ -684,7 +663,6 @@
             if (!document.getElementById('menu-modal').classList.contains('hidden')) { closeMenuModal(true); return; }
             if (!document.getElementById('stock-modal').classList.contains('hidden')) { closeStockModal(true); return; }
             if (!document.getElementById('open-tables-modal').classList.contains('hidden')) { closeTablesModal(true); return; }
-            if (!document.getElementById('notification-modal').classList.contains('hidden')) { closeNotificationModal(true); return; }
             
             if (!document.getElementById('view-ticket').classList.contains('hidden')) {
                 safePushState('ticket'); // Trap them
@@ -694,7 +672,6 @@
 
         // --- NUMPAD LOGIC ---
         function pressKey(num) {
-            initAudio(); // 🟢 Wake up audio engine on first tap
             if (currentInput.length < 4) {
                 currentInput += num;
                 document.getElementById('token-input').innerText = currentInput;
@@ -708,7 +685,6 @@
 
         // 🟢 UX FIX: Instant generation of a "Walk-In" ticket
         function startNewOrder() {
-            initAudio(); 
             syncMenuBackground();
             // Generate a random 4 digit token with the "W-" prefix
             currentInput = "W-" + Math.floor(1000 + Math.random() * 9000);
@@ -748,7 +724,6 @@
         }
 
         async function fetchOrder() {
-            initAudio();
             syncMenuBackground(); 
             
             // 🟢 UX FIX: Allow 4-digit Smart Orders OR 6-character Walk-In tokens (W-XXXX)
@@ -789,7 +764,7 @@
                         Object.entries(data.cartData).forEach(([dishName, qty], index) => {
                             const menuItem = cachedMenu.find(m => String(m.name || '').toLowerCase() === dishName.toLowerCase());
                             const price = menuItem ? menuItem.price : 0;
-                            activeTicket.push({ id: Date.now() + Math.random(), name: dishName, qty: qty, price: price, note: "", course: "main", isLocked: true });
+                            activeTicket.push({ id: Date.now() + Math.random(), name: dishName, qty: qty, price: price, note: "", course: "main" });
                         });
                     }
 
@@ -1282,8 +1257,6 @@
             
             container.appendChild(toast);
             
-            playWaiterAlertSound(); // 🟢 Trigger audio alert for toast
-            
             // Animate in
             setTimeout(() => {
                 toast.classList.remove('translate-y-[-100%]', 'opacity-0');
@@ -1296,9 +1269,6 @@
                 toast.classList.add('translate-y-[-100%]', 'opacity-0');
                 setTimeout(() => { if (toast.parentNode) toast.remove(); }, 500);
             }, 6000);
-            
-            // Log to history
-            logNotification(title, message, false);
         }
 
         // --- 🟢 MENU & STOCK FILTERS ---
@@ -1458,6 +1428,21 @@
             }
         }
 
+        function addFromMenu(name, price) {
+            // 🟢 ENTERPRISE FIX: Added !i.isLocked. It will NEVER merge a new item with an item already in the kitchen!
+            const existing = activeTicket.find(i => i.name === name && i.note === "" && i.course === "main" && !i.isLocked);
+            if (existing) {
+                existing.qty++;
+            } else {
+                activeTicket.push({ id: Date.now() + Math.random(), name: name, qty: 1, price: parseFloat(price), note: "", course: "main", isLocked: false });
+            }
+            renderTicket();
+            saveDraft(); // 🟢 Save draft
+            closeMenuModal();
+            const container = document.getElementById('order-items-container');
+            setTimeout(() => { container.scrollTop = container.scrollHeight; }, 100);
+        } 
+
         // --- FINAL ACTIONS ---
         function clearTable() {
             const table = document.getElementById('table-select').value || "Unassigned";
@@ -1615,11 +1600,9 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    currentOrderStatus = `Table ${table} - LOCKED`;
-                    originalTicketState = JSON.stringify(activeTicket);
                     localStorage.removeItem('waiter_draft'); 
-                    closePosAlert(); // Close any loading spinners
-                    closeTicket();   // 🟢 SECURITY FIX: Kick waiter to home screen
+                    closePosAlert(); // Close the processing spinner
+                    closeTicket();   // 🟢 SECURITY FIX: Kick waiter to home screen to prevent ghost-editing!
                     
                     setTimeout(() => {
                         showPosAlert("Order Fired!", `Success! The ticket for Table ${table} has been locked and sent to the kitchen.`, "success");
@@ -1724,7 +1707,6 @@
         }
 
         function selectOpenTable(token) {
-            initAudio(); // 🟢 Wake up audio engine on tap
             closeTablesModal();
             currentInput = token; 
             document.getElementById('token-input').innerText = currentInput;
@@ -1899,6 +1881,12 @@
             }
         }
 
+        // Start poller automatically on page load if already authorized
+        document.addEventListener("DOMContentLoaded", () => {
+            if (localStorage.getItem('impact_device_authorized') === 'true') {
+                startReadyPoller();
+            }
+        });
     </script>
 </body>
 </html>
