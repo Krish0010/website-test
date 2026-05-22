@@ -1591,7 +1591,8 @@
                 let pacingStr = "Main Course";
                 if (item.course === "first") pacingStr = "Serve First";
                 if (item.course === "last") pacingStr = "Serve Last";
-                return { id: item.id, name: item.name.trim() || "Custom Dish", qty: item.qty, note: item.note ? item.note.trim() : "", category: category, pacing: pacingStr, price: item.price };
+                // 🟢 SECURITY FIX: Transmit the lock status to the Kitchen database!
+                return { id: item.id, name: item.name.trim() || "Custom Dish", qty: item.qty, note: item.note ? item.note.trim() : "", category: category, pacing: pacingStr, price: item.price, isLocked: !!item.isLocked };
             });
 
             try {
