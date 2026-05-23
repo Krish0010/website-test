@@ -395,7 +395,7 @@
 
     <script>
         // REPLACE WITH YOUR ACTUAL SCRIPT URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwkUWj7WXlbTxB9amBmwbfSdfRMqNfL_wuoJncdvvLrh-UQd1s0-_MaTHF6FAuwIWi3/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyhw-8_5r_A_8M99Fe7Put8CFlyKpz9GSZNKFWxG1dztg0b6K3G5LUfqerGwlDDpVvO/exec"; 
 
         let currentInput = "";
         let activeTicket = []; 
@@ -1590,11 +1590,12 @@
             let kdsPayload = activeTicket.map(item => {
                 const menuItem = cachedMenu.find(m => String(m.name || '').toLowerCase() === item.name.toLowerCase());
                 const category = menuItem ? menuItem.category : "Kitchen"; 
+                const prepTime = menuItem ? (menuItem.prepTime || 0) : 0; // 🟢 Fetch prep time from menu cache
                 let pacingStr = "Main Course";
                 if (item.course === "first") pacingStr = "Serve First";
                 if (item.course === "last") pacingStr = "Serve Last";
-                // 🟢 SECURITY FIX: Transmit the lock status to the Kitchen database!
-                return { id: item.id, name: item.name.trim() || "Custom Dish", qty: item.qty, note: item.note ? item.note.trim() : "", category: category, pacing: pacingStr, price: item.price, isLocked: !!item.isLocked };
+                
+                return { id: item.id, name: item.name.trim() || "Custom Dish", qty: item.qty, note: item.note ? item.note.trim() : "", category: category, pacing: pacingStr, price: item.price, isLocked: !!item.isLocked, prepTime: prepTime };
             });
 
             try {
