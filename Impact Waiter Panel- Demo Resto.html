@@ -395,7 +395,7 @@
 
     <script>
         // REPLACE WITH YOUR ACTUAL SCRIPT URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyhw-8_5r_A_8M99Fe7Put8CFlyKpz9GSZNKFWxG1dztg0b6K3G5LUfqerGwlDDpVvO/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzMknbUfGP-eisoFgobw4W4eyoEMZPvvWRiMif2Wtj-jfg5fRCkAhiCEpAgqC9it7L5/exec"; 
 
         let currentInput = "";
         let activeTicket = []; 
@@ -468,18 +468,12 @@
             }
         }
 
-        // Intercept existing alerts to add sound and logging
-        const originalShowPosAlert = showPosAlert;
-        showPosAlert = function(title, message, type, onConfirm, confirmText) {
-            logNotification(title, message.replace(/<[^>]*>?/gm, '')); 
-            playWaiterAlert(); // 🟢 Play the 3-beep chime
-            originalShowPosAlert(title, message, type, onConfirm, confirmText);
-        };
-
+        // 🟢 FIX: We ONLY intercept the Toast Notification (which comes from the Kitchen).
+        // This stops "Order Fired!" or "Table Occupied!" alerts from clogging the history panel.
         const originalShowToastNotification = showToastNotification;
         showToastNotification = function(title, message) {
             logNotification(title, message);
-            playWaiterAlert(); // 🟢 Play the 3-beep chime
+            playWaiterAlert(); // 🟢 Play the 3-beep kitchen chime
             originalShowToastNotification(title, message);
         };
 
@@ -1590,7 +1584,7 @@
             let kdsPayload = activeTicket.map(item => {
                 const menuItem = cachedMenu.find(m => String(m.name || '').toLowerCase() === item.name.toLowerCase());
                 const category = menuItem ? menuItem.category : "Kitchen"; 
-                const prepTime = menuItem ? (menuItem.prepTime || 0) : 0; // 🟢 Fetch prep time from menu cache
+                const prepTime = menuItem ? (menuItem.prepTime || 0) : 0; // 🟢 FETCH PREP TIME
                 let pacingStr = "Main Course";
                 if (item.course === "first") pacingStr = "Serve First";
                 if (item.course === "last") pacingStr = "Serve Last";
