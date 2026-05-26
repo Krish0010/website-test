@@ -175,9 +175,80 @@
                 <button onclick="toggleFullScreen()" class="relative w-9 h-9 sm:w-10 sm:h-10 bg-gray-800 rounded-xl hidden sm:flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-colors" title="Fullscreen Mode">
                     <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"></path></svg>
                 </button>
+                
+                <button onclick="openManagerAuth()" class="relative w-9 h-9 sm:w-10 sm:h-10 bg-gray-800 rounded-xl flex items-center justify-center text-gray-400 hover:text-k-accent hover:bg-gray-700 transition-colors" title="Manager Hub">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                </button>
             </div>
         </div>
     </header>
+
+    <div id="mgr-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[950] hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div id="mgr-auth-box" class="bg-gray-900 border border-gray-700 rounded-3xl shadow-2xl max-w-sm w-full p-8 text-center transform scale-95 transition-transform duration-300">
+            <h2 class="text-xl font-black tracking-widest uppercase text-white mb-2">Manager Access</h2>
+            <p class="text-gray-400 text-xs font-bold mb-6">Enter alphanumeric passcode</p>
+            <input type="password" id="mgr-kds-pin" class="w-full bg-gray-800 border-2 border-gray-700 rounded-xl px-4 py-4 font-black text-center tracking-[0.3em] text-white outline-none focus:border-k-accent transition-colors mb-4">
+            <div class="flex gap-3">
+                <button onclick="closeManagerAuth()" class="w-1/3 py-3 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:text-white transition-colors">Cancel</button>
+                <button onclick="verifyManagerKDS()" class="w-2/3 py-3 bg-k-accent hover:bg-sky-400 text-gray-900 rounded-xl font-black uppercase tracking-widest text-xs transition-colors shadow-lg">Unlock</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="mgr-hub-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[900] hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div id="mgr-hub-box" class="bg-gray-900 border border-gray-700 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] max-w-lg w-full p-6 transform scale-95 transition-transform duration-300 flex flex-col">
+            <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
+                <div>
+                    <h2 class="text-xl font-black tracking-widest uppercase text-white">Kitchen Settings</h2>
+                    <p class="text-[10px] uppercase font-bold text-k-accent tracking-widest mt-1">Authorized Personnel Only</p>
+                </div>
+                <button onclick="closeManagerHub()" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-colors">✕</button>
+            </div>
+            
+            <div class="space-y-4 overflow-y-auto max-h-[60vh] pr-2" style="scrollbar-width: thin;">
+                
+                <div class="flex items-center justify-between bg-gray-800 p-4 rounded-xl border border-gray-700">
+                    <div>
+                        <h4 class="text-white font-bold text-sm uppercase tracking-wider">Silent Mode</h4>
+                        <p class="text-gray-400 text-[10px] mt-0.5">Mute all incoming ticket chimes</p>
+                    </div>
+                    <button id="toggle-audio-btn" onclick="toggleKDSSetting('audio')" class="w-14 h-8 rounded-full bg-gray-600 relative transition-colors duration-300"><div id="toggle-audio-knob" class="w-6 h-6 bg-white rounded-full absolute top-1 left-1 transition-transform duration-300"></div></button>
+                </div>
+
+                <div class="flex items-center justify-between bg-gray-800 p-4 rounded-xl border border-gray-700">
+                    <div>
+                        <h4 class="text-white font-bold text-sm uppercase tracking-wider">Strict Mode</h4>
+                        <p class="text-gray-400 text-[10px] mt-0.5">Hide the "Pause Kitchen" emergency button</p>
+                    </div>
+                    <button id="toggle-sos-btn" onclick="toggleKDSSetting('sos')" class="w-14 h-8 rounded-full bg-gray-600 relative transition-colors duration-300"><div id="toggle-sos-knob" class="w-6 h-6 bg-white rounded-full absolute top-1 left-1 transition-transform duration-300"></div></button>
+                </div>
+
+                <div class="flex items-center justify-between bg-gray-800 p-4 rounded-xl border border-gray-700">
+                    <div>
+                        <h4 class="text-sky-400 font-bold text-sm uppercase tracking-wider">Prep Station Mode</h4>
+                        <p class="text-gray-400 text-[10px] mt-0.5">Cooks can only cross off items. Disables Global Bump.</p>
+                    </div>
+                    <button id="toggle-prep-btn" onclick="toggleKDSSetting('prep')" class="w-14 h-8 rounded-full bg-gray-600 relative transition-colors duration-300"><div id="toggle-prep-knob" class="w-6 h-6 bg-white rounded-full absolute top-1 left-1 transition-transform duration-300"></div></button>
+                </div>
+
+                <div class="flex items-center justify-between bg-gray-800 p-4 rounded-xl border border-gray-700">
+                    <div>
+                        <h4 class="text-white font-bold text-sm uppercase tracking-wider text-purple-400">Training / Demo Mode</h4>
+                        <p class="text-gray-400 text-[10px] mt-0.5">Inject fake tickets for staff practice</p>
+                    </div>
+                    <button id="toggle-demo-btn" onclick="toggleKDSSetting('demo')" class="w-14 h-8 rounded-full bg-gray-600 relative transition-colors duration-300"><div id="toggle-demo-knob" class="w-6 h-6 bg-white rounded-full absolute top-1 left-1 transition-transform duration-300"></div></button>
+                </div>
+
+                <div class="flex items-center justify-between bg-red-900/20 p-4 rounded-xl border border-red-900/50 mt-4">
+                    <div>
+                        <h4 class="text-red-400 font-bold text-sm uppercase tracking-wider">End of Day (EOD) Wipe</h4>
+                        <p class="text-gray-500 text-[10px] mt-0.5">Clear local strike memory & cache</p>
+                    </div>
+                    <button onclick="runEODWipe()" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-black text-[10px] uppercase tracking-widest transition-colors shadow-lg">Run Wipe</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div id="recall-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-[800] hidden flex-col items-center justify-center p-4">
         <div class="bg-gray-900 w-full max-w-2xl h-[80vh] rounded-[24px] shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col border border-gray-700 overflow-hidden">
@@ -292,7 +363,7 @@
 
     <script>
         // REPLACE WITH YOUR ACTUAL SCRIPT URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzMknbUfGP-eisoFgobw4W4eyoEMZPvvWRiMif2Wtj-jfg5fRCkAhiCEpAgqC9it7L5/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwbTs-GNEmsxo4dzBtX0emC2x98zxRJFxw5tbQqOtwcivoDd-8UeHzxh2-dDd_gbio/exec"; 
 
         let strikeMemory = new Set();
         let bumpedMemory = new Set(); 
@@ -305,6 +376,12 @@
         let latestReadyTickets = []; // 🟢 Stores tickets for the Recall menu
         let targetTimeOverrides = {}; // 🟢 Stores chef's manual time adjustments
         let lastGeneratedGridHTML = ""; // 🟢 VIRTUAL DOM: Stores previous HTML state
+
+        // 🟢 MANAGER HUB SETTINGS
+        let isAudioMuted = localStorage.getItem('kds_audio_muted') === 'true';
+        let isSOSDisabled = localStorage.getItem('kds_sos_disabled') === 'true';
+        let isPrepMode = localStorage.getItem('kds_prep_mode') === 'true'; // 🟢 NEW PREP MODE VAR
+        let isDemoMode = false; // Never saved to storage, resets on refresh for safety
 
         // Auto-refresh interval (milliseconds)
         const REFRESH_RATE = 8000; 
@@ -649,7 +726,7 @@
                         const noteHTML = itemObj.note ? `<div class="dish-note ${hasAllergy ? 'text-purple-300' : 'text-k-danger'} font-bold text-[11.5px] mt-1.5 flex items-start gap-1 leading-snug uppercase tracking-wide"><svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg> <span>${escapeHTML(itemObj.note)}</span></div>` : "";
 
                         return `
-                            <div onclick="${isLocked ? '' : `toggleStrike('${itemObj.renderId}', this)`}" 
+                            <div data-id="${itemObj.renderId}" onclick="${isLocked ? '' : `toggleStrike('${itemObj.renderId}', this)`}" 
                                  class="item-row px-4 py-3 border-b border-gray-800/60 transition-colors ${rowBgClass} 
                                  ${isLocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}">
                                 <div class="flex items-start justify-between gap-3 w-full">
@@ -687,9 +764,24 @@
                     const totalRenderedItems = baseItems.length + newUpdateItems.length;
                     const struckItemsCount = baseItems.filter(i => i.isStruck).length + newUpdateItems.filter(i => i.isStruck).length;
                     const isFullyStruck = totalRenderedItems > 0 && struckItemsCount === totalRenderedItems;
-                    const bumpBtnClass = isFullyStruck 
-                        ? "bg-k-success text-white shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:bg-green-500 active:scale-95" 
-                        : "bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 active:scale-95";
+                    
+                    // 🟢 DIM THE CARD IF PREP STATION IS DONE
+                    const cardOpacityClass = (isPrepMode && isFullyStruck) ? "opacity-40 grayscale-[50%]" : "";
+
+                    // 🟢 DYNAMIC ROLE AUTHORIZATION
+                    let bottomButtonHTML = "";
+                    if (isPrepMode) {
+                        // PREP MODE: Cooks can only strike local items
+                        if (isFullyStruck) {
+                            bottomButtonHTML = `<button disabled class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-1.5 bg-gray-800 border border-gray-700 text-gray-500 cursor-not-allowed"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path></svg> Station Cleared</button>`;
+                        } else {
+                            bottomButtonHTML = `<button onclick="strikeStationItems('${ticket.token}', this)" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 bg-blue-900/40 text-blue-400 border border-blue-500/50 hover:bg-blue-600 hover:text-white active:scale-95"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"></path></svg> Check Off Station</button>`;
+                        }
+                    } else {
+                        // EXPO MODE: Head Chef can bump globally
+                        const bumpBtnClass = isFullyStruck ? "bg-k-success text-white shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:bg-green-500 active:scale-95" : "bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 active:scale-95";
+                        bottomButtonHTML = `<button onclick="executeBump('${ticket.token}', '${tableNum}', this)" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 ${bumpBtnClass}"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path></svg> Mark Ready</button>`;
+                    }
 
                     let ackBtnHtml = "";
                     let statusLabel = isFireNext ? "FIRE NEXT" : "ELAPSED";
@@ -702,7 +794,7 @@
                     ticket.cart.forEach(i => { if ((i.prepTime || 0) > baseTarget) baseTarget = i.prepTime; });
 
                     gridHTML += `
-                        <div class="ticket-card bg-k-card rounded-xl flex flex-col overflow-hidden shadow-md border border-gray-700" data-timestamp="${orderTime}" data-token="${ticket.token}" data-target="${baseTarget}" data-isfirenext="${isFireNext}">
+                        <div class="ticket-card bg-k-card rounded-xl flex flex-col overflow-hidden shadow-md border border-gray-700 ${cardOpacityClass}" data-timestamp="${orderTime}" data-token="${ticket.token}" data-target="${baseTarget}" data-isfirenext="${isFireNext}">
                             <div class="ticket-header px-3 py-2 flex justify-between items-center shrink-0 transition-colors duration-300 border-b border-transparent">
                                 <div class="flex flex-col">
                                     <span class="font-black text-lg leading-none tracking-tight">T-${tableNum}</span>
@@ -726,10 +818,7 @@
                                 ${itemsHTML}
                             </div>
                             <div class="p-1.5 shrink-0 bg-gray-900 border-t border-gray-800">
-                                <button onclick="executeBump('${ticket.token}', '${tableNum}', this)" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 ${bumpBtnClass}">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path></svg>
-                                    Mark Ready
-                                </button>
+                                ${bottomButtonHTML}
                             </div>
                         </div>
                     `;
@@ -819,6 +908,30 @@
                 } else { alert("Error marking ticket ready: " + data.message); }
             } catch (err) { alert("Network error. Could not bump ticket.");
             } finally { overlay.classList.add('hidden'); overlay.classList.remove('flex'); }
+        }
+
+// 🟢 PREP STATION: Mass-strike local items
+        function strikeStationItems(token, btnElement) {
+            const card = btnElement.closest('.ticket-card');
+            const rows = card.querySelectorAll('.item-row:not(.is-struck)');
+            
+            rows.forEach(row => {
+                const uniqueItemId = row.getAttribute('data-id');
+                if (uniqueItemId) strikeMemory.add(uniqueItemId);
+                
+                row.classList.add('is-struck', 'bg-gray-900/50');
+                row.classList.remove('bg-k-card');
+            });
+            
+            // Dim the card visually instantly
+            card.classList.add('opacity-40', 'grayscale-[50%]');
+            
+            // Change button instantly
+            btnElement.className = "w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-1.5 bg-gray-800 border border-gray-700 text-gray-500 cursor-not-allowed";
+            btnElement.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path></svg> Station Cleared`;
+            btnElement.onclick = null;
+            
+            updatePrepSummary();
         }
 
         // --- UTILITIES & PACE ENGINE MATH ---
@@ -924,7 +1037,7 @@
             document.body.addEventListener('touchstart', stopAlertSound, { once: true, capture: true });
         }
         function triggerChime() {
-            if (!globalAudioCtx) return; 
+            if (!globalAudioCtx || isAudioMuted) return; // 🟢 MUTE CHECK
             try {
                 if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
                 const playTone = (freq, startTime) => {
@@ -944,7 +1057,7 @@
             document.body.addEventListener('touchstart', stopAlertSound, { once: true, capture: true });
         }
         function triggerUpdateChime() {
-            if (!globalAudioCtx) return; 
+            if (!globalAudioCtx || isAudioMuted) return; // 🟢 MUTE CHECK
             try {
                 if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
                 const playTone = (freq, startTime, duration, vol) => {
@@ -1092,6 +1205,166 @@
             modal.classList.add('opacity-0'); box.classList.remove('scale-100'); box.classList.add('scale-95');
             setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 300);
         }
+
+// --- 🟢 MANAGER HUB & DEMO MODE LOGIC ---
+
+        function openManagerAuth() {
+            document.getElementById('mgr-kds-pin').value = '';
+            const modal = document.getElementById('mgr-auth-modal'); const box = document.getElementById('mgr-auth-box');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); }, 10);
+            document.getElementById('mgr-kds-pin').focus();
+        }
+
+        function closeManagerAuth() {
+            const modal = document.getElementById('mgr-auth-modal'); const box = document.getElementById('mgr-auth-box');
+            modal.classList.add('opacity-0'); box.classList.remove('scale-100'); box.classList.add('scale-95');
+            setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 300);
+        }
+
+        async function verifyManagerKDS() {
+            const pinInput = document.getElementById('mgr-kds-pin');
+            const pin = pinInput.value;
+            if (!pin) return;
+
+            // Target the unlock button to add a loading spinner
+            const btn = document.querySelector('#mgr-auth-box button:last-child');
+            const originalText = btn.innerText;
+            btn.innerHTML = `<div class="w-4 h-4 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>`;
+            btn.disabled = true;
+
+            try {
+                // 🟢 SECURE FETCH: Ask the backend to verify the PIN
+                const response = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: "verify_kds_manager", pin: pin }) 
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    closeManagerAuth();
+                    setTimeout(openManagerHub, 300);
+                } else {
+                    alert("Incorrect Password.");
+                    pinInput.value = '';
+                }
+            } catch (err) {
+                alert("Network error verifying password.");
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function openManagerHub() {
+            // Render current toggle states
+            updateToggleUI('audio', isAudioMuted);
+            updateToggleUI('sos', isSOSDisabled);
+            updateToggleUI('prep', isPrepMode); // 🟢 Load Prep UI
+            updateToggleUI('demo', isDemoMode);
+
+            const modal = document.getElementById('mgr-hub-modal'); const box = document.getElementById('mgr-hub-box');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); }, 10);
+        }
+
+        function closeManagerHub() {
+            const modal = document.getElementById('mgr-hub-modal'); const box = document.getElementById('mgr-hub-box');
+            modal.classList.add('opacity-0'); box.classList.remove('scale-100'); box.classList.add('scale-95');
+            setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 300);
+            
+            // Apply strict mode instantly upon closing settings
+            const sosBtn = document.getElementById('kds-sos-btn');
+            if (isSOSDisabled && sosBtn) sosBtn.style.display = 'none';
+            else if (!isSOSDisabled && sosBtn) sosBtn.style.display = '';
+        }
+
+        function toggleKDSSetting(setting) {
+            if (setting === 'audio') {
+                isAudioMuted = !isAudioMuted;
+                localStorage.setItem('kds_audio_muted', isAudioMuted);
+                updateToggleUI('audio', isAudioMuted);
+            } else if (setting === 'sos') {
+                isSOSDisabled = !isSOSDisabled;
+                localStorage.setItem('kds_sos_disabled', isSOSDisabled);
+                updateToggleUI('sos', isSOSDisabled);
+            } else if (setting === 'prep') {
+                // 🟢 Toggle Prep Mode
+                isPrepMode = !isPrepMode;
+                localStorage.setItem('kds_prep_mode', isPrepMode);
+                updateToggleUI('prep', isPrepMode);
+                lastGeneratedGridHTML = ""; // Force DOM redraw to swap the buttons instantly
+                fetchKDS(); 
+            } else if (setting === 'demo') {
+                isDemoMode = !isDemoMode;
+                updateToggleUI('demo', isDemoMode);
+                if (isDemoMode) injectDemoTickets();
+                else {
+                    lastGeneratedGridHTML = ""; // Force DOM redraw
+                    fetchKDS(); // Resyncs real data immediately
+                }
+            }
+        }
+
+        function updateToggleUI(setting, isActive) {
+            const btn = document.getElementById(`toggle-${setting}-btn`);
+            const knob = document.getElementById(`toggle-${setting}-knob`);
+            if (!btn || !knob) return;
+            if (isActive) {
+                btn.classList.remove('bg-gray-600'); btn.classList.add(setting === 'demo' ? 'bg-purple-500' : 'bg-k-success');
+                knob.style.transform = 'translateX(1.5rem)';
+            } else {
+                btn.classList.add('bg-gray-600'); btn.classList.remove('bg-k-success', 'bg-purple-500');
+                knob.style.transform = 'translateX(0)';
+            }
+        }
+
+        function runEODWipe() {
+            if (confirm("Are you sure? This will wipe all strikes and cache from this tablet.")) {
+                strikeMemory.clear();
+                bumpedMemory.clear();
+                unacknowledgedUpdates = {};
+                showKDSToast("EOD Reset", "Tablet memory wiped successfully.", "bg-green-600 text-white");
+                closeManagerHub();
+                lastGeneratedGridHTML = "";
+                fetchKDS();
+            }
+        }
+
+        // 🟢 DEMO ENGINE: Intercepts fetch logic
+        function injectDemoTickets() {
+            if (!isDemoMode) return;
+            const fakeTime = Date.now() - (8 * 60000); // 8 minutes ago
+            const fakeTickets = [
+                { token: "D-101", timestamp: fakeTime, status: "Table 12 - LOCKED", cart: [
+                    { id: "d1", name: "Training Burger", qty: 2, note: "No onions", category: "Kitchen", pacing: "Main Course", prepTime: 12 },
+                    { id: "d2", name: "Demo Fries", qty: 1, note: "", category: "Kitchen", pacing: "Main Course", prepTime: 5 }
+                ]},
+                { token: "D-102", timestamp: fakeTime - (10 * 60000), status: "Table 4 - LOCKED", cart: [ // 18 mins ago (Should trigger red)
+                    { id: "d3", name: "Practice Steak", qty: 1, note: "Well Done", category: "Grill", pacing: "Serve Last", prepTime: 20 },
+                    { id: "d4", name: "Allergy Salad", qty: 1, note: "Nut Allergy", category: "Kitchen", pacing: "Serve First", prepTime: 8 }
+                ]}
+            ];
+            lastGeneratedGridHTML = ""; // Force redraw for demo
+            renderKDSGrid(fakeTickets);
+        }
+
+        // 🟢 INTERCEPT fetchKDS to respect Demo Mode
+        const originalFetchKDS = fetchKDS;
+        fetchKDS = async function() {
+            if (isDemoMode) {
+                injectDemoTickets();
+                setTimeout(fetchKDS, REFRESH_RATE); // Loop locally
+                return;
+            }
+            originalFetchKDS(); // Run normal sync if not in demo mode
+        };
+        
+        // Ensure SOS button respects Strict Mode on boot
+        document.addEventListener("DOMContentLoaded", () => {
+            const sosBtn = document.getElementById('kds-sos-btn');
+            if (isSOSDisabled && sosBtn) sosBtn.style.display = 'none';
+        });
     </script>
 </body>
 </html>
