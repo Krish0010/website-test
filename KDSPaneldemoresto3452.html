@@ -1318,19 +1318,23 @@
                 updateToggleUI('audio', isAudioMuted);
             } else if (setting === 'sos') {
                 isSOSDisabled = !isSOSDisabled;
-                localStorage.setItem(`kds_sos_${currentStationFilter}`, isSOSDisabled);
+                localStorage.setItem('kds_sos_disabled', isSOSDisabled);
                 updateToggleUI('sos', isSOSDisabled);
             } else if (setting === 'prep') {
+                // 🟢 Toggle Prep Mode
                 isPrepMode = !isPrepMode;
-                localStorage.setItem(`kds_prep_${currentStationFilter}`, isPrepMode);
+                localStorage.setItem('kds_prep_mode', isPrepMode);
                 updateToggleUI('prep', isPrepMode);
-                lastGeneratedGridHTML = ""; 
+                lastGeneratedGridHTML = ""; // Force DOM redraw to swap the buttons instantly
                 fetchKDS(); 
             } else if (setting === 'demo') {
                 isDemoMode = !isDemoMode;
                 updateToggleUI('demo', isDemoMode);
                 if (isDemoMode) injectDemoTickets();
-                else { lastGeneratedGridHTML = ""; fetchKDS(); }
+                else {
+                    lastGeneratedGridHTML = ""; // Force DOM redraw
+                    fetchKDS(); // Resyncs real data immediately
+                }
             }
         }
 
