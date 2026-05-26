@@ -679,11 +679,22 @@
                     let newUpdateItems = [];
                     const cart = Array.isArray(ticket.cart) ? ticket.cart : [];
                     
+                    // 🟢 SERVER-SYNC FIX: Extract which stations have pinged "Ready" from the ticket status
+                    const readyStations = [];
+                    if (ticket.status.includes("|")) {
+                        const parts = ticket.status.split("|").slice(1);
+                        parts.forEach(p => {
+                            const st = p.split(":")[0].trim().toLowerCase();
+                            if (st) readyStations.push(st);
+                        });
+                    }
+
+                    // 🟢 STRICTER CATEGORY FILTER: Ensure we don't accidentally match wrong categories
                     const filteredCart = cart.filter(item => {
                         if (currentStationFilter === "All") return true; 
                         const itemCategory = String(item.category || "Kitchen").trim().toLowerCase();
                         const activeFilter = String(currentStationFilter).trim().toLowerCase();
-                        return itemCategory.includes(activeFilter);
+                        return itemCategory === activeFilter || itemCategory.includes(activeFilter);
                     });
 
                     if (filteredCart.length === 0) return; 
@@ -695,8 +706,13 @@
 
                     sortedCart.forEach((item, index) => {
                         const uniqueItemId = `${ticket.token}_${item.id || index}_${item.name.replace(/\s+/g, '')}`;
-                        const isItemStruck = strikeMemory.has(uniqueItemId) || bumpedMemory.has(uniqueItemId);
-                        const isItemLocked = bumpedMemory.has(uniqueItemId);
+                        const itemCat = String(item.category || "Kitchen").trim().toLowerCase();
+                        
+                        // 🟢 AUTO-STRIKE FIX: If the server knows this station is done, force it to cross out on ALL screens!
+                        const isServerStruck = readyStations.some(rs => itemCat.includes(rs));
+
+                        const isItemStruck = isServerStruck || strikeMemory.has(uniqueItemId) || bumpedMemory.has(uniqueItemId);
+                        const isItemLocked = isServerStruck || bumpedMemory.has(uniqueItemId);
                         
                         if (isUpdated) {
                             let oldCart = unacknowledgedUpdates[ticket.token] || [];
@@ -779,9 +795,9 @@
                     const totalRenderedItems = baseItems.length + newUpdateItems.length;
                     const struckItemsCount = baseItems.filter(i => i.isStruck).length + newUpdateItems.filter(i => i.isStruck).length;
                     
-                    // 🟢 Check if the server already knows this station is done
-                    const isStationReady = ticket.status.includes(`${currentStationFilter}:Ready`);
+                    // 🟢 SERVER-SYNC FIX: This guarantees that if the server pushed a strike down, the UI recognizes the station as fully struck!
                     const isFullyStruck = totalRenderedItems > 0 && struckItemsCount === totalRenderedItems;
+                    const isStationReady = ticket.status.includes(`${currentStationFilter}:Ready`);
                     
                     // 🟢 DIM THE CARD IF PREP STATION IS DONE
                     const cardOpacityClass = (isPrepMode && (isFullyStruck || isStationReady)) ? "opacity-40 grayscale-[50%]" : "";
@@ -789,14 +805,13 @@
                     // 🟢 DYNAMIC ROLE AUTHORIZATION & SILENT PINGS
                     let bottomButtonHTML = "";
                     if (isPrepMode) {
-                        if (isStationReady) {
+                        if (isStationReady || isFullyStruck) {
                             bottomButtonHTML = `<button disabled class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-1.5 bg-green-900/30 border border-green-700/50 text-green-500 cursor-not-allowed">✅ Sent to Expo</button>`;
                         } else {
-                            // 🟢 Pass tableNum and currentStationFilter to the click event
                             bottomButtonHTML = `<button onclick="strikeStationItems('${ticket.token}', '${tableNum}', '${currentStationFilter}', this)" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 bg-blue-900/40 text-blue-400 border border-blue-500/50 hover:bg-blue-600 hover:text-white active:scale-95"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"></path></svg> Check Off & Send</button>`;
                         }
                     } else {
-                        // EXPO MODE: Head Chef can bump globally
+                        // EXPO MODE: Head Chef can bump globally. Button turns green automatically if ALL items are crossed out!
                         const bumpBtnClass = isFullyStruck ? "bg-k-success text-white shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:bg-green-500 active:scale-95" : "bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 active:scale-95";
                         bottomButtonHTML = `<button onclick="executeBump('${ticket.token}', '${tableNum}', this)" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 ${bumpBtnClass}"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path></svg> Mark Ready</button>`;
                     }
