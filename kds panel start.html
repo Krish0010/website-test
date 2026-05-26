@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KDS | IMPACT Kitchen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'k-bg': '#0f172a',      
+                        'k-card': '#1e293b',    
+                        'k-text': '#f8fafc',    
+                        'k-accent': '#38bdf8',  
+                        'k-success': '#22c55e', 
+                        'k-danger': '#ef4444',  
+                        'k-warning': '#eab308',
+                        'k-strike': '#64748b'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #0f172a; 
+            color: #f8fafc; 
+            margin: 0; 
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* 🟢 Custom Scrollbar for Kitchen Environment */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        .ticket-card {
+            transition: all 0.3s ease;
+        }
+
+        .item-row {
+            transition: all 0.2s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .item-row:active { transform: scale(0.98); }
+
+        /* 🟢 Item-Strike Visuals */
+        .is-struck {
+            opacity: 0.4;
+            background-color: rgba(0,0,0,0.2) !important;
+        }
+        .is-struck .dish-name { text-decoration: line-through; color: #94a3b8; }
+        .is-struck .dish-qty { background-color: #475569 !important; color: #94a3b8 !important; }
+        .is-struck .dish-note { text-decoration: line-through; }
+
+        /* 🟢 Fire Next Pulse Animation */
+        @keyframes alertPulse {
+            0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(234, 179, 8, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); }
+        }
+        .fire-next-alert {
+            border: 2px solid #eab308;
+            animation: alertPulse 2s infinite;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+         
+         /* 🟢 UX: High-Visibility Kitchen Animations */
+        @keyframes pulseAmberHeader {
+            0% { background-color: #ca8a04; color: #000; }
+            50% { background-color: #fef08a; color: #000; box-shadow: 0 0 20px rgba(234, 179, 8, 0.6); }
+            100% { background-color: #ca8a04; color: #000; }
+        }
+        .pulse-amber-header { animation: pulseAmberHeader 1.5s infinite; }
+
+        @keyframes pulseRedHeader {
+            0% { background-color: #991b1b; color: #fff; }
+            50% { background-color: #ef4444; color: #fff; box-shadow: 0 0 20px rgba(239, 68, 68, 0.6); }
+            100% { background-color: #991b1b; color: #fff; }
+        }
+        .pulse-red-header { animation: pulseRedHeader 1s infinite; }
+
+        /* 🟢 NEW: Blue Update Animation */
+        @keyframes pulseBlueHeader {
+            0% { background-color: #1e3a8a; color: #fff; }
+            50% { background-color: #3b82f6; color: #fff; box-shadow: 0 0 20px rgba(59, 130, 246, 0.6); }
+            100% { background-color: #1e3a8a; color: #fff; }
+        }
+        .pulse-blue-header { animation: pulseBlueHeader 1.5s infinite; }
+
+        .glass-overlay {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <div id="kds-toast-container" class="fixed top-20 right-6 z-[1000] flex flex-col gap-3 pointer-events-none w-80"></div>
+
+    <div id="kds-start-overlay" onclick="startKDS()" class="fixed inset-0 glass-overlay z-[500] flex flex-col items-center justify-center cursor-pointer transition-all duration-500">
+        <div class="bg-gray-900/90 border border-gray-700 p-8 sm:p-10 rounded-3xl shadow-2xl flex flex-col items-center text-center w-[90%] max-w-md transform transition-transform hover:scale-105">
+            <div class="w-20 h-20 sm:w-24 sm:h-24 bg-k-success/20 text-k-success rounded-full flex items-center justify-center mb-6 animate-pulse border-2 border-k-success/50">
+                <svg class="w-10 h-10 sm:w-12 sm:h-12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"></path></svg>
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-black uppercase tracking-widest text-white mb-2">System Paused</h1>
+            <p class="text-gray-400 text-xs sm:text-sm font-bold uppercase tracking-wider mb-8 leading-relaxed">Browser security requires a tap to unlock the alarm speaker.</p>
+            <button onclick="startKDS()" class="w-full py-4 sm:py-5 bg-k-accent hover:bg-sky-400 text-gray-900 rounded-xl font-black uppercase tracking-widest text-base sm:text-lg shadow-[0_0_20px_rgba(56,189,248,0.4)] transition-all active:scale-95">
+                Tap Here to Go Live
+            </button>
+        </div>
+    </div>
+
+    <header class="bg-gray-900 border-b border-gray-800 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center sticky top-0 z-50 shadow-md">
+        <div class="flex items-center gap-3 sm:gap-6">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="location.reload()" title="Refresh KDS">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 bg-k-accent text-gray-900 rounded-xl flex items-center justify-center font-black text-[10px] sm:text-xs tracking-widest shadow-[0_0_15px_rgba(56,189,248,0.3)]">KDS</div>
+            </div>
+            
+            <div class="relative group">
+                <div class="absolute -inset-0.5 bg-gradient-to-r from-sky-500 to-blue-600 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-500 hidden sm:block"></div>
+                <select id="station-filter" onchange="setStation(this.value)" class="relative w-36 sm:w-48 bg-gray-800 sm:bg-gray-900 border border-gray-700 text-white text-[10px] sm:text-sm rounded-xl focus:ring-k-accent focus:border-k-accent p-2.5 sm:py-2.5 font-black uppercase tracking-widest outline-none cursor-pointer appearance-none shadow-sm transition-colors" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22%239CA3AF%22%3E%3Cpath fill-rule=%22evenodd%22 d=%22M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%22 clip-rule=%22evenodd%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.2em 1.2em;">
+                    <option value="All">All Stations</option>
+                    <option value="Grill">🔥 Grill</option>
+                    <option value="Kitchen">🍳 Kitchen</option>
+                    <option value="Dessert">🍰 Dessert</option>
+                    <option value="Beverages">🥤 Beverages</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-3 sm:gap-5">
+            <button id="kds-sos-btn" onclick="openSOSModal()" class="hidden sm:flex bg-red-900/40 text-red-500 border border-red-500/50 hover:bg-red-600 hover:text-white px-3 sm:px-4 py-2 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all shadow-sm items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                <span id="sos-btn-text">Pause</span>
+            </button>
+
+            <div class="flex items-center gap-2 hidden sm:flex">
+                <div id="connection-dot" class="w-3 h-3 rounded-full bg-k-success shadow-[0_0_8px_rgba(34,197,94,0.8)]"></div>
+                <span id="sync-status" class="text-xs uppercase font-bold tracking-widest text-gray-400">Live</span>
+            </div>
+
+            <div id="kitchen-speedometer" class="hidden md:flex flex-col items-center justify-center bg-gray-800 border border-gray-700 px-3 py-1 rounded-xl shadow-inner transition-colors duration-500 min-w-[5rem]">
+                <span class="text-[7px] uppercase font-bold tracking-widest text-gray-400 leading-tight">Kitchen Pace</span>
+                <span id="avg-ticket-time" class="font-black text-white text-base leading-none tracking-tight">--</span>
+            </div>
+            
+            <span id="clock" class="text-lg sm:text-xl font-black text-white tracking-widest tabular-nums hidden lg:block">00:00</span>
+            
+            <div class="flex items-center gap-2">
+                <button onclick="toggleRecallModal()" class="relative w-9 h-9 sm:w-10 sm:h-10 bg-gray-800 rounded-xl flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-colors" title="Recall Bumped Tickets">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"></path></svg>
+                </button>
+                <button onclick="toggleNotificationHistory()" class="relative w-9 h-9 sm:w-10 sm:h-10 bg-gray-800 rounded-xl flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-colors" title="Notifications">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"></path></svg>
+                    <span id="notif-badge" class="hidden absolute -top-1 -right-1 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500 border border-gray-900"></span></span>
+                </button>
+                <button onclick="toggleFullScreen()" class="relative w-9 h-9 sm:w-10 sm:h-10 bg-gray-800 rounded-xl hidden sm:flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-colors" title="Fullscreen Mode">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"></path></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div id="recall-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-[800] hidden flex-col items-center justify-center p-4">
+        <div class="bg-gray-900 w-full max-w-2xl h-[80vh] rounded-[24px] shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col border border-gray-700 overflow-hidden">
+            <div class="p-6 border-b border-gray-800 flex justify-between items-center shrink-0 bg-gray-800/50">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gray-800 border border-gray-600 rounded-full flex items-center justify-center text-gray-300">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-xl tracking-widest uppercase text-white leading-tight">Recall Ticket</h3>
+                        <p class="text-[10px] uppercase font-bold text-gray-400 tracking-widest">Restore recently bumped orders</p>
+                    </div>
+                </div>
+                <button onclick="toggleRecallModal()" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-colors">✕</button>
+            </div>
+            <div id="recall-list" class="flex-1 overflow-y-auto p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4" style="scrollbar-width: thin;"></div>
+        </div>
+    </div>
+
+    <div id="sos-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[900] hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div id="sos-box" class="bg-gray-900 border border-red-500/50 rounded-3xl shadow-[0_0_50px_rgba(239,68,68,0.3)] max-w-sm w-full p-6 text-center transform scale-95 transition-transform duration-300 flex flex-col items-center">
+            <div class="w-16 h-16 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mb-4 border border-red-500/30">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <h2 class="text-xl font-black tracking-widest uppercase text-white mb-2">Emergency Pause</h2>
+            <p class="text-gray-400 text-xs font-bold leading-relaxed mb-6">Instantly block all waiters from sending new orders. Kitchen will automatically un-pause when the timer expires.</p>
+            <div class="grid grid-cols-3 gap-2 w-full mb-4">
+                <button onclick="executeSOS(5)" class="py-3 bg-gray-800 hover:bg-red-600 text-white font-black text-sm rounded-xl border border-gray-700 transition-colors">5 Min</button>
+                <button onclick="executeSOS(10)" class="py-3 bg-gray-800 hover:bg-red-600 text-white font-black text-sm rounded-xl border border-gray-700 transition-colors">10 Min</button>
+                <button onclick="executeSOS(15)" class="py-3 bg-gray-800 hover:bg-red-600 text-white font-black text-sm rounded-xl border border-gray-700 transition-colors">15 Min</button>
+            </div>
+            <button onclick="closeSOSModal()" class="w-full py-3 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:text-white transition-colors">Cancel</button>
+        </div>
+    </div>
+
+    <div id="target-edit-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[850] hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div id="target-edit-box" class="bg-gray-900 border border-k-accent/50 rounded-3xl shadow-[0_0_50px_rgba(56,189,248,0.2)] max-w-sm w-full p-6 text-center transform scale-95 transition-transform duration-300">
+            <h2 class="text-lg font-black tracking-widest uppercase text-white mb-1">Adjust Target Time</h2>
+            <p id="target-edit-token" class="text-k-accent text-xs font-bold mb-6">Token #---</p>
+            <div class="flex items-center justify-center gap-6 mb-8 bg-gray-800 py-6 rounded-2xl border border-gray-700 shadow-inner">
+                <button onclick="modifyTargetTime(-5)" class="w-14 h-14 bg-gray-700 hover:bg-gray-600 rounded-full text-white font-black text-2xl shadow-md transition-transform active:scale-90">-5</button>
+                <div class="flex flex-col items-center min-w-[5rem]">
+                    <span id="target-edit-value" class="text-5xl font-black text-white tabular-nums">20</span>
+                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Minutes</span>
+                </div>
+                <button onclick="modifyTargetTime(5)" class="w-14 h-14 bg-gray-700 hover:bg-gray-600 rounded-full text-white font-black text-2xl shadow-md transition-transform active:scale-90">+5</button>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="closeTargetModal()" class="w-1/3 py-3 text-gray-400 bg-gray-800 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:text-white transition-colors">Cancel</button>
+                <button onclick="saveTargetTime()" class="w-2/3 py-3 bg-k-accent hover:bg-sky-400 text-gray-900 rounded-xl font-black uppercase tracking-widest text-xs transition-colors shadow-lg shadow-sky-500/20">Save Target</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notif-history-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[700] hidden flex-col justify-end">
+        <div class="bg-gray-900 w-full md:w-96 md:absolute md:right-6 md:top-24 h-[70vh] md:h-[60vh] rounded-t-[32px] md:rounded-[24px] shadow-[0_0_40px_rgba(0,0,0,0.8)] flex flex-col border border-gray-800 animate-[slideIn_0.3s_ease-out]">
+            <div class="p-5 border-b border-gray-800 flex justify-between items-center shrink-0">
+                <h3 class="font-black text-lg tracking-widest uppercase text-white">Alert History</h3>
+                <button onclick="toggleNotificationHistory()" class="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-colors">✕</button>
+            </div>
+            <div id="notif-history-list" class="flex-1 overflow-y-auto p-4 space-y-3 bg-k-bg" style="scrollbar-width: thin;">
+                <p class="text-gray-600 text-xs font-bold text-center mt-10 uppercase tracking-widest">No recent alerts</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="kds-alert-modal" class="fixed inset-0 glass-overlay z-[600] hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div id="kds-alert-box" class="bg-gray-900 border border-gray-700 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform scale-95 transition-transform duration-300">
+            <div class="h-2 w-full bg-red-500"></div>
+            <div class="p-8 text-center flex flex-col items-center">
+                <div class="w-20 h-20 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-6 border border-red-500/20">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+                <h2 id="kds-alert-title" class="text-xl font-black tracking-widest uppercase text-white mb-2">Notice</h2>
+                <div id="kds-alert-message" class="text-gray-400 font-medium leading-relaxed mb-8 text-sm"></div>
+                <button onclick="closeKDSAlert()" class="w-full py-4 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-black uppercase tracking-widest text-sm transition-colors border border-gray-700 shadow-lg active:scale-95">
+                    Understood
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="bump-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden flex-col items-center justify-center">
+        <div class="w-16 h-16 border-4 border-gray-800 border-t-k-success rounded-full animate-spin mb-4"></div>
+        <p class="text-k-success font-black uppercase tracking-widest">Clearing Ticket...</p>
+    </div>
+
+    <div class="flex-1 flex relative w-full h-full"> 
+        <main id="main-content" class="flex-1 min-w-0 p-2 sm:p-3 overflow-y-auto bg-k-bg transition-all duration-500 ease-in-out mr-0" style="scrollbar-width: thin;">
+            <div id="kds-grid" class="grid gap-2 sm:gap-2.5 items-start transition-all duration-500" style="grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));">
+            </div>
+
+            <div id="empty-state" class="hidden flex-col items-center justify-center h-[70vh] w-full text-gray-600">
+                <svg class="w-24 h-24 mb-6 opacity-20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"></path></svg>
+                <h2 class="text-2xl font-black tracking-widest uppercase opacity-40">No Active Orders</h2>
+            </div>
+        </main>
+
+        <aside id="prep-sidebar" data-state="closed" class="absolute right-0 top-0 bottom-0 h-full z-50 w-72 bg-k-card border-l border-gray-800 flex flex-col shrink-0 shadow-[-15px_0_40px_rgba(0,0,0,0.6)] transition-transform duration-500 ease-in-out transform translate-x-full">
+            <button onclick="togglePrepSidebar()" class="absolute -left-12 top-1/3 w-12 h-20 bg-k-accent border-y border-l border-sky-400 rounded-l-2xl flex items-center justify-center text-gray-900 hover:bg-sky-400 shadow-[-4px_0_15px_rgba(56,189,248,0.4)] z-50 transition-colors focus:outline-none cursor-pointer">
+                <svg id="prep-toggle-icon" class="w-8 h-8 font-black transition-transform duration-500 rotate-0" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <div class="p-5 bg-gray-900 border-b border-gray-800 shrink-0">
+                <h2 class="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 whitespace-nowrap">
+                    <svg class="w-4 h-4 text-k-accent shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"></path></svg>
+                    Live Prep Totals
+                </h2>
+            </div>
+            <div id="prep-summary-list" class="flex-1 overflow-y-auto p-4 space-y-1 w-72"></div>
+        </aside>
+    </div>
+
+    <script>
+        // REPLACE WITH YOUR ACTUAL SCRIPT URL
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzMknbUfGP-eisoFgobw4W4eyoEMZPvvWRiMif2Wtj-jfg5fRCkAhiCEpAgqC9it7L5/exec"; 
+
+        let strikeMemory = new Set();
+        let bumpedMemory = new Set(); 
+        let previousTicketStates = {}; 
+        let currentActiveTickets = []; 
+        let previousCarts = {}; 
+        let unacknowledgedUpdates = {}; 
+        let isInitialLoad = true; 
+        let currentStationFilter = "All"; // 🟢 Tracks Kitchen vs Bar
+        let latestReadyTickets = []; // 🟢 Stores tickets for the Recall menu
+        let targetTimeOverrides = {}; // 🟢 Stores chef's manual time adjustments
+        let lastGeneratedGridHTML = ""; // 🟢 VIRTUAL DOM: Stores previous HTML state
+
+        // Auto-refresh interval (milliseconds)
+        const REFRESH_RATE = 8000; 
+
+        // --- TOAST NOTIFICATIONS ---
+        function showKDSToast(title, message, colorClass = "bg-blue-600 text-white border-blue-400") {
+            const container = document.getElementById('kds-toast-container');
+            const toast = document.createElement('div');
+            toast.className = `${colorClass} border shadow-2xl rounded-2xl p-4 flex items-center gap-4 transform translate-x-[120%] opacity-0 transition-all duration-500 ease-out pointer-events-auto`;
+            toast.innerHTML = `<div class="flex flex-col flex-1"><span class="font-black text-sm uppercase tracking-widest leading-tight">${title}</span><span class="text-xs font-bold mt-0.5 opacity-90">${message}</span></div><button onclick="this.parentElement.remove()" class="hover:opacity-70 p-2 font-bold">✕</button>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.remove('translate-x-[120%]', 'opacity-0'); toast.classList.add('translate-x-0', 'opacity-100'); }, 10);
+            setTimeout(() => { toast.classList.remove('translate-x-0', 'opacity-100'); toast.classList.add('translate-x-[120%]', 'opacity-0'); setTimeout(() => { if (toast.parentNode) toast.remove(); }, 500); }, 6000);
+        }
+
+        function showKDSAlert(title, message) {
+            document.getElementById('kds-alert-title').innerText = title;
+            document.getElementById('kds-alert-message').innerHTML = message;
+            const modal = document.getElementById('kds-alert-modal');
+            const box = document.getElementById('kds-alert-box');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); }, 10);
+        }
+
+        function closeKDSAlert() {
+            const modal = document.getElementById('kds-alert-modal');
+            const box = document.getElementById('kds-alert-box');
+            modal.classList.add('opacity-0'); box.classList.remove('scale-100'); box.classList.add('scale-95');
+            setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 300);
+        }
+
+        // --- SIDEBAR ---
+        function togglePrepSidebar() {
+            const sidebar = document.getElementById('prep-sidebar');
+            const mainContent = document.getElementById('main-content');
+            const icon = document.getElementById('prep-toggle-icon');
+            if (sidebar.dataset.state === 'closed') {
+                sidebar.classList.remove('translate-x-full'); sidebar.classList.add('translate-x-0');
+                if (window.innerWidth >= 768) mainContent.style.marginRight = '288px'; 
+                icon.style.transform = 'rotate(180deg)'; sidebar.dataset.state = 'open';
+            } else {
+                sidebar.classList.remove('translate-x-0'); sidebar.classList.add('translate-x-full');
+                mainContent.style.marginRight = '0px';
+                icon.style.transform = 'rotate(0deg)'; sidebar.dataset.state = 'closed';
+            }
+        }
+
+        function updatePrepSummary() {
+            let prepList = {};
+            const rows = document.querySelectorAll('.item-row:not(.is-struck)');
+            
+            rows.forEach(row => {
+                const qtyElement = row.querySelector('.dish-qty');
+                const nameElement = row.querySelector('.dish-name');
+                if (qtyElement && nameElement) {
+                    const qty = parseInt(qtyElement.textContent.trim()) || 0;
+                    const clone = nameElement.cloneNode(true);
+                    const spans = clone.querySelectorAll('span');
+                    const svgs = clone.querySelectorAll('svg');
+                    spans.forEach(s => s.remove());
+                    svgs.forEach(s => s.remove());
+                    const name = clone.textContent.trim();
+                    
+                    if (name && qty > 0) {
+                        if (!prepList[name]) prepList[name] = 0;
+                        prepList[name] += qty;
+                    }
+                }
+            });
+
+            const container = document.getElementById('prep-summary-list');
+            if (Object.keys(prepList).length === 0) {
+                container.innerHTML = `<p class="text-gray-500 text-[11px] font-bold uppercase tracking-widest text-center mt-6">All items prepped!</p>`;
+                return;
+            }
+
+            const sortedItems = Object.entries(prepList).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+            container.innerHTML = sortedItems.map(([name, qty]) => `
+                <div class="flex justify-between items-start py-3.5 px-2 border-b border-gray-800/50 last:border-0 hover:bg-gray-800/30 transition-colors rounded-lg gap-2">
+                    <span class="text-gray-100 font-bold text-[14px] sm:text-[15px] leading-snug break-words whitespace-normal flex-1 pt-1">${escapeHTML(name)}</span>
+                    <span class="bg-k-accent text-gray-900 px-4 py-2 rounded-xl font-black text-xl sm:text-2xl shadow-[0_0_15px_rgba(56,189,248,0.5)] border-2 border-sky-300 shrink-0 min-w-[3.5rem] text-center">x${qty}</span>
+                </div>
+            `).join('');
+        } 
+        
+        let globalAudioCtx = null;
+
+        function startKDS() {
+            const overlay = document.getElementById('kds-start-overlay');
+            if(!overlay) return;
+            overlay.style.transition = "opacity 0.3s ease";
+            overlay.style.opacity = "0";
+            setTimeout(() => { if(overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 300);
+            try {
+                if (!globalAudioCtx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    globalAudioCtx = new AudioContext();
+                }
+                if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
+            } catch (e) { console.error("Audio init failed", e); }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            startClock();
+            fetchKDS();
+        });
+
+        function startClock() {
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour12: false });
+                updateTimers();
+            }, 1000);
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => { console.log(`Error: ${err.message}`); });
+            } else { document.exitFullscreen(); }
+        }
+
+        // --- BACKEND SYNC ---
+        async function fetchKDS() {
+            const dot = document.getElementById('connection-dot');
+            const status = document.getElementById('sync-status');
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_fetch" }) });
+                const data = await response.json();
+
+                if (data.success) {
+                    dot.className = "w-3 h-3 rounded-full bg-k-success shadow-[0_0_8px_rgba(34,197,94,0.8)]";
+                    status.innerText = "Online";
+                    
+                    let newTicketsArrived = false;
+                    let updateNotifications = [];
+
+                    if (data.tickets) {
+                        data.tickets.forEach(t => {
+                            const prevStatus = previousTicketStates[t.token];
+                            const prevCartStr = previousCarts[t.token];
+                            const currentCartStr = JSON.stringify(t.cart);
+
+                            // 🟢 STATION AUDIO FILTER: Only evaluate alarms if items belong to THIS specific station
+                            const cart = Array.isArray(t.cart) ? t.cart : [];
+                            const filteredCart = cart.filter(item => {
+                                if (currentStationFilter === "All") return true;
+                                const itemCategory = String(item.category || "Kitchen").trim().toLowerCase();
+                                const activeFilter = String(currentStationFilter).trim().toLowerCase();
+                                return itemCategory.includes(activeFilter);
+                            });
+
+                            if (filteredCart.length > 0) {
+                                // 1. Check for Brand New Tickets (Relevant to this station)
+                                if (!prevStatus && (t.status.includes("LOCKED") || t.status.includes("FIRE NEXT"))) {
+                                    newTicketsArrived = true;
+                                } 
+                                // 2. Check for FIRE NEXT upgrade
+                                else if (prevStatus !== t.status && t.status.includes("FIRE NEXT")) {
+                                    newTicketsArrived = true;
+                                    let tableNum = t.status.split('-')[0].replace('Table','').trim();
+                                    updateNotifications.push({ title: "FIRE NEXT", msg: `Table ${tableNum} is ready for the next course!`, color: "bg-k-warning text-black border-yellow-500" });
+                                }
+                                // 3. 🟢 THE DIFF ENGINE: Check for Order Updates
+                                else if (prevCartStr && prevCartStr !== currentCartStr && !t.status.includes("READY")) {
+                                    let oldC = JSON.parse(prevCartStr);
+                                    let hasAddition = false;
+                                    
+                                    // ONLY alert if the ADDED item belongs to this station
+                                    filteredCart.forEach(newItem => {
+                                        let oldItem = oldC.find(old => String(old.id) === String(newItem.id));
+                                        if (!oldItem || parseInt(newItem.qty) > parseInt(oldItem.qty)) hasAddition = true;
+                                    });
+
+                                    if (hasAddition) {
+                                        let tableNum = t.status.split('-')[0].replace('Table','').trim();
+                                        updateNotifications.push({ title: "ORDER UPDATED", msg: `Table ${tableNum} modified their order.`, color: "bg-blue-600 text-white border-blue-400" });
+                                        unacknowledgedUpdates[t.token] = oldC; // Store old cart for badging
+                                    }
+                                }
+                            }
+
+                            // Always track global state so switching station tabs doesn't cause late alarms
+                            previousTicketStates[t.token] = t.status;
+                            previousCarts[t.token] = currentCartStr;
+                        });
+                    }
+
+                    if (isInitialLoad) {
+                        newTicketsArrived = false;
+                        updateNotifications = [];
+                        isInitialLoad = false;
+                    }
+
+                    if (updateNotifications.length > 0) {
+                        playUpdateSound();
+                        updateNotifications.forEach((notif, i) => { setTimeout(() => showKDSToast(notif.title, notif.msg, notif.color), i * 1500); });
+                    } else if (newTicketsArrived) {
+                        playAlertSound();
+                    }
+
+                    latestReadyTickets = data.readyTickets || []; 
+                    updateSOSUI(data.sosExpiry);
+                    renderKDSGrid(data.tickets || []);
+                    if (!document.getElementById('recall-modal').classList.contains('hidden')) renderRecallList();
+                }
+            } catch (err) {
+                dot.className = "w-3 h-3 rounded-full bg-k-danger shadow-[0_0_8px_rgba(239,68,68,0.8)] animate-pulse";
+                status.innerText = "Offline - Retrying";
+            } finally { setTimeout(fetchKDS, REFRESH_RATE); }
+        }
+
+        // --- NOTIFICATION HISTORY ---
+        let notificationHistory = [];
+        function logNotification(title, message) {
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            notificationHistory.unshift({ title, message, time });
+            if (notificationHistory.length > 10) notificationHistory.pop();
+            document.getElementById('notif-badge').classList.remove('hidden');
+            document.getElementById('notif-history-list').innerHTML = notificationHistory.map(n => `
+                <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="font-black text-xs uppercase tracking-widest text-k-accent">${n.title}</span>
+                        <span class="text-[9px] text-gray-500 font-bold">${n.time}</span>
+                    </div>
+                    <p class="text-xs text-gray-300 font-medium">${n.message}</p>
+                </div>
+            `).join('');
+        }
+
+        function toggleNotificationHistory() {
+            const modal = document.getElementById('notif-history-modal');
+            document.getElementById('notif-badge').classList.add('hidden'); 
+            if (modal.classList.contains('hidden')) { modal.classList.remove('hidden'); modal.classList.add('flex'); } 
+            else { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+        }
+
+        const originalShowKDSAlert = showKDSAlert;
+        showKDSAlert = function(title, message) {
+            logNotification(title, message.replace(/<[^>]*>?/gm, '')); 
+            originalShowKDSAlert(title, message);
+        };
+        const originalShowKDSToast = showKDSToast;
+        showKDSToast = function(title, message, colorClass) {
+            logNotification(title, message);
+            originalShowKDSToast(title, message, colorClass);
+        };
+
+        // --- STATION ROUTING ---
+        function setStation(station) {
+            currentStationFilter = station;
+            fetchKDS(); 
+        }
+
+        // --- RENDER TICKETS ---
+        function renderKDSGrid(tickets) {
+            const grid = document.getElementById('kds-grid');
+            const emptyState = document.getElementById('empty-state');
+            const mainContent = document.getElementById('main-content'); 
+
+            const mainScrollPos = mainContent ? mainContent.scrollTop : 0;
+            const ticketScrolls = {};
+            document.querySelectorAll('.ticket-card').forEach(card => {
+                const token = card.getAttribute('data-token');
+                const scrollBox = card.querySelector('.overflow-y-auto');
+                if (token && scrollBox) ticketScrolls[token] = scrollBox.scrollTop;
+            });
+
+            const validTickets = Array.isArray(tickets) ? tickets : [];
+            const activeTickets = validTickets.filter(t => t && t.status && (t.status.includes("LOCKED") || t.status.includes("FIRE NEXT")));
+
+            let gridHTML = ""; 
+            activeTickets.forEach(ticket => {
+                try {
+                    const isFireNext = ticket.status.includes("FIRE NEXT");
+                    const tableNum = ticket.status.split("-")[0].replace("Table", "").trim();
+                    const orderTime = ticket.timestamp || Date.now();
+                    const isUpdated = !!unacknowledgedUpdates[ticket.token];
+
+                    let baseItems = [];
+                    let newUpdateItems = [];
+                    const cart = Array.isArray(ticket.cart) ? ticket.cart : [];
+                    
+                    const filteredCart = cart.filter(item => {
+                        if (currentStationFilter === "All") return true; 
+                        const itemCategory = String(item.category || "Kitchen").trim().toLowerCase();
+                        const activeFilter = String(currentStationFilter).trim().toLowerCase();
+                        return itemCategory.includes(activeFilter);
+                    });
+
+                    if (filteredCart.length === 0) return; 
+
+                    const sortedCart = [...filteredCart].sort((a, b) => {
+                        const rank = { "Serve First": 1, "Main Course": 2, "Serve Last": 3 };
+                        return (rank[a.pacing] || 2) - (rank[b.pacing] || 2);
+                    });
+
+                    sortedCart.forEach((item, index) => {
+                        const uniqueItemId = `${ticket.token}_${item.id || index}_${item.name.replace(/\s+/g, '')}`;
+                        const isItemStruck = strikeMemory.has(uniqueItemId) || bumpedMemory.has(uniqueItemId);
+                        const isItemLocked = bumpedMemory.has(uniqueItemId);
+                        
+                        if (isUpdated) {
+                            let oldCart = unacknowledgedUpdates[ticket.token] || [];
+                            let oldItem = oldCart.find(old => String(old.id) === String(item.id));
+                            if (!oldItem) {
+                                newUpdateItems.push({ ...item, renderId: uniqueItemId, isStruck: isItemStruck, isLocked: isItemLocked });
+                            } else if (parseInt(item.qty) > parseInt(oldItem.qty)) {
+                                if (isItemStruck) {
+                                    const oldQty = parseInt(oldItem.qty);
+                                    const newQty = parseInt(item.qty) - oldQty;
+                                    baseItems.push({ ...item, qty: oldQty, renderId: uniqueItemId, isStruck: true, isLocked: isItemLocked });
+                                    const newRenderId = uniqueItemId + '_new';
+                                    newUpdateItems.push({ ...item, qty: newQty, renderId: newRenderId, isStruck: strikeMemory.has(newRenderId), isLocked: false });
+                                } else {
+                                    const diff = parseInt(item.qty) - parseInt(oldItem.qty);
+                                    baseItems.push({ ...item, renderId: uniqueItemId, isStruck: false, isLocked: false, qtyDiff: diff });
+                                }
+                            } else {
+                                baseItems.push({ ...item, renderId: uniqueItemId, isStruck: isItemStruck, isLocked: isItemLocked });
+                            }
+                        } else {
+                            baseItems.push({ ...item, renderId: uniqueItemId, isStruck: isItemStruck, isLocked: isItemLocked });
+                        }
+                    });
+
+                    const generateRow = (itemObj, isNew = false) => {
+                        const isStruck = itemObj.isStruck; 
+                        const isLocked = itemObj.isLocked; 
+                        const lockIcon = isLocked ? `<svg class="w-3 h-3 text-gray-500 ml-1.5 inline-block mb-0.5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H9V7a3 3 0 016 0v2h2V7a5 5 0 00-5-5z"></path></svg>` : "";
+                        
+                        let pacingBadge = "";
+                        if (itemObj.pacing === "Serve First") pacingBadge = `<span class="bg-sky-500/20 text-sky-400 border border-sky-500/40 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest shadow-sm">1ST</span>`;
+                        if (itemObj.pacing === "Serve Last") pacingBadge = `<span class="bg-purple-500/20 text-purple-400 border border-purple-500/40 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-widest shadow-sm">LAST</span>`;
+
+                        let updateBadge = "";
+                        if (isNew) updateBadge = `<span class="bg-blue-600 text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest shadow-[0_0_8px_rgba(37,99,235,0.8)] animate-pulse">NEW ADDITION</span>`;
+                        if (itemObj.qtyDiff) updateBadge = `<span class="bg-blue-600 text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest shadow-[0_0_8px_rgba(37,99,235,0.8)] animate-pulse">QTY +${itemObj.qtyDiff}</span>`;
+
+                        const hasAllergy = itemObj.note && /allerg/i.test(itemObj.note);
+                        const allergenBadge = hasAllergy ? `<span class="bg-purple-600 text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest shadow-[0_0_8px_rgba(147,51,234,0.8)] animate-pulse ml-2">ALLERGY ALERT</span>` : "";
+                        const rowBgClass = hasAllergy && !isStruck ? "bg-purple-900/50 border-purple-500/50 shadow-[inset_0_0_20px_rgba(147,51,234,0.2)] hover:bg-purple-800/60" : (isStruck ? "is-struck bg-gray-900/50" : "bg-k-card hover:bg-gray-800/40");
+                        const noteHTML = itemObj.note ? `<div class="dish-note ${hasAllergy ? 'text-purple-300' : 'text-k-danger'} font-bold text-[11.5px] mt-1.5 flex items-start gap-1 leading-snug uppercase tracking-wide"><svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg> <span>${escapeHTML(itemObj.note)}</span></div>` : "";
+
+                        return `
+                            <div onclick="${isLocked ? '' : `toggleStrike('${itemObj.renderId}', this)`}" 
+                                 class="item-row px-4 py-3 border-b border-gray-800/60 transition-colors ${rowBgClass} 
+                                 ${isLocked ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}">
+                                <div class="flex items-start justify-between gap-3 w-full">
+                                    <div class="flex items-start gap-3 flex-1 min-w-0">
+                                        <div class="dish-qty ${updateBadge !== '' ? 'bg-blue-600 border-blue-400' : (hasAllergy ? 'bg-purple-800 border-purple-500' : 'bg-gray-800 border-gray-600')} text-white min-w-[2rem] h-8 rounded-md flex items-center justify-center font-black text-sm shrink-0 shadow-sm mt-0.5 transition-colors">
+                                            ${itemObj.qty}
+                                        </div>
+                                        <div class="flex flex-col flex-1 min-w-0 pt-0.5">
+                                            <div class="flex items-center flex-wrap gap-2">
+                                                <span class="dish-name font-bold text-[15px] xl:text-base text-gray-100 leading-snug break-words whitespace-normal">${escapeHTML(itemObj.name)}${lockIcon}</span>
+                                                ${updateBadge}${allergenBadge}
+                                            </div>
+                                            ${noteHTML}
+                                        </div>
+                                    </div>
+                                    ${pacingBadge ? `<div class="shrink-0 pt-0.5 pl-2">${pacingBadge}</div>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    };
+
+                    let itemsHTML = baseItems.map(i => generateRow(i)).join('');
+                    if (newUpdateItems.length > 0) {
+                        itemsHTML += `
+                            <div class="relative py-4 flex items-center justify-center bg-gray-900/30">
+                                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-blue-500/40 border-dashed"></div></div>
+                                <div class="relative bg-blue-900/60 text-blue-300 border border-blue-500/50 px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(59,130,246,0.3)] animate-pulse backdrop-blur-sm">
+                                    New Order Update
+                                </div>
+                            </div>
+                        `;
+                        itemsHTML += newUpdateItems.map(i => generateRow(i, true)).join('');
+                    }
+
+                    const totalRenderedItems = baseItems.length + newUpdateItems.length;
+                    const struckItemsCount = baseItems.filter(i => i.isStruck).length + newUpdateItems.filter(i => i.isStruck).length;
+                    const isFullyStruck = totalRenderedItems > 0 && struckItemsCount === totalRenderedItems;
+                    const bumpBtnClass = isFullyStruck 
+                        ? "bg-k-success text-white shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:bg-green-500 active:scale-95" 
+                        : "bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 active:scale-95";
+
+                    let ackBtnHtml = "";
+                    let statusLabel = isFireNext ? "FIRE NEXT" : "ELAPSED";
+                    if (isUpdated) {
+                        ackBtnHtml = `<button onclick="acknowledgeUpdate('${ticket.token}', event)" class="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded text-[9px] font-black uppercase tracking-widest backdrop-blur-sm mr-3 transition-colors border border-white/30 active:scale-95 shadow-lg">OK</button>`;
+                        statusLabel = "UPDATED";
+                    }
+
+                    let baseTarget = 0;
+                    ticket.cart.forEach(i => { if ((i.prepTime || 0) > baseTarget) baseTarget = i.prepTime; });
+
+                    gridHTML += `
+                        <div class="ticket-card bg-k-card rounded-xl flex flex-col overflow-hidden shadow-md border border-gray-700" data-timestamp="${orderTime}" data-token="${ticket.token}" data-target="${baseTarget}" data-isfirenext="${isFireNext}">
+                            <div class="ticket-header px-3 py-2 flex justify-between items-center shrink-0 transition-colors duration-300 border-b border-transparent">
+                                <div class="flex flex-col">
+                                    <span class="font-black text-lg leading-none tracking-tight">T-${tableNum}</span>
+                                    <span class="text-[8px] uppercase font-bold tracking-widest opacity-80 mt-0.5">#${ticket.token}</span>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <div onclick="openTargetModal('${ticket.token}', ${baseTarget})" class="flex flex-col items-center cursor-pointer hover:bg-white/10 px-2 py-1 rounded transition-colors" title="Click to adjust Target Time">
+                                        <span class="text-[6.5px] uppercase font-bold tracking-widest opacity-70 mb-0.5">TARGET</span>
+                                        <span class="target-display font-black text-xs leading-none">--</span>
+                                    </div>
+                                    <div class="flex flex-col items-end text-right">
+                                        <div class="flex items-center">
+                                            ${ackBtnHtml}
+                                            <span class="timer-display font-mono font-black text-base leading-none tracking-tight">${Math.floor((Date.now() - orderTime) / 60000)}m</span>
+                                        </div>
+                                        <span class="status-label text-[7px] uppercase font-bold tracking-widest opacity-80 mt-0.5">${statusLabel}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex-1 overflow-y-auto max-h-[45vh] bg-k-bg" style="scrollbar-width: thin;">
+                                ${itemsHTML}
+                            </div>
+                            <div class="p-1.5 shrink-0 bg-gray-900 border-t border-gray-800">
+                                <button onclick="executeBump('${ticket.token}', '${tableNum}', this)" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 ${bumpBtnClass}">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path></svg>
+                                    Mark Ready
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } catch (e) { console.error("Skipping corrupted ticket", e); }
+            });
+
+            if (gridHTML === "") {
+                emptyState.classList.remove('hidden'); emptyState.classList.add('flex');
+            }
+            
+            // 🟢 VIRTUAL DOM ENGINE: Only redraw the screen if the HTML actually changed!
+            // This completely stops the rapid blinking and allows pulsing CSS animations to flow smoothly.
+            if (gridHTML !== lastGeneratedGridHTML) {
+                grid.innerHTML = gridHTML;
+                lastGeneratedGridHTML = gridHTML; // Save new state
+
+                // Only restore scroll positions if we actually redrew the DOM
+                if (mainContent) mainContent.scrollTop = mainScrollPos;
+                
+                document.querySelectorAll('.ticket-card').forEach(card => {
+                    const token = card.getAttribute('data-token');
+                    const scrollBox = card.querySelector('.overflow-y-auto');
+                    const isUpdated = !!unacknowledgedUpdates[token];
+
+                    if (scrollBox) {
+                        if (isUpdated) {
+                            scrollBox.scrollTop = scrollBox.scrollHeight;
+                        } else if (ticketScrolls[token] !== undefined) {
+                            scrollBox.scrollTop = ticketScrolls[token];
+                        }
+                    }
+                });
+            }
+
+            updateTimers(); 
+            currentActiveTickets = activeTickets;
+            updatePrepSummary();
+        }
+
+        // --- STRIKE & BUMP ---
+        function toggleStrike(uniqueItemId, rowElement) {
+            if (strikeMemory.has(uniqueItemId)) strikeMemory.delete(uniqueItemId);
+            else strikeMemory.add(uniqueItemId);
+            
+            if (rowElement) {
+                rowElement.classList.toggle('is-struck');
+                rowElement.classList.toggle('bg-gray-900/50');
+                rowElement.classList.toggle('bg-k-card');
+            }
+            
+            const card = rowElement ? rowElement.closest('.ticket-card') : null;
+            if (card) {
+                const totalItems = card.querySelectorAll('.item-row').length;
+                const struckItems = card.querySelectorAll('.is-struck').length;
+                const bumpBtn = card.querySelector('button');
+                
+                if (totalItems === struckItems) {
+                    bumpBtn.className = "w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 bg-k-success text-white shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:bg-green-500 active:scale-95";
+                } else {
+                    bumpBtn.className = "w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 active:scale-95";
+                }
+            }
+            updatePrepSummary();
+        }
+
+        async function executeBump(token, tableNum, buttonElement) {
+            const card = buttonElement.closest('.ticket-card');
+            const totalItems = card.querySelectorAll('.item-row').length;
+            const struckItems = card.querySelectorAll('.is-struck').length;
+            
+            if (struckItems < totalItems) {
+                showKDSAlert("Cannot Bump Ticket", "You still have <b>un-cooked items</b>.<br><br>If you are serving a specific course, just strike those items and leave the ticket open on the board.");
+                return;
+            }
+
+            const overlay = document.getElementById('bump-overlay');
+            overlay.classList.remove('hidden'); overlay.classList.add('flex');
+
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_bump", token: token, table: tableNum }) });
+                const data = await response.json();
+                
+                if (data.success) {
+                    const keysToLock = Array.from(strikeMemory).filter(key => key.startsWith(`${token}_`));
+                    keysToLock.forEach(key => bumpedMemory.add(key));
+                    fetchKDS(); 
+                } else { alert("Error marking ticket ready: " + data.message); }
+            } catch (err) { alert("Network error. Could not bump ticket.");
+            } finally { overlay.classList.add('hidden'); overlay.classList.remove('flex'); }
+        }
+
+        // --- UTILITIES & PACE ENGINE MATH ---
+        function updateTimers() {
+            const now = Date.now();
+            let totalVariance = 0;
+            let validPaceCount = 0;
+
+            document.querySelectorAll('.ticket-card').forEach(card => {
+                const ts = parseInt(card.getAttribute('data-timestamp'));
+                const baseTarget = parseInt(card.getAttribute('data-target')) || 0;
+                const isFireNext = card.getAttribute('data-isfirenext') === 'true';
+                const token = card.getAttribute('data-token'); 
+                if (!ts || !token) return;
+                
+                const diffSecs = Math.floor((now - ts) / 1000);
+                const mins = Math.floor(diffSecs / 60);
+                
+                const targetMins = targetTimeOverrides[token] !== undefined ? targetTimeOverrides[token] : baseTarget;
+
+                const timerDisplay = card.querySelector('.timer-display');
+                if (timerDisplay) timerDisplay.innerText = `${mins}m`;
+
+                const targetDisplay = card.querySelector('.target-display');
+                if (targetDisplay) targetDisplay.innerText = targetMins > 0 ? `${targetMins}m` : 'N/A';
+
+                if (targetMins > 0) {
+                    totalVariance += (mins - targetMins);
+                    validPaceCount++;
+                }
+
+                const header = card.querySelector('.ticket-header');
+                const isUpdated = !!unacknowledgedUpdates[token];
+
+                if (isFireNext) {
+                    header.className = "ticket-header px-3 py-2 flex justify-between items-center shrink-0 transition-colors duration-300 pulse-amber-header border-b border-transparent";
+                    card.className = "ticket-card bg-k-card rounded-xl flex flex-col overflow-hidden shadow-md border-2 border-amber-400";
+                } else if (isUpdated) {
+                    header.className = "ticket-header px-3 py-2 flex justify-between items-center shrink-0 transition-colors duration-300 pulse-blue-header border-b border-transparent";
+                    card.className = "ticket-card bg-k-card rounded-xl flex flex-col overflow-hidden shadow-md border-2 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)]";
+                } else if (targetMins > 0 && mins >= targetMins + 3) { 
+                    header.className = "ticket-header px-3 py-2 flex justify-between items-center shrink-0 transition-colors duration-300 pulse-red-header border-b border-transparent";
+                    card.className = "ticket-card bg-k-card rounded-xl flex flex-col overflow-hidden shadow-md border-2 border-red-500";
+                } else if (targetMins > 0 && mins >= targetMins) { 
+                    header.className = "ticket-header px-3 py-2 flex justify-between items-center shrink-0 transition-colors duration-300 bg-orange-600 text-white border-b border-transparent";
+                    card.className = "ticket-card bg-k-card rounded-xl flex flex-col overflow-hidden shadow-md border border-gray-700";
+                } else if (mins >= 15 && targetMins === 0) { 
+                    header.className = "ticket-header px-3 py-2 flex justify-between items-center shrink-0 transition-colors duration-300 pulse-red-header border-b border-transparent";
+                    card.className = "ticket-card bg-k-card rounded-xl flex flex-col overflow-hidden shadow-md border-2 border-red-500";
+                } else {
+                    header.className = "ticket-header px-3 py-2 flex justify-between items-center shrink-0 transition-colors duration-300 bg-gray-800 text-white border-b border-gray-700";
+                    card.className = "ticket-card bg-k-card rounded-xl flex flex-col overflow-hidden shadow-md border border-gray-700";
+                }
+            });
+
+            const speedoBox = document.getElementById('kitchen-speedometer');
+            const speedoText = document.getElementById('avg-ticket-time');
+            
+            if (speedoBox && speedoText) {
+                if (validPaceCount === 0) {
+                    speedoText.innerText = "N/A";
+                    speedoBox.className = "hidden sm:flex flex-col items-center justify-center bg-gray-800 border border-gray-700 px-3 py-1 rounded-xl shadow-inner transition-colors duration-500 min-w-[5rem]";
+                    speedoText.className = "font-black text-gray-500 text-base leading-none tracking-tight";
+                } else {
+                    const avgVariance = Math.round(totalVariance / validPaceCount);
+                    if (avgVariance > 0) {
+                        speedoText.innerText = `+${avgVariance}m`; 
+                        if (avgVariance >= 4) { 
+                            speedoBox.className = "hidden sm:flex flex-col items-center justify-center bg-red-900/80 border border-red-500 px-3 py-1 rounded-xl shadow-[0_0_15px_rgba(239,68,68,0.6)] animate-pulse transition-colors duration-500 min-w-[5rem]";
+                            speedoText.className = "font-black text-white text-base leading-none tracking-tight";
+                        } else { 
+                            speedoBox.className = "hidden sm:flex flex-col items-center justify-center bg-amber-500/20 border border-amber-500 px-3 py-1 rounded-xl shadow-inner transition-colors duration-500 min-w-[5rem]";
+                            speedoText.className = "font-black text-amber-400 text-base leading-none tracking-tight";
+                        }
+                    } else if (avgVariance < 0) {
+                        speedoText.innerText = `${avgVariance}m`; 
+                        speedoBox.className = "hidden sm:flex flex-col items-center justify-center bg-green-500/10 border border-green-500/50 px-3 py-1 rounded-xl shadow-inner transition-colors duration-500 min-w-[5rem]";
+                        speedoText.className = "font-black text-green-400 text-base leading-none tracking-tight";
+                    } else {
+                        speedoText.innerText = `ON TIME`; 
+                        speedoBox.className = "hidden sm:flex flex-col items-center justify-center bg-green-500/10 border border-green-500/50 px-2 py-1 rounded-xl shadow-inner transition-colors duration-500 min-w-[5rem]";
+                        speedoText.className = "font-black text-green-400 text-[11px] leading-none tracking-tight";
+                    }
+                }
+            }
+        }
+
+        function acknowledgeUpdate(token, event) {
+            if (event) event.stopPropagation();
+            delete unacknowledgedUpdates[token];
+            renderKDSGrid(currentActiveTickets);
+        }
+
+        function escapeHTML(str) { return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+        // --- AUDIO ---
+        let activeAlarm = null; let alarmTimeout = null;
+        function playAlertSound() {
+            stopAlertSound(); triggerChime();
+            activeAlarm = setInterval(triggerChime, 1500);
+            alarmTimeout = setTimeout(stopAlertSound, 15000);
+            document.body.addEventListener('click', stopAlertSound, { once: true, capture: true });
+            document.body.addEventListener('touchstart', stopAlertSound, { once: true, capture: true });
+        }
+        function triggerChime() {
+            if (!globalAudioCtx) return; 
+            try {
+                if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
+                const playTone = (freq, startTime) => {
+                    const osc = globalAudioCtx.createOscillator(); const gain = globalAudioCtx.createGain();
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(freq, startTime);
+                    gain.gain.setValueAtTime(0, startTime); gain.gain.linearRampToValueAtTime(0.5, startTime + 0.02); gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.6);
+                    osc.connect(gain); gain.connect(globalAudioCtx.destination); osc.start(startTime); osc.stop(startTime + 0.6);
+                };
+                const now = globalAudioCtx.currentTime; playTone(880, now); playTone(1046.50, now + 0.15); 
+            } catch (e) {}
+        }
+        function playUpdateSound() {
+            stopAlertSound(); triggerUpdateChime();
+            activeAlarm = setInterval(triggerUpdateChime, 2000);
+            alarmTimeout = setTimeout(stopAlertSound, 10000); 
+            document.body.addEventListener('click', stopAlertSound, { once: true, capture: true });
+            document.body.addEventListener('touchstart', stopAlertSound, { once: true, capture: true });
+        }
+        function triggerUpdateChime() {
+            if (!globalAudioCtx) return; 
+            try {
+                if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
+                const playTone = (freq, startTime, duration, vol) => {
+                    const osc = globalAudioCtx.createOscillator(); const gain = globalAudioCtx.createGain();
+                    osc.type = 'square'; osc.frequency.setValueAtTime(freq, startTime);
+                    gain.gain.setValueAtTime(0, startTime); gain.gain.linearRampToValueAtTime(vol, startTime + 0.02); gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+                    osc.connect(gain); gain.connect(globalAudioCtx.destination); osc.start(startTime); osc.stop(startTime + duration);
+                };
+                const now = globalAudioCtx.currentTime; playTone(1046.50, now, 0.15, 0.4); playTone(1318.51, now + 0.15, 0.15, 0.4); playTone(1567.98, now + 0.3, 0.3, 0.4); 
+            } catch(e) {}
+        }
+        function stopAlertSound(e) {
+            // 🟢 MUTE-SLAP DEFENSE: If the alarm is actively ringing, we kill the click event.
+            // This guarantees the chef can slap the screen anywhere to mute the alarm 
+            // without accidentally crossing off a dish or pressing a button underneath!
+            if (activeAlarm && e && typeof e.stopPropagation === 'function') {
+                e.stopPropagation();
+                e.preventDefault();
+            }
+
+            if (activeAlarm) clearInterval(activeAlarm);
+            if (alarmTimeout) clearTimeout(alarmTimeout);
+            activeAlarm = null;
+            alarmTimeout = null;
+            
+            document.body.removeEventListener('click', stopAlertSound, { capture: true });
+            document.body.removeEventListener('touchstart', stopAlertSound, { capture: true });
+        }
+
+        // --- RECALL LOGIC ---
+        function toggleRecallModal() {
+            const modal = document.getElementById('recall-modal');
+            if (modal.classList.contains('hidden')) { modal.classList.remove('hidden'); modal.classList.add('flex'); renderRecallList(); } 
+            else { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+        }
+
+        function renderRecallList() {
+            const list = document.getElementById('recall-list');
+            if (latestReadyTickets.length === 0) {
+                list.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center py-10 text-gray-500"><svg class="w-12 h-12 mb-2 opacity-50" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><p class="font-bold text-xs uppercase tracking-widest">No recently bumped tickets</p></div>`;
+                return;
+            }
+            list.innerHTML = latestReadyTickets.map(t => {
+                const tableNum = t.status.split("-")[0].replace("Table", "").trim();
+                const totalItems = t.cart.reduce((sum, i) => sum + parseInt(i.qty), 0);
+                const timeReady = new Date(t.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                return `
+                    <div class="bg-gray-800 rounded-xl p-4 border border-gray-700 flex flex-col justify-between hover:bg-gray-700/50 transition-colors">
+                        <div class="flex justify-between items-start mb-4">
+                            <div><p class="font-black text-white text-lg">T-${tableNum}</p><p class="text-[9px] uppercase font-bold text-gray-400 tracking-widest">#${t.token} • ${totalItems} Items</p></div>
+                            <span class="text-xs font-bold text-gray-500">${timeReady}</span>
+                        </div>
+                        <button onclick="executeRecall('${t.token}', '${tableNum}', this)" class="w-full py-2.5 bg-gray-900 border border-gray-600 text-gray-300 rounded-lg font-black uppercase tracking-widest text-[10px] hover:border-k-accent hover:text-k-accent transition-colors flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"></path></svg> Restore Ticket
+                        </button>
+                    </div>`;
+            }).join('');
+        }
+
+        async function executeRecall(token, tableNum, btnElement) {
+            const originalHTML = btnElement.innerHTML;
+            btnElement.innerHTML = `<div class="w-4 h-4 border-2 border-k-accent border-t-transparent rounded-full animate-spin"></div>`;
+            btnElement.disabled = true;
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_recall", token: token, table: tableNum }) });
+                const data = await response.json();
+                if (data.success) { toggleRecallModal(); fetchKDS(); } 
+                else { alert(data.message); btnElement.innerHTML = originalHTML; btnElement.disabled = false; }
+            } catch (err) { alert("Network error."); btnElement.innerHTML = originalHTML; btnElement.disabled = false; }
+        }
+
+        // --- KITCHEN SOS LOGIC ---
+        function updateSOSUI(expiryString) {
+            currentSOSExpiry = expiryString;
+            const btn = document.getElementById('kds-sos-btn');
+            const txt = document.getElementById('sos-btn-text');
+            if (!btn || !txt) return;
+
+            if (expiryString && parseInt(expiryString) > Date.now()) {
+                const mins = Math.ceil((parseInt(expiryString) - Date.now()) / 60000);
+                btn.className = "hidden sm:flex bg-red-600 text-white border border-red-500 px-3 sm:px-4 py-2 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(239,68,68,0.6)] animate-pulse items-center gap-1.5";
+                txt.innerText = `PAUSED (${mins}m)`;
+                btn.onclick = () => executeSOS(0); 
+            } else {
+                btn.className = "hidden sm:flex bg-red-900/40 text-red-500 border border-red-500/50 hover:bg-red-600 hover:text-white px-3 sm:px-4 py-2 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all shadow-sm items-center gap-1.5";
+                txt.innerText = "Pause";
+                btn.onclick = openSOSModal;
+            }
+        }
+
+        function openSOSModal() {
+            const modal = document.getElementById('sos-modal'); const box = document.getElementById('sos-box');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); }, 10);
+        }
+
+        function closeSOSModal() {
+            const modal = document.getElementById('sos-modal'); const box = document.getElementById('sos-box');
+            modal.classList.add('opacity-0'); box.classList.remove('scale-100'); box.classList.add('scale-95');
+            setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 300);
+        }
+
+        async function executeSOS(minutes) {
+            closeSOSModal();
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_toggle_sos", duration: minutes }) });
+                const data = await response.json();
+                if (data.success) {
+                    updateSOSUI(data.sosExpiry);
+                    showKDSToast("SOS Updated", data.message, minutes > 0 ? "bg-red-600 text-white" : "bg-green-600 text-white");
+                }
+            } catch(e) { alert("Network error updating SOS."); }
+        }
+
+        // --- PACE ENGINE MODAL LOGIC ---
+        let editingToken = "";
+        let currentEditingValue = 0;
+
+        function openTargetModal(token, baseTarget) {
+            if (baseTarget === 0) return; 
+            editingToken = token;
+            currentEditingValue = targetTimeOverrides[token] !== undefined ? targetTimeOverrides[token] : baseTarget;
+            document.getElementById('target-edit-token').innerText = `Token #${token}`;
+            document.getElementById('target-edit-value').innerText = currentEditingValue;
+            
+            const modal = document.getElementById('target-edit-modal'); const box = document.getElementById('target-edit-box');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); }, 10);
+        }
+
+        function modifyTargetTime(amount) {
+            currentEditingValue += amount;
+            if (currentEditingValue < 5) currentEditingValue = 5; 
+            document.getElementById('target-edit-value').innerText = currentEditingValue;
+        }
+
+        function saveTargetTime() {
+            targetTimeOverrides[editingToken] = currentEditingValue;
+            closeTargetModal();
+            updateTimers(); 
+        }
+
+        function closeTargetModal() {
+            const modal = document.getElementById('target-edit-modal'); const box = document.getElementById('target-edit-box');
+            modal.classList.add('opacity-0'); box.classList.remove('scale-100'); box.classList.add('scale-95');
+            setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 300);
+        }
+    </script>
+</body>
+</html>
