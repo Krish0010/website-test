@@ -648,12 +648,16 @@
                 document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             }, 1000);
 
-            // 🟢 Check if device is authorized on load
-            const isAuthorized = localStorage.getItem('impact_device_authorized');
-            if (isAuthorized === 'true') {
+            
+            const devToken = localStorage.getItem('impact_device_token');
+            if (devToken && devToken.length > 5) {
                 document.getElementById('view-auth').classList.add('hidden');
                 fetchInitialData();
-                checkAndLoadDraft(); // 🟢 Boots the auto-save check
+                checkAndLoadDraft(); // Boots the auto-save check
+            } else {
+                // Force logout if token is missing or tampered with
+                localStorage.removeItem('impact_device_authorized');
+                document.getElementById('view-auth').classList.remove('hidden');
             }
 
             document.addEventListener('keydown', (e) => {
@@ -1029,7 +1033,7 @@
         function renderTicket() {
             const container = document.getElementById('order-items-container');
             container.innerHTML = "";
-            let subtotal = 0;
+            let subtotalCents = 0; // 🟢 FIX: FLOATING-POINT CORRUPTION
             let totalItemsCount = 0;
 
             if (activeTicket.length === 0) {
@@ -1037,7 +1041,7 @@
             }
 
             activeTicket.forEach((item) => {
-                subtotal += (item.qty * item.price);
+                subtotalCents += (item.qty * Math.round(item.price * 100)); // 🟢 Math done in cents
                 totalItemsCount += item.qty;
                 if (!item.course) item.course = 'main'; 
                 
@@ -1107,7 +1111,7 @@
                             <div class="text-gray-300 hover:text-gray-500 px-1 py-2" title="Drag to reorder">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8h16M4 16h16"></path></svg>
                             </div>
-                            <span class="font-black ${isLocked ? 'text-gray-500' : 'text-gray-900'} text-sm truncate" title="${item.name}">${item.name}</span>
+                            <span class="font-black ${isLocked ? 'text-gray-500' : 'text-gray-900'} text-sm truncate" title="${sanitizeHTML(item.name)}">${sanitizeHTML(item.name)}</span>
                             ${stockBadge}
                             ${!isLocked ? `<button onclick="toggleNoteVisibility('${item.id}')" class="text-gray-300 hover:text-w-accent p-1 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.89 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.89l12.683-12.683zm0 0L19.5 7.125"></path></svg></button>` : ''}
                         </div>
@@ -1122,7 +1126,7 @@
                 </div>
                 `;
             });
-            document.getElementById('ticket-subtotal').innerText = subtotal.toFixed(2);
+            document.getElementById('ticket-subtotal').innerText = (subtotalCents / 100).toFixed(2);
             document.getElementById('total-items-count').innerText = totalItemsCount;
 
             // 🟢 DYNAMIC BUTTON LOGIC
@@ -1309,8 +1313,9 @@
             const item = activeTicket.find(i => String(i.id) === String(id));
             if (item && !item.isLocked) {
                 item.price = parseFloat(newPrice) || 0;
-                let newSubtotal = activeTicket.reduce((sum, current) => sum + (current.qty * current.price), 0);
-                document.getElementById('ticket-subtotal').innerText = newSubtotal.toFixed(2);
+                // 🟢 FIX: FLOATING-POINT CORRUPTION - Convert to integer (cents) before math
+                let newSubtotalCents = activeTicket.reduce((sum, current) => sum + (current.qty * Math.round(current.price * 100)), 0);
+                document.getElementById('ticket-subtotal').innerText = (newSubtotalCents / 100).toFixed(2);
                 saveDraft();
             }
         }
@@ -1684,9 +1689,19 @@
                 return { id: item.id, name: item.name.trim() || "Custom Dish", qty: item.qty, note: item.note ? item.note.trim() : "", category: category, pacing: pacingStr, price: item.price, isLocked: !!item.isLocked, prepTime: prepTime };
             });
 
-            try {
+           try {
                 const devToken = localStorage.getItem('impact_device_token') || ""; 
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_fire", token: currentInput, table: table, finalCart: kdsPayload, device_token: devToken }) });
+                
+                // 🟢 FIX: INFINITE HANG ON NETWORK DROP
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 second strict timeout
+
+                const response = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: "waiter_fire", token: currentInput, table: table, finalCart: kdsPayload, device_token: devToken }),
+                    signal: controller.signal 
+                });
+                clearTimeout(timeoutId);
                 const data = await response.json();
                 
                 if (data.success) {
@@ -1707,7 +1722,7 @@
                         
                         <div class="bg-red-50 border border-red-100 rounded-xl py-3.5 px-4 mx-2 mb-4 shadow-inner flex flex-col items-center justify-center">
                             <span class="text-[9px] uppercase font-bold tracking-widest text-red-400 mb-1">Occupied By</span>
-                            <span class="font-black text-red-900 text-xl tracking-tight">Token #${data.occupyingToken}</span>
+                            <span class="font-black text-red-900 text-xl tracking-tight">Token #${sanitizeHTML(data.occupyingToken)}</span>
                         </div>
 
                         <div class="text-[11px] sm:text-xs text-gray-500 leading-relaxed px-4">
@@ -1932,12 +1947,28 @@
 
         // --- 🟢 BACKGROUND POLLER FOR READY TABLES ---
         let readyPollerInterval = null;
-        let alertedReadyTables = new Set(); // 🟢 Prevent toast spam
+        let alertedReadyTables = new Set(); 
+        let isPollingPaused = false;
+
+        // 🟢 FIX: DDOS QUOTA EXHAUSTION (Page Visibility API)
+        // Stops pinging Google Servers when the tablet screen is off or app is minimized
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) {
+                clearInterval(readyPollerInterval);
+                isPollingPaused = true;
+            } else {
+                if (isPollingPaused && localStorage.getItem('impact_device_authorized') === 'true') {
+                    startReadyPoller();
+                    isPollingPaused = false;
+                }
+            }
+        });
         
         function startReadyPoller() {
             if (readyPollerInterval) clearInterval(readyPollerInterval);
-            pollReadyTables(); // Run immediately
-            readyPollerInterval = setInterval(pollReadyTables, 15000); // Run every 15 seconds
+            pollReadyTables(); 
+            // 🟢 Increased to 35 seconds to drastically reduce Google Quota consumption
+            readyPollerInterval = setInterval(pollReadyTables, 35000); 
         }
 
         async function pollReadyTables() {
@@ -1974,7 +2005,7 @@
                     if (syncStatus && syncStatus.innerText.includes("PAUSED")) {
                         syncStatus.innerText = "System Ready";
                         syncStatus.className = "text-[8px] sm:text-[9px] uppercase font-bold tracking-widest text-w-success";
-                        renderTicket(); // Forces the Fire button back to normal Green
+                        renderTicket(); 
                     }
                 }
 
@@ -1984,7 +2015,6 @@
                     
                     if (readyTables.length > 0) {
                         badge.classList.remove('hidden');
-                        
                         readyTables.forEach(t => {
                             if (!alertedReadyTables.has(t.token)) {
                                 showToastNotification("Order Ready", `${t.table} is ready to serve.`);
