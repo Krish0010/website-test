@@ -296,9 +296,45 @@
                 </div>
                 <button onclick="modifyTargetTime(5)" class="w-14 h-14 bg-gray-700 hover:bg-gray-600 rounded-full text-white font-black text-2xl shadow-md transition-transform active:scale-90">+5</button>
             </div>
+     <div class="flex gap-3">
+                <button onclick="closeTargetModal()" class="w-1/3 py-3 text-gray-400 bg-gray-800 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:text-white transition-colors">Cancel</button>
+                <button onclick="saveTargetTime()" class="w-2/3 py-3 bg-k-accent hover:bg-sky-400 text-gray-900 rounded-xl font-black uppercase tracking-widest text-xs transition-colors shadow-lg shadow-sky-500/20">Save Target</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="station-alert-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[950] hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div id="station-alert-box" class="bg-gray-900 border border-amber-500/50 rounded-3xl shadow-[0_0_50px_rgba(217,119,6,0.3)] max-w-sm w-full p-6 text-center transform scale-95 transition-transform duration-300 flex flex-col items-center">
+            <div class="w-16 h-16 bg-amber-500/20 text-amber-500 rounded-full flex items-center justify-center mb-4 border border-amber-500/30 animate-pulse">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"></path></svg>
+            </div>
+            <h2 class="text-xl font-black tracking-widest uppercase text-white mb-2">Alert Waiter</h2>
+            <p class="text-gray-400 text-xs font-bold leading-relaxed mb-6">This will notify the Waiter and Expo that your station is ready.<br><br><span class="text-amber-400">The ticket will remain open for the rest of the kitchen.</span></p>
+            <div class="flex gap-3 w-full">
+                <button onclick="closeStationAlertModal()" class="w-1/2 py-3 bg-gray-800 text-gray-400 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:text-white hover:bg-gray-700 transition-colors">Cancel</button>
+                <button onclick="confirmStationAlert()" class="w-1/2 py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-colors shadow-[0_0_15px_rgba(217,119,6,0.4)]">Yes, Alert</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notif-history-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[700] hidden flex-col justify-end">
             <div class="flex gap-3">
                 <button onclick="closeTargetModal()" class="w-1/3 py-3 text-gray-400 bg-gray-800 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:text-white transition-colors">Cancel</button>
                 <button onclick="saveTargetTime()" class="w-2/3 py-3 bg-k-accent hover:bg-sky-400 text-gray-900 rounded-xl font-black uppercase tracking-widest text-xs transition-colors shadow-lg shadow-sky-500/20">Save Target</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="global-bump-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[950] hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div id="global-bump-box" class="bg-gray-900 border border-amber-500/50 rounded-3xl shadow-[0_0_50px_rgba(217,119,6,0.3)] max-w-sm w-full p-6 text-center transform scale-95 transition-transform duration-300 flex flex-col items-center">
+            <div class="w-16 h-16 bg-amber-500/20 text-amber-500 rounded-full flex items-center justify-center mb-4 border border-amber-500/30 animate-pulse">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <h2 class="text-xl font-black tracking-widest uppercase text-white mb-2">Global Clear</h2>
+            <p class="text-gray-400 text-xs font-bold leading-relaxed mb-6">You are about to mark this order READY and clear it for the ENTIRE kitchen.<br><br><span class="text-amber-400">Are you sure ALL stations have finished?</span></p>
+            <div class="flex gap-3 w-full">
+                <button onclick="closeGlobalBumpModal()" class="w-1/2 py-3 bg-gray-800 text-gray-400 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:text-white hover:bg-gray-700 transition-colors">Cancel</button>
+                <button onclick="confirmGlobalBump()" class="w-1/2 py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-colors shadow-[0_0_15px_rgba(217,119,6,0.4)]">Yes, Clear It</button>
             </div>
         </div>
     </div>
@@ -801,29 +837,30 @@
                     const totalRenderedItems = baseItems.length + newUpdateItems.length;
                     const struckItemsCount = baseItems.filter(i => i.isStruck).length + newUpdateItems.filter(i => i.isStruck).length;
                     
-                    // 🟢 GHOST UPDATE FIX: Wakes ticket up if a new item arrives!
-                    const isActuallyDone = (totalRenderedItems > 0 && struckItemsCount === totalRenderedItems) && !isUpdated;
+                    const isFullyStruck = totalRenderedItems > 0 && struckItemsCount === totalRenderedItems;
+                    // GHOST UPDATE FIX: If it's updated, it breaks the ready state so the ticket wakes up!
                     const isStationReady = ticket.status.includes(`${currentStationFilter}:Ready`) && !isUpdated;
                     
-                    // 🟢 DIM THE CARD (Only if finished AND sent AND not updated)
-                    const cardOpacityClass = (isPrepMode && isStationReady && isActuallyDone) ? "opacity-40 grayscale-[50%]" : "";
+                    // DIM THE CARD IF PREP STATION IS DONE
+                    const cardOpacityClass = (isPrepMode && isStationReady && isFullyStruck) ? "opacity-40 grayscale-[50%]" : "";
 
-                    // 🟢 DYNAMIC ROLE AUTHORIZATION & SAFETY NETS
+                    // DYNAMIC ROLE AUTHORIZATION & SAFETY NETS
                     let bottomButtonHTML = "";
                     if (isPrepMode) {
-                        if (isStationReady && isActuallyDone) {
-                            // STATE 3: SENT. Show Disabled Green Button. NO GLOBAL BUMP ALLOWED!
-                            bottomButtonHTML = `<button disabled class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-1.5 bg-green-900/30 border border-green-700/50 text-green-500 cursor-not-allowed">✅ Waiter Alerted</button>`;
-                        } else if (isActuallyDone) {
-                            // STATE 2: CHECKED OFF locally. Show Amber button to ping Waiter.
-                            bottomButtonHTML = `<button onclick="alertWaiterPartial('${ticket.token}', '${tableNum}', '${currentStationFilter}', this)" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 bg-amber-600 hover:bg-amber-500 text-white active:scale-95 shadow-[0_0_15px_rgba(217,119,6,0.4)]"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"></path></svg> Alert Waiter (Station Ready)</button>`;
+                        if (isStationReady && isFullyStruck) {
+                            // STATE 3: SENT TO EXPO. Show Amber Global Alert button.
+                            bottomButtonHTML = `<button onclick="executeGlobalBumpFromPrep('${ticket.token}', '${tableNum}', this)" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-1.5 bg-amber-600 hover:bg-amber-500 text-white shadow-[0_0_15px_rgba(217,119,6,0.4)] active:scale-95 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"></path></svg> Alert Waiter (Global)</button>`;
+                        } else if (isFullyStruck) {
+                            // STATE 2: CHECKED OFF locally. Show Blue button to send to Expo. 
+                            // BUG FIX: Even if isUpdated is true, if they struck everything, let them send it!
+                            bottomButtonHTML = `<button onclick="strikeStationItems('${ticket.token}', '${tableNum}', '${currentStationFilter}', this)" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white active:scale-95 shadow-[0_0_15px_rgba(37,99,235,0.4)]"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"></path></svg> Send to Expo</button>`;
                         } else {
                             // STATE 1: INCOMPLETE. Show Gray button. Will throw popup if clicked.
                             bottomButtonHTML = `<button onclick="attemptEarlySend()" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 active:scale-95"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"></path></svg> Send to Expo</button>`;
                         }
                     } else {
                         // EXPO MODE: Head Chef can bump globally
-                        const bumpBtnClass = isActuallyDone ? "bg-k-success text-white shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:bg-green-500 active:scale-95" : "bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 active:scale-95";
+                        const bumpBtnClass = isFullyStruck ? "bg-k-success text-white shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:bg-green-500 active:scale-95" : "bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 active:scale-95";
                         bottomButtonHTML = `<button onclick="executeBump('${ticket.token}', '${tableNum}', this)" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 ${bumpBtnClass}"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path></svg> Mark Ready</button>`;
                     }
 
@@ -915,7 +952,7 @@
             if (strikeMemory.has(uniqueItemId)) strikeMemory.delete(uniqueItemId);
             else strikeMemory.add(uniqueItemId);
             
-            // 🟢 VIRTUAL DOM FIX: Instantly redraw the grid so the Blue/Gray buttons update immediately!
+            // 🟢 VIRTUAL DOM FIX: Instantly redraw the grid so the Amber/Gray buttons update immediately!
             lastGeneratedGridHTML = ""; 
             renderKDSGrid(currentActiveTickets); 
         }
@@ -925,16 +962,43 @@
             showKDSAlert("Incomplete Station", "You still have <b>un-checked items</b> on your screen.<br><br>Please tap and cross off every item before sending to the Expediter.");
         }
 
-        // 🟢 PREP STATION: Partial bump that alerts waiter but leaves ticket open for other stations
-        function alertWaiterPartial(token, tableNum, stationName, btnElement) {
-            if (confirm("Alert the waiter that your station is ready?\n\nThis will NOT delete the ticket for the rest of the kitchen.")) {
+        // 🟢 STATION ALERT MODAL LOGIC
+        let pendingAlertToken = "";
+        let pendingAlertTable = "";
+        let pendingAlertStation = "";
+
+        function alertWaiterPartial(token, tableNum, stationName) {
+            pendingAlertToken = token;
+            pendingAlertTable = tableNum;
+            pendingAlertStation = stationName;
+            
+            const modal = document.getElementById('station-alert-modal'); 
+            const box = document.getElementById('station-alert-box');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); }, 10);
+        }
+
+        function closeStationAlertModal() {
+            const modal = document.getElementById('station-alert-modal'); 
+            const box = document.getElementById('station-alert-box');
+            modal.classList.add('opacity-0'); box.classList.remove('scale-100'); box.classList.add('scale-95');
+            setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 300);
+            pendingAlertToken = ""; pendingAlertTable = ""; pendingAlertStation = "";
+        }
+
+        function confirmStationAlert() {
+            if (pendingAlertToken && pendingAlertStation) {
+                // Auto-acknowledge update if present
+                delete unacknowledgedUpdates[pendingAlertToken];
+
                 // Send silent ping to backend so Waiter & Expo tablets get the green badge
-                try { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_station_ready", token: token, station: stationName }) }); } catch(e) {}
+                try { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_station_ready", token: pendingAlertToken, station: pendingAlertStation }) }); } catch(e) {}
                 
                 // Force an immediate Virtual DOM refresh to apply the dimmed state and Green button
                 lastGeneratedGridHTML = ""; 
                 fetchKDS(); 
             }
+            closeStationAlertModal();
         }
 
         async function executeBump(token, tableNum, buttonElement) {
@@ -985,12 +1049,42 @@
             fetchKDS(); 
         }
 
-        // 🟢 PREP STATION: Safety popup for Global Wipe
+        // 🟢 PREMIUM GLOBAL BUMP LOGIC
+        let pendingGlobalBumpToken = "";
+        let pendingGlobalBumpTable = "";
+        let pendingGlobalBumpBtn = null;
+
         function executeGlobalBumpFromPrep(token, tableNum, btnElement) {
-            // 🟢 SAFETY NET 2: Confirm dialog before deleting a ticket from all screens
-            if (confirm("⚠️ WARNING ⚠️\n\nYou are about to mark this order READY and clear it for the ENTIRE kitchen.\n\nAre you sure all other stations have finished?")) {
-                executeBump(token, tableNum, btnElement);
+            // Save the data so the modal knows what to bump
+            pendingGlobalBumpToken = token;
+            pendingGlobalBumpTable = tableNum;
+            pendingGlobalBumpBtn = btnElement;
+            
+            // Trigger our beautiful custom modal
+            const modal = document.getElementById('global-bump-modal'); 
+            const box = document.getElementById('global-bump-box');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); }, 10);
+        }
+
+        function closeGlobalBumpModal() {
+            const modal = document.getElementById('global-bump-modal'); 
+            const box = document.getElementById('global-bump-box');
+            modal.classList.add('opacity-0'); box.classList.remove('scale-100'); box.classList.add('scale-95');
+            setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 300);
+            
+            // Clear memory
+            pendingGlobalBumpToken = "";
+            pendingGlobalBumpTable = "";
+            pendingGlobalBumpBtn = null;
+        }
+
+        function confirmGlobalBump() {
+            if (pendingGlobalBumpToken && pendingGlobalBumpBtn) {
+                // Execute the global wipe!
+                executeBump(pendingGlobalBumpToken, pendingGlobalBumpTable, pendingGlobalBumpBtn);
             }
+            closeGlobalBumpModal();
         }
 
         // --- UTILITIES & PACE ENGINE MATH ---
