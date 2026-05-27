@@ -795,24 +795,29 @@
                     const totalRenderedItems = baseItems.length + newUpdateItems.length;
                     const struckItemsCount = baseItems.filter(i => i.isStruck).length + newUpdateItems.filter(i => i.isStruck).length;
                     
-                    // 🟢 SERVER-SYNC FIX: This guarantees that if the server pushed a strike down, the UI recognizes the station as fully struck!
-                    const isFullyStruck = totalRenderedItems > 0 && struckItemsCount === totalRenderedItems;
-                    const isStationReady = ticket.status.includes(`${currentStationFilter}:Ready`);
+                    // 🟢 GHOST UPDATE FIX: If waiter adds an item, it wakes the ticket up and breaks the "Ready" state!
+                    const isActuallyDone = (totalRenderedItems > 0 && struckItemsCount === totalRenderedItems) && !isUpdated;
+                    const isStationReady = ticket.status.includes(`${currentStationFilter}:Ready`) && !isUpdated;
                     
-                    // 🟢 DIM THE CARD IF PREP STATION IS DONE
-                    const cardOpacityClass = (isPrepMode && (isFullyStruck || isStationReady)) ? "opacity-40 grayscale-[50%]" : "";
+                    // 🟢 DIM THE CARD (Only if finished AND sent AND not updated)
+                    const cardOpacityClass = (isPrepMode && isStationReady && isActuallyDone) ? "opacity-40 grayscale-[50%]" : "";
 
-                    // 🟢 DYNAMIC ROLE AUTHORIZATION & SILENT PINGS
+                    // 🟢 DYNAMIC ROLE AUTHORIZATION & SAFETY NETS
                     let bottomButtonHTML = "";
                     if (isPrepMode) {
-                        if (isStationReady || isFullyStruck) {
-                            bottomButtonHTML = `<button disabled class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-1.5 bg-green-900/30 border border-green-700/50 text-green-500 cursor-not-allowed">✅ Sent to Expo</button>`;
+                        if (isStationReady && isActuallyDone) {
+                            // STATE 3: SENT TO EXPO. Show Amber Global Alert button with a strict Warning Popup.
+                            bottomButtonHTML = `<button onclick="executeGlobalBumpFromPrep('${ticket.token}', '${tableNum}', this)" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-1.5 bg-amber-600 hover:bg-amber-500 text-white shadow-[0_0_15px_rgba(217,119,6,0.4)] active:scale-95 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"></path></svg> Alert Waiter (Global)</button>`;
+                        } else if (isActuallyDone) {
+                            // STATE 2: CHECKED OFF locally. Show Blue button to send to Expo.
+                            bottomButtonHTML = `<button onclick="strikeStationItems('${ticket.token}', '${tableNum}', '${currentStationFilter}', this)" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white active:scale-95 shadow-[0_0_15px_rgba(37,99,235,0.4)]"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"></path></svg> Send to Expo</button>`;
                         } else {
-                            bottomButtonHTML = `<button onclick="strikeStationItems('${ticket.token}', '${tableNum}', '${currentStationFilter}', this)" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 bg-blue-900/40 text-blue-400 border border-blue-500/50 hover:bg-blue-600 hover:text-white active:scale-95"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"></path></svg> Check Off & Send</button>`;
+                            // STATE 1: INCOMPLETE. Show Gray button. Will throw popup if clicked.
+                            bottomButtonHTML = `<button onclick="attemptEarlySend()" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 active:scale-95"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"></path></svg> Send to Expo</button>`;
                         }
                     } else {
-                        // EXPO MODE: Head Chef can bump globally. Button turns green automatically if ALL items are crossed out!
-                        const bumpBtnClass = isFullyStruck ? "bg-k-success text-white shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:bg-green-500 active:scale-95" : "bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 active:scale-95";
+                        // EXPO MODE: Head Chef can bump globally
+                        const bumpBtnClass = isActuallyDone ? "bg-k-success text-white shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:bg-green-500 active:scale-95" : "bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 active:scale-95";
                         bottomButtonHTML = `<button onclick="executeBump('${ticket.token}', '${tableNum}', this)" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 ${bumpBtnClass}"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path></svg> Mark Ready</button>`;
                     }
 
@@ -904,25 +909,31 @@
             if (strikeMemory.has(uniqueItemId)) strikeMemory.delete(uniqueItemId);
             else strikeMemory.add(uniqueItemId);
             
-            if (rowElement) {
-                rowElement.classList.toggle('is-struck');
-                rowElement.classList.toggle('bg-gray-900/50');
-                rowElement.classList.toggle('bg-k-card');
+            // 🟢 VIRTUAL DOM FIX: Instantly redraw the grid so the Blue/Gray buttons update immediately!
+            lastGeneratedGridHTML = ""; 
+            renderKDSGrid(currentActiveTickets); 
+        }
+
+        // 🟢 SAFETY NET 1: Prevents lazy mass-striking
+        function attemptEarlySend() {
+            showKDSAlert("Incomplete Station", "You still have <b>un-checked items</b> on your screen.<br><br>Please tap and cross off every item before sending to the Expediter.");
+        }
+
+        // 🟢 SAFETY NET 2: Prevents accidental double-taps wiping the global board
+        function executeGlobalBumpFromPrep(token, tableNum, btnElement) {
+            if (confirm("⚠️ WARNING ⚠️\n\nYou are about to mark this order READY and clear it for the ENTIRE kitchen.\n\nAre you sure ALL other stations are finished?")) {
+                executeBump(token, tableNum, btnElement);
             }
+        }
+
+        // 🟢 PREP STATION EXECUTION: Sends silent ping and dims card
+        function strikeStationItems(token, tableNum, stationName, btnElement) {
+            // Send silent ping to backend so Expo tablet gets the green badge
+            try { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_station_ready", token: token, station: stationName }) }); } catch(e) {}
             
-            const card = rowElement ? rowElement.closest('.ticket-card') : null;
-            if (card) {
-                const totalItems = card.querySelectorAll('.item-row').length;
-                const struckItems = card.querySelectorAll('.is-struck').length;
-                const bumpBtn = card.querySelector('button');
-                
-                if (totalItems === struckItems) {
-                    bumpBtn.className = "w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 bg-k-success text-white shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:bg-green-500 active:scale-95";
-                } else {
-                    bumpBtn.className = "w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 active:scale-95";
-                }
-            }
-            updatePrepSummary();
+            // Force an immediate Virtual DOM refresh to apply the dimmed state and Amber button
+            lastGeneratedGridHTML = ""; 
+            fetchKDS(); 
         }
 
         async function executeBump(token, tableNum, buttonElement) {
@@ -951,34 +962,34 @@
             } finally { overlay.classList.add('hidden'); overlay.classList.remove('flex'); }
         }
 
-// 🟢 PREP STATION: Mass-strike local items & Send Silent Ping
+// 🟢 PREP STATION: Verify completion & Send Silent Ping
         function strikeStationItems(token, tableNum, stationName, btnElement) {
             const card = btnElement.closest('.ticket-card');
-            const rows = card.querySelectorAll('.item-row:not(.is-struck)');
+            const totalItems = card.querySelectorAll('.item-row').length;
+            const struckItems = card.querySelectorAll('.is-struck').length;
             
-            // Strike visually locally
-            rows.forEach(row => {
-                const uniqueItemId = row.getAttribute('data-id');
-                if (uniqueItemId) strikeMemory.add(uniqueItemId);
-                row.classList.add('is-struck', 'bg-gray-900/50');
-                row.classList.remove('bg-k-card');
-            });
-            
-            card.classList.add('opacity-40', 'grayscale-[50%]');
-            
-            // Change button instantly to the Amber "Alert Waiter" button
-            btnElement.className = "w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-1.5 bg-amber-600 hover:bg-amber-500 text-white shadow-[0_0_15px_rgba(217,119,6,0.4)] active:scale-95 transition-all";
-            btnElement.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"></path></svg> Alert Waiter (Global)`;
-            
-            // Wire the click event directly into the global bump logic
-            btnElement.onclick = () => executeBump(token, tableNum, btnElement);
-            
-            updatePrepSummary();
+            // 🟢 SAFETY NET 1: Block the click if they haven't manually checked off every item!
+            if (struckItems < totalItems) {
+                showKDSAlert("Cannot Send to Expo", "You still have <b>un-cooked items</b>.<br><br>Please tap and check off every item on your station before sending.");
+                return;
+            }
 
             // 🟢 Send silent ping to backend so Expo tablet gets the green badge
             try {
                 fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_station_ready", token: token, station: stationName }) });
             } catch(e) {}
+            
+            // Force an immediate Virtual DOM refresh to apply the dimmed state and Amber button
+            lastGeneratedGridHTML = ""; 
+            fetchKDS(); 
+        }
+
+        // 🟢 PREP STATION: Safety popup for Global Wipe
+        function executeGlobalBumpFromPrep(token, tableNum, btnElement) {
+            // 🟢 SAFETY NET 2: Confirm dialog before deleting a ticket from all screens
+            if (confirm("⚠️ WARNING ⚠️\n\nYou are about to mark this order READY and clear it for the ENTIRE kitchen.\n\nAre you sure all other stations have finished?")) {
+                executeBump(token, tableNum, btnElement);
+            }
         }
 
         // --- UTILITIES & PACE ENGINE MATH ---
