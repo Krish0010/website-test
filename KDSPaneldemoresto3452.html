@@ -589,9 +589,13 @@
                                         let tableNum = t.status.split('-')[0].replace('Table','').trim();
                                         updateNotifications.push({ title: "ORDER UPDATED", msg: `Table ${tableNum} modified their order.`, color: "bg-blue-600 text-white border-blue-400" });
                                         unacknowledgedUpdates[t.token] = oldC; // Store old cart for badging
+                                        
+                                        // 🟢 WAKE UP FIX: If a legit addition arrives, remove this token from the local cleared memory so it wakes up!
+                                        let cleared = JSON.parse(localStorage.getItem(`kds_cleared_tokens_${currentStationFilter}`) || "[]");
+                                        cleared = cleared.filter(tok => String(tok) !== String(t.token));
+                                        localStorage.setItem(`kds_cleared_tokens_${currentStationFilter}`, JSON.stringify(cleared));
                                     }
                                 }
-                            }
 
                             // Always track global state so switching station tabs doesn't cause late alarms
                             previousTicketStates[t.token] = t.status;
@@ -835,11 +839,14 @@ const totalRenderedItems = baseItems.length + newUpdateItems.length;
                     const struckItemsCount = baseItems.filter(i => i.isStruck).length + newUpdateItems.filter(i => i.isStruck).length;
                     
                     const isFullyStruck = totalRenderedItems > 0 && struckItemsCount === totalRenderedItems;
-                    const isStationReady = ticket.status.includes(`${currentStationFilter}:Ready`);
+                    
+                    // 🟢 THE BULLETPROOF LOCK: Use local memory to remember we cleared this, even if the waiter overwrites the server!
+                    let localCleared = JSON.parse(localStorage.getItem(`kds_cleared_tokens_${currentStationFilter}`) || "[]");
+                    const isServerTag = ticket.status.includes(`${currentStationFilter}:Ready`);
+                    const isStationReady = (isServerTag || localCleared.includes(String(ticket.token))) && !isUpdated;
                     
                     // 🟢 THE FIX: If the Prep Cook has sent this to Expo, completely hide it from their board!
-                    // (But bring it back if there is a new unacknowledged update!)
-                    if (isPrepMode && isStationReady && !isUpdated) {
+                    if (isPrepMode && isStationReady) {
                         return; // Skip rendering this ticket completely!
                     }
 
@@ -1017,6 +1024,13 @@ const totalRenderedItems = baseItems.length + newUpdateItems.length;
             if (pendingAlertToken && pendingAlertStation) {
                 // Auto-acknowledge update if present
                 delete unacknowledgedUpdates[pendingAlertToken];
+
+                // 🟢 LOCAL MEMORY LOCK: Remember we sent this ticket, so it survives Waiter overwrites and page refreshes!
+                let cleared = JSON.parse(localStorage.getItem(`kds_cleared_tokens_${currentStationFilter}`) || "[]");
+                if (!cleared.includes(String(pendingAlertToken))) {
+                    cleared.push(String(pendingAlertToken));
+                    localStorage.setItem(`kds_cleared_tokens_${currentStationFilter}`, JSON.stringify(cleared));
+                }
 
                 // Send silent ping to backend 
                 try { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_station_ready", token: pendingAlertToken, station: pendingAlertStation }) }); } catch(e) {}
@@ -1447,6 +1461,7 @@ const totalRenderedItems = baseItems.length + newUpdateItems.length;
                 strikeMemory.clear();
                 bumpedMemory.clear();
                 unacknowledgedUpdates = {};
+                localStorage.removeItem(`kds_cleared_tokens_${currentStationFilter}`); // 🟢 Clear local lock memory
                 showKDSToast("EOD Reset", "Tablet memory wiped successfully.", "bg-green-600 text-white");
                 closeManagerHub();
                 lastGeneratedGridHTML = "";
