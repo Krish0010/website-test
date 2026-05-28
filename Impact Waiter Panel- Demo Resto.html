@@ -1786,11 +1786,19 @@
                         const statusText = isReady ? "FOOD READY" : "COOKING";
                         const borderStyle = isReady ? "border-green-400 shadow-md ring-1 ring-green-400/50" : "border-gray-100 hover:border-w-accent hover:shadow-md";
                         
+                        // 🟢 Extract Partial Station Badges for the Waiter to see!
+                        let readyBadgesHTML = "";
+                        if (t.fullStatus && t.fullStatus.includes("|")) {
+                            const parts = t.fullStatus.split("|").slice(1);
+                            readyBadgesHTML = `<div class="flex flex-wrap gap-1 mt-2">` + parts.map(p => `<span class="bg-green-50 text-green-600 border border-green-200 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest">${p.replace(":Ready", "").trim()} ✓</span>`).join('') + `</div>`;
+                        }
+
                         return `
                         <div onclick="selectOpenTable('${t.token}')" class="p-4 sm:p-5 mb-3 bg-white border ${borderStyle} rounded-2xl flex justify-between items-center cursor-pointer transition-all active:scale-[0.98]">
                             <div class="flex flex-col">
                                 <p class="font-black text-base sm:text-lg text-gray-900 tracking-tight">${t.table}</p>
                                 <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-0.5">Token #${t.token}</span>
+                                ${readyBadgesHTML}
                             </div>
                             <div class="${statusColor} px-3 py-2 rounded-xl border flex items-center gap-2">
                                 ${isReady ? '<span class="relative flex h-2.5 w-2.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-600"></span></span>' : ''}
@@ -1948,6 +1956,7 @@
         // --- 🟢 BACKGROUND POLLER FOR READY TABLES ---
         let readyPollerInterval = null;
         let alertedReadyTables = new Set(); 
+        let previouslyReadyStations = new Set(); // 🟢 NEW: Tracks partial station alerts
         let isPollingPaused = false;
 
         // 🟢 FIX: DDOS QUOTA EXHAUSTION (Page Visibility API)
@@ -2011,21 +2020,45 @@
 
                 const badge = document.getElementById('ready-badge');
                 if (badge && data.success) {
-                    const readyTables = data.openTables.filter(t => t.fullStatus && t.fullStatus.includes("READY"));
-                    
-                    if (readyTables.length > 0) {
-                        badge.classList.remove('hidden');
-                        readyTables.forEach(t => {
+                    let activeReadyCount = 0;
+
+                    data.openTables.forEach(t => {
+                        const status = t.fullStatus || "";
+                        
+                        // 1. Check for Master "Full Order Ready" (The whole ticket)
+                        if (status.includes("- READY")) {
+                            activeReadyCount++;
                             if (!alertedReadyTables.has(t.token)) {
-                                showToastNotification("Order Ready", `${t.table} is ready to serve.`);
+                                showToastNotification("Order Ready", `${t.table} is completely ready to serve!`);
                                 alertedReadyTables.add(t.token);
                             }
-                        });
+                        }
+                        
+                        // 2. 🟢 Check for Partial Station Ready (e.g. "Beverages:Ready")
+                        if (status.includes("|")) {
+                            const parts = status.split("|").slice(1);
+                            parts.forEach(p => {
+                                if (p.includes(":Ready")) {
+                                    activeReadyCount++; // Keeps the red Waiter Badge lit up
+                                    const stationName = p.replace(":Ready", "").trim();
+                                    const notifKey = `${t.token}_${stationName}`;
+                                    
+                                    if (!previouslyReadyStations.has(notifKey)) {
+                                        showToastNotification("Station Alert", `${stationName} has finished their items for ${t.table}!`);
+                                        previouslyReadyStations.add(notifKey);
+                                    }
+                                }
+                            });
+                        }
+                    });
+
+                    // Update Waiter Red Notification Dot
+                    if (activeReadyCount > 0) {
+                        badge.classList.remove('hidden');
                     } else {
                         badge.classList.add('hidden');
                     }
-                }
-            } catch (err) {}
+                } catch (err) {}
         }
 
         // Start poller automatically on page load if already authorized
