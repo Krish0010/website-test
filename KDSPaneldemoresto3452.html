@@ -291,7 +291,6 @@
             <button onclick="closeSOSModal()" class="w-full py-3 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:text-white transition-colors">Cancel</button>
         </div>
     </div>
-
    <div id="target-edit-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[850] hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div id="target-edit-box" class="bg-gray-900 border border-k-accent/50 rounded-3xl shadow-[0_0_50px_rgba(56,189,248,0.2)] max-w-sm w-full p-6 text-center transform scale-95 transition-transform duration-300">
             <h2 class="text-lg font-black tracking-widest uppercase text-white mb-1">Adjust Target Time</h2>
@@ -679,6 +678,11 @@
             
             updateStationLabel(station); // 🟢 Instantly update the Header badge
             
+            // 🟢 BUG FIX: Force the visual UI toggles to snap to the correct state for this specific station!
+            updateToggleUI('audio', isAudioMuted);
+            updateToggleUI('sos', isSOSDisabled);
+            updateToggleUI('prep', isPrepMode);
+            
             lastGeneratedGridHTML = ""; // Force redraw
             fetchKDS(); 
         }
@@ -839,18 +843,17 @@
                     const struckItemsCount = baseItems.filter(i => i.isStruck).length + newUpdateItems.filter(i => i.isStruck).length;
                     
                     const isFullyStruck = totalRenderedItems > 0 && struckItemsCount === totalRenderedItems;
-                    // GHOST UPDATE FIX: If it's updated, it breaks the ready state so the ticket wakes up!
-                    const isStationReady = ticket.status.includes(`${currentStationFilter}:Ready`) && !isUpdated;
+                    const isStationReady = ticket.status.includes(`${currentStationFilter}:Ready`);
                     
-                    // DIM THE CARD IF PREP STATION IS DONE
-                    const cardOpacityClass = (isPrepMode && isStationReady && isFullyStruck) ? "opacity-40 grayscale-[50%]" : "";
+                    // 🟢 DIM THE CARD (Only if finished AND sent AND not updated)
+                    const cardOpacityClass = (isPrepMode && isStationReady && !isUpdated) ? "opacity-40 grayscale-[50%]" : "";
 
-                    // DYNAMIC ROLE AUTHORIZATION & SAFETY NETS
+                    // 🟢 DYNAMIC ROLE AUTHORIZATION & SAFETY NETS
                     let bottomButtonHTML = "";
                     if (isPrepMode) {
-                        if (isStationReady && isFullyStruck) {
-                            // STATE 3: SENT TO EXPO. Show Amber Global Alert button.
-                            bottomButtonHTML = `<button onclick="executeGlobalBumpFromPrep('${ticket.token}', '${tableNum}', this)" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-1.5 bg-amber-600 hover:bg-amber-500 text-white shadow-[0_0_15px_rgba(217,119,6,0.4)] active:scale-95 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"></path></svg> Alert Waiter (Global)</button>`;
+                        if (isStationReady && !isUpdated) {
+                            // STATE 3: SENT TO EXPO. Show Amber Alert Waiter button.
+                            bottomButtonHTML = `<button onclick="alertWaiterPartial('${ticket.token}', '${tableNum}', '${currentStationFilter}')" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 bg-amber-600 hover:bg-amber-500 text-white active:scale-95 shadow-[0_0_15px_rgba(217,119,6,0.4)]"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"></path></svg> Alert Waiter (Station Ready)</button>`;
                         } else if (isFullyStruck) {
                             // STATE 2: CHECKED OFF locally. Show Blue button to send to Expo. 
                             // BUG FIX: Even if isUpdated is true, if they struck everything, let them send it!
@@ -861,7 +864,7 @@
                         }
                     } else {
                         // EXPO MODE: Head Chef can bump globally
-                        const bumpBtnClass = isFullyStruck ? "bg-k-success text-white shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:bg-green-500 active:scale-95" : "bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 active:scale-95";
+                        const bumpBtnClass = (isFullyStruck && !isUpdated) ? "bg-k-success text-white shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:bg-green-500 active:scale-95" : "bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 active:scale-95";
                         bottomButtonHTML = `<button onclick="executeBump('${ticket.token}', '${tableNum}', this)" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 ${bumpBtnClass}"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path></svg> Mark Ready</button>`;
                     }
 
@@ -947,8 +950,7 @@
             currentActiveTickets = activeTickets;
             updatePrepSummary();
         }
-
-        // --- STRIKE & BUMP ---
+    // --- STRIKE & BUMP ---
         function toggleStrike(uniqueItemId, rowElement) {
             if (strikeMemory.has(uniqueItemId)) strikeMemory.delete(uniqueItemId);
             else strikeMemory.add(uniqueItemId);
