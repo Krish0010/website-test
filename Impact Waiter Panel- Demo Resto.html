@@ -411,7 +411,7 @@
 
     <script>
         // REPLACE WITH YOUR ACTUAL SCRIPT URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwuXYW6W00V9WwyMiqoyFwIf6UCeNyzvbhdM4yldlnZV4JkrOTlJrpphcu9BlEhQ5ys/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyl6fYxw4Nx1T_5hJHPN14xs6WspkB4xVIEut5-MgcpsZtV1a2Iwh8YlkccqCJ9tBAA/exec"; 
 
         let currentInput = "";
         let activeTicket = []; 
@@ -2058,7 +2058,9 @@
                     } else {
                         badge.classList.add('hidden');
                     }
-                } catch (err) {}
+                } // Closes the 'if' block
+            } // Closes the 'try' block
+            catch (err) {}
         }
 
         // Start poller automatically on page load if already authorized
