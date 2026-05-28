@@ -134,15 +134,9 @@
                 <div class="w-9 h-9 sm:w-10 sm:h-10 bg-k-accent text-gray-900 rounded-xl flex items-center justify-center font-black text-[10px] sm:text-xs tracking-widest shadow-[0_0_15px_rgba(56,189,248,0.3)]">KDS</div>
             </div>
             
-            <div class="relative group">
-                <div class="absolute -inset-0.5 bg-gradient-to-r from-sky-500 to-blue-600 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-500 hidden sm:block"></div>
-                <select id="station-filter" onchange="setStation(this.value)" class="relative w-36 sm:w-48 bg-gray-800 sm:bg-gray-900 border border-gray-700 text-white text-[10px] sm:text-sm rounded-xl focus:ring-k-accent focus:border-k-accent p-2.5 sm:py-2.5 font-black uppercase tracking-widest outline-none cursor-pointer appearance-none shadow-sm transition-colors" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22%239CA3AF%22%3E%3Cpath fill-rule=%22evenodd%22 d=%22M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%22 clip-rule=%22evenodd%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.2em 1.2em;">
-                    <option value="All">All Stations</option>
-                    <option value="Grill">🔥 Grill</option>
-                    <option value="Kitchen">🍳 Kitchen</option>
-                    <option value="Dessert">🍰 Dessert</option>
-                    <option value="Beverages">🥤 Beverages</option>
-                </select>
+            <div class="flex flex-col justify-center">
+                <span class="text-[8px] sm:text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-0.5">Assigned Station</span>
+                <span id="active-station-label" class="text-white font-black text-xs sm:text-sm uppercase tracking-widest text-sky-400">All Stations</span>
             </div>
         </div>
         
@@ -206,6 +200,29 @@
             </div>
             
             <div class="space-y-4 overflow-y-auto max-h-[60vh] pr-2" style="scrollbar-width: thin;">
+    <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
+                <div>
+                    <h2 class="text-xl font-black tracking-widest uppercase text-white">Kitchen Settings</h2>
+                    <p class="text-[10px] uppercase font-bold text-k-accent tracking-widest mt-1">Authorized Personnel Only</p>
+                </div>
+                <button onclick="closeManagerHub()" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-colors">✕</button>
+            </div>
+            
+            <div class="space-y-4 overflow-y-auto max-h-[60vh] pr-2" style="scrollbar-width: thin;">
+                
+                <div class="flex items-center justify-between bg-gray-800 p-4 rounded-xl border border-sky-900/50 shadow-[inset_0_0_20px_rgba(56,189,248,0.05)]">
+                    <div>
+                        <h4 class="text-white font-bold text-sm uppercase tracking-wider">Device Role</h4>
+                        <p class="text-gray-400 text-[10px] mt-0.5">Assign this tablet to a zone</p>
+                    </div>
+                    <select id="mgr-station-select" onchange="setStation(this.value)" class="bg-gray-900 border border-gray-600 text-white text-[10px] sm:text-xs rounded-lg focus:ring-k-accent focus:border-k-accent px-3 py-2 font-black uppercase tracking-widest outline-none cursor-pointer">
+                        <option value="All">All Stations</option>
+                        <option value="Grill">🔥 Grill</option>
+                        <option value="Kitchen">🍳 Kitchen</option>
+                        <option value="Dessert">🍰 Dessert</option>
+                        <option value="Beverages">🥤 Beverages</option>
+                    </select>
+                </div>
                 
                 <div class="flex items-center justify-between bg-gray-800 p-4 rounded-xl border border-gray-700">
                     <div>
@@ -408,12 +425,12 @@
         let previousCarts = {}; 
         let unacknowledgedUpdates = {}; 
         let isInitialLoad = true; 
-        
-        // 🟢 Set the dropdown to remember the last used station on refresh
         let currentStationFilter = localStorage.getItem('kds_last_station') || "All"; 
+
         document.addEventListener("DOMContentLoaded", () => {
-            const dropdown = document.getElementById('station-filter');
-            if (dropdown) dropdown.value = currentStationFilter;
+            updateStationLabel(currentStationFilter); // 🟢 Initialize the static UI label
+            startClock();
+            fetchKDS();
         });
 
         let latestReadyTickets = []; 
@@ -689,8 +706,21 @@
             isSOSDisabled = localStorage.getItem(`kds_sos_${station}`) === 'true';
             isPrepMode = localStorage.getItem(`kds_prep_${station}`) === 'true';
             
+            updateStationLabel(station); // 🟢 Instantly update the Header badge
+            
             lastGeneratedGridHTML = ""; // Force redraw
             fetchKDS(); 
+        }
+
+        // 🟢 Updates the visual text in the header and keeps the manager dropdown in sync
+        function updateStationLabel(station) {
+            const label = document.getElementById('active-station-label');
+            if (label) {
+                const names = { 'All': 'All Stations', 'Grill': '🔥 Grill', 'Kitchen': '🍳 Kitchen', 'Dessert': '🍰 Dessert', 'Beverages': '🥤 Beverages' };
+                label.innerText = names[station] || station;
+            }
+            const mgrSelect = document.getElementById('mgr-station-select');
+            if (mgrSelect) mgrSelect.value = station;
         }
 
         // --- RENDER TICKETS ---
