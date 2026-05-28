@@ -831,23 +831,26 @@
                         `;
                         itemsHTML += newUpdateItems.map(i => generateRow(i, true)).join('');
                     }
-
-                    const totalRenderedItems = baseItems.length + newUpdateItems.length;
+const totalRenderedItems = baseItems.length + newUpdateItems.length;
                     const struckItemsCount = baseItems.filter(i => i.isStruck).length + newUpdateItems.filter(i => i.isStruck).length;
                     
                     const isFullyStruck = totalRenderedItems > 0 && struckItemsCount === totalRenderedItems;
-                    const isStationReady = ticket.status.includes(`${currentStationFilter}:Ready`) && !isUpdated;
+                    const isStationReady = ticket.status.includes(`${currentStationFilter}:Ready`);
                     
                     // 🟢 THE FIX: If the Prep Cook has sent this to Expo, completely hide it from their board!
-                    if (isPrepMode && isStationReady) {
+                    // (But bring it back if there is a new unacknowledged update!)
+                    if (isPrepMode && isStationReady && !isUpdated) {
                         return; // Skip rendering this ticket completely!
                     }
+
+                    // 🟢 DIM THE CARD (Only if finished locally, but waiting to be sent)
+                    const cardOpacityClass = (isPrepMode && isFullyStruck && !isUpdated) ? "opacity-40 grayscale-[50%]" : "";
 
                     // 🟢 DYNAMIC ROLE AUTHORIZATION & SAFETY NETS
                     let bottomButtonHTML = "";
                     if (isPrepMode) {
                         if (isFullyStruck) {
-                            // STATE 2: CHECKED OFF locally. Show Blue button.
+                            // STATE 2: CHECKED OFF locally. Show Blue button to alert Waiter.
                             bottomButtonHTML = `<button onclick="alertWaiterPartial('${ticket.token}', '${tableNum}', '${currentStationFilter}')" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white active:scale-95 shadow-[0_0_15px_rgba(37,99,235,0.4)]"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"></path></svg> Send & Clear Station</button>`;
                         } else {
                             // STATE 1: INCOMPLETE. Show Gray button. Will throw popup if clicked.
