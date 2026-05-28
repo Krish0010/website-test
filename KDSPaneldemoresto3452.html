@@ -579,9 +579,12 @@
                                     let oldC = JSON.parse(prevCartStr);
                                     let hasAddition = false;
                                     
-                                    // ONLY alert if the ADDED item belongs to this station
+                                    // 🟢 FIX: Match by Name & Note instead of ID. This prevents Waiter edits from waking up wrong stations!
                                     filteredCart.forEach(newItem => {
-                                        let oldItem = oldC.find(old => String(old.id) === String(newItem.id));
+                                        let oldItem = oldC.find(old => 
+                                            String(old.name).trim().toLowerCase() === String(newItem.name).trim().toLowerCase() && 
+                                            String(old.note || '').trim().toLowerCase() === String(newItem.note || '').trim().toLowerCase()
+                                        );
                                         if (!oldItem || parseInt(newItem.qty) > parseInt(oldItem.qty)) hasAddition = true;
                                     });
 
@@ -589,6 +592,11 @@
                                         let tableNum = t.status.split('-')[0].replace('Table','').trim();
                                         updateNotifications.push({ title: "ORDER UPDATED", msg: `Table ${tableNum} modified their order.`, color: "bg-blue-600 text-white border-blue-400" });
                                         unacknowledgedUpdates[t.token] = oldC; // Store old cart for badging
+                                        
+                                        // 🟢 WAKE UP FIX: Remove ticket from cleared memory so it reappears instantly!
+                                        let cleared = JSON.parse(localStorage.getItem(`kds_cleared_tokens_${currentStationFilter}`) || "[]");
+                                        cleared = cleared.filter(tok => String(tok) !== String(t.token));
+                                        localStorage.setItem(`kds_cleared_tokens_${currentStationFilter}`, JSON.stringify(cleared));
                                     }
                                 }
                             }
@@ -746,7 +754,9 @@
                     });
 
                     sortedCart.forEach((item, index) => {
-                        const uniqueItemId = `${ticket.token}_${item.id || index}_${item.name.replace(/\s+/g, '')}`;
+                        // 🟢 FIX: Ignore item.id to prevent strike memory from resetting when modifying other dishes!
+                        const safeNote = String(item.note || "").replace(/[^a-zA-Z0-9]/g, "");
+                        const uniqueItemId = `${ticket.token}_${item.name.replace(/\s+/g, '')}_${safeNote}`;
                         const itemCat = String(item.category || "Kitchen").trim().toLowerCase();
                         
                         // 🟢 AUTO-STRIKE FIX: Force cross-out if server says it's ready
