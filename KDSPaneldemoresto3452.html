@@ -200,6 +200,15 @@
             </div>
             
             <div class="space-y-4 overflow-y-auto max-h-[60vh] pr-2" style="scrollbar-width: thin;">
+    <div class="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
+                <div>
+                    <h2 class="text-xl font-black tracking-widest uppercase text-white">Kitchen Settings</h2>
+                    <p class="text-[10px] uppercase font-bold text-k-accent tracking-widest mt-1">Authorized Personnel Only</p>
+                </div>
+                <button onclick="closeManagerHub()" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-colors">✕</button>
+            </div>
+            
+            <div class="space-y-4 overflow-y-auto max-h-[60vh] pr-2" style="scrollbar-width: thin;">
                 
                 <div class="flex items-center justify-between bg-gray-800 p-4 rounded-xl border border-sky-900/50 shadow-[inset_0_0_20px_rgba(56,189,248,0.05)]">
                     <div>
@@ -973,7 +982,7 @@
             if (strikeMemory.has(uniqueItemId)) strikeMemory.delete(uniqueItemId);
             else strikeMemory.add(uniqueItemId);
             
-            // 🟢 VIRTUAL DOM FIX: Instantly redraw the grid so the Amber/Gray buttons update immediately!
+            // 🟢 VIRTUAL DOM FIX: Instantly redraw the grid so the Blue/Gray buttons update immediately!
             lastGeneratedGridHTML = ""; 
             renderKDSGrid(currentActiveTickets); 
         }
@@ -983,7 +992,30 @@
             showKDSAlert("Incomplete Station", "You still have <b>un-checked items</b> on your screen.<br><br>Please tap and cross off every item before sending to the Expediter.");
         }
 
-        // 🟢 STATION ALERT MODAL LOGIC
+        // 🟢 PREP STATION EXECUTION: Sends silent ping and clears the blue "Update" flag automatically
+        function strikeStationItems(token, tableNum, stationName, btnElement) {
+            const card = btnElement.closest('.ticket-card');
+            const totalItems = card.querySelectorAll('.item-row').length;
+            const struckItems = card.querySelectorAll('.is-struck').length;
+            
+            // 🟢 SAFETY NET 2: Block the click if they haven't manually checked off every item!
+            if (struckItems < totalItems) {
+                showKDSAlert("Cannot Send to Expo", "You still have <b>un-checked items</b>.<br><br>Please tap and check off every item on your station before sending.");
+                return;
+            }
+
+            // Auto-acknowledge update if present so the blue border goes away!
+            delete unacknowledgedUpdates[token];
+
+            // Send silent ping to backend so Expo tablet gets the green badge
+            try { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_station_ready", token: token, station: stationName }) }); } catch(e) {}
+            
+            // Force an immediate Virtual DOM refresh to apply the dimmed state and Amber button
+            lastGeneratedGridHTML = ""; 
+            fetchKDS(); 
+        }
+
+        // 🟢 STATION ALERT MODAL LOGIC (Replaces the ugly browser confirm popup)
         let pendingAlertToken = "";
         let pendingAlertTable = "";
         let pendingAlertStation = "";
@@ -995,15 +1027,19 @@
             
             const modal = document.getElementById('station-alert-modal'); 
             const box = document.getElementById('station-alert-box');
-            modal.classList.remove('hidden'); modal.classList.add('flex');
-            setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); }, 10);
+            if(modal && box) {
+                modal.classList.remove('hidden'); modal.classList.add('flex');
+                setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); }, 10);
+            }
         }
 
         function closeStationAlertModal() {
             const modal = document.getElementById('station-alert-modal'); 
             const box = document.getElementById('station-alert-box');
-            modal.classList.add('opacity-0'); box.classList.remove('scale-100'); box.classList.add('scale-95');
-            setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 300);
+            if(modal && box) {
+                modal.classList.add('opacity-0'); box.classList.remove('scale-100'); box.classList.add('scale-95');
+                setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 300);
+            }
             pendingAlertToken = ""; pendingAlertTable = ""; pendingAlertStation = "";
         }
 
@@ -1042,70 +1078,11 @@
                 if (data.success) {
                     const keysToLock = Array.from(strikeMemory).filter(key => key.startsWith(`${token}_`));
                     keysToLock.forEach(key => bumpedMemory.add(key));
+                    delete unacknowledgedUpdates[token]; // 🟢 Clear update state on Bump too!
                     fetchKDS(); 
                 } else { alert("Error marking ticket ready: " + data.message); }
             } catch (err) { alert("Network error. Could not bump ticket.");
             } finally { overlay.classList.add('hidden'); overlay.classList.remove('flex'); }
-        }
-
-// 🟢 PREP STATION: Verify completion & Send Silent Ping
-        function strikeStationItems(token, tableNum, stationName, btnElement) {
-            const card = btnElement.closest('.ticket-card');
-            const totalItems = card.querySelectorAll('.item-row').length;
-            const struckItems = card.querySelectorAll('.is-struck').length;
-            
-            // 🟢 SAFETY NET 1: Block the click if they haven't manually checked off every item!
-            if (struckItems < totalItems) {
-                showKDSAlert("Cannot Send to Expo", "You still have <b>un-cooked items</b>.<br><br>Please tap and check off every item on your station before sending.");
-                return;
-            }
-
-            // 🟢 Send silent ping to backend so Expo tablet gets the green badge
-            try {
-                fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_station_ready", token: token, station: stationName }) });
-            } catch(e) {}
-            
-            // Force an immediate Virtual DOM refresh to apply the dimmed state and Amber button
-            lastGeneratedGridHTML = ""; 
-            fetchKDS(); 
-        }
-
-        // 🟢 PREMIUM GLOBAL BUMP LOGIC
-        let pendingGlobalBumpToken = "";
-        let pendingGlobalBumpTable = "";
-        let pendingGlobalBumpBtn = null;
-
-        function executeGlobalBumpFromPrep(token, tableNum, btnElement) {
-            // Save the data so the modal knows what to bump
-            pendingGlobalBumpToken = token;
-            pendingGlobalBumpTable = tableNum;
-            pendingGlobalBumpBtn = btnElement;
-            
-            // Trigger our beautiful custom modal
-            const modal = document.getElementById('global-bump-modal'); 
-            const box = document.getElementById('global-bump-box');
-            modal.classList.remove('hidden'); modal.classList.add('flex');
-            setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); }, 10);
-        }
-
-        function closeGlobalBumpModal() {
-            const modal = document.getElementById('global-bump-modal'); 
-            const box = document.getElementById('global-bump-box');
-            modal.classList.add('opacity-0'); box.classList.remove('scale-100'); box.classList.add('scale-95');
-            setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 300);
-            
-            // Clear memory
-            pendingGlobalBumpToken = "";
-            pendingGlobalBumpTable = "";
-            pendingGlobalBumpBtn = null;
-        }
-
-        function confirmGlobalBump() {
-            if (pendingGlobalBumpToken && pendingGlobalBumpBtn) {
-                // Execute the global wipe!
-                executeBump(pendingGlobalBumpToken, pendingGlobalBumpTable, pendingGlobalBumpBtn);
-            }
-            closeGlobalBumpModal();
         }
 
         // --- UTILITIES & PACE ENGINE MATH ---
