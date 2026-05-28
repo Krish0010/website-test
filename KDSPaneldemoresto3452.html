@@ -408,7 +408,7 @@
 
         // 🟢 SINGLE BOOT INITIALIZER
         document.addEventListener("DOMContentLoaded", () => {
-            updateStationLabel(currentStationFilter); // Initialize the static UI label
+            updateStationLabel(currentStationFilter); 
             startClock();
             fetchKDS();
         });
@@ -909,8 +909,11 @@
                 } catch (e) { console.error("Skipping corrupted ticket", e); }
             });
 
+            // 🟢 EMPTY STATE FIX: Ensures the graphic completely hides when tickets are present
             if (gridHTML === "") {
                 emptyState.classList.remove('hidden'); emptyState.classList.add('flex');
+            } else {
+                emptyState.classList.add('hidden'); emptyState.classList.remove('flex');
             }
             
             // 🟢 VIRTUAL DOM ENGINE: Only redraw the screen if the HTML actually changed!
