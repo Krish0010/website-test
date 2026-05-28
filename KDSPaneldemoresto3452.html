@@ -395,7 +395,6 @@
         let previousCarts = {}; 
         let unacknowledgedUpdates = {}; 
         let isInitialLoad = true; 
-        let locallySentTickets = new Set(); // 🟢 NEW: Memory shield to stop waiter updates from bringing back finished tickets
         let currentStationFilter = localStorage.getItem('kds_last_station') || "All"; 
         let latestReadyTickets = []; 
         let targetTimeOverrides = {}; 
@@ -834,15 +833,12 @@
                     }
 const totalRenderedItems = baseItems.length + newUpdateItems.length;
                     const struckItemsCount = baseItems.filter(i => i.isStruck).length + newUpdateItems.filter(i => i.isStruck).length;
+                    
                     const isFullyStruck = totalRenderedItems > 0 && struckItemsCount === totalRenderedItems;
+                    const isStationReady = ticket.status.includes(`${currentStationFilter}:Ready`);
                     
-                    // 🟢 GHOST UPDATE RESISTANCE: Check both the server tag AND our local memory shield.
-                    const isServerReady = ticket.status.includes(`${currentStationFilter}:Ready`);
-                    const isLocallyReady = locallySentTickets.has(`${ticket.token}_${currentStationFilter}`);
-                    const isStationReady = isServerReady || isLocallyReady;
-                    
-                    // 🟢 THE FIX: Hide the ticket if it was sent to Expo!
-                    // (Unless the waiter added a NEW item for this specific station, which makes isUpdated = true and breaks the shield)
+                    // 🟢 THE FIX: If the Prep Cook has sent this to Expo, completely hide it from their board!
+                    // (But bring it back if there is a new unacknowledged update!)
                     if (isPrepMode && isStationReady && !isUpdated) {
                         return; // Skip rendering this ticket completely!
                     }
@@ -981,13 +977,10 @@ const totalRenderedItems = baseItems.length + newUpdateItems.length;
             // Auto-acknowledge update if present so the blue border goes away!
             delete unacknowledgedUpdates[token];
 
-            // 🟢 LOCAL MEMORY SHIELD: Memorize that we sent this, so Waiter updates don't accidentally bring it back!
-            locallySentTickets.add(`${token}_${stationName}`);
-
             // Send silent ping to backend so Expo tablet gets the green badge
             try { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_station_ready", token: token, station: stationName }) }); } catch(e) {}
             
-            // Force an immediate Virtual DOM refresh to hide the ticket completely
+            // Force an immediate Virtual DOM refresh to apply the dimmed state and Amber button
             lastGeneratedGridHTML = ""; 
             fetchKDS(); 
         }
@@ -1453,7 +1446,6 @@ const totalRenderedItems = baseItems.length + newUpdateItems.length;
             if (confirm("Are you sure? This will wipe all strikes and cache from this tablet.")) {
                 strikeMemory.clear();
                 bumpedMemory.clear();
-                locallySentTickets.clear(); // 🟢 Clear the memory shield
                 unacknowledgedUpdates = {};
                 showKDSToast("EOD Reset", "Tablet memory wiped successfully.", "bg-green-600 text-white");
                 closeManagerHub();
