@@ -396,13 +396,6 @@
         let unacknowledgedUpdates = {}; 
         let isInitialLoad = true; 
         let currentStationFilter = localStorage.getItem('kds_last_station') || "All"; 
-
-        document.addEventListener("DOMContentLoaded", () => {
-            updateStationLabel(currentStationFilter); // 🟢 Initialize the static UI label
-            startClock();
-            fetchKDS();
-        });
-
         let latestReadyTickets = []; 
         let targetTimeOverrides = {}; 
         let lastGeneratedGridHTML = ""; 
@@ -413,9 +406,9 @@
         let isPrepMode = localStorage.getItem(`kds_prep_${currentStationFilter}`) === 'true'; 
         let isDemoMode = false;
 
+        // 🟢 SINGLE BOOT INITIALIZER
         document.addEventListener("DOMContentLoaded", () => {
-            const dropdown = document.getElementById('station-filter');
-            if (dropdown) dropdown.value = currentStationFilter;
+            updateStationLabel(currentStationFilter); // Initialize the static UI label
             startClock();
             fetchKDS();
         });
@@ -852,7 +845,7 @@
                     let bottomButtonHTML = "";
                     if (isPrepMode) {
                         if (isStationReady && !isUpdated) {
-                            // STATE 3: SENT TO EXPO. Show Amber Alert Waiter button.
+                            // STATE 3: SENT TO EXPO. Show Amber Alert Waiter button (Safely linked to the custom modal!)
                             bottomButtonHTML = `<button onclick="alertWaiterPartial('${ticket.token}', '${tableNum}', '${currentStationFilter}')" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 bg-amber-600 hover:bg-amber-500 text-white active:scale-95 shadow-[0_0_15px_rgba(217,119,6,0.4)]"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"></path></svg> Alert Waiter (Station Ready)</button>`;
                         } else if (isFullyStruck) {
                             // STATE 2: CHECKED OFF locally. Show Blue button to send to Expo. 
