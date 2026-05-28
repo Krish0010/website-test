@@ -292,7 +292,7 @@
         </div>
     </div>
 
-    <div id="target-edit-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[850] hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+   <div id="target-edit-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[850] hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div id="target-edit-box" class="bg-gray-900 border border-k-accent/50 rounded-3xl shadow-[0_0_50px_rgba(56,189,248,0.2)] max-w-sm w-full p-6 text-center transform scale-95 transition-transform duration-300">
             <h2 class="text-lg font-black tracking-widest uppercase text-white mb-1">Adjust Target Time</h2>
             <p id="target-edit-token" class="text-k-accent text-xs font-bold mb-6">Token #---</p>
@@ -304,13 +304,14 @@
                 </div>
                 <button onclick="modifyTargetTime(5)" class="w-14 h-14 bg-gray-700 hover:bg-gray-600 rounded-full text-white font-black text-2xl shadow-md transition-transform active:scale-90">+5</button>
             </div>
-     <div class="flex gap-3">
+            <div class="flex gap-3">
                 <button onclick="closeTargetModal()" class="w-1/3 py-3 text-gray-400 bg-gray-800 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:text-white transition-colors">Cancel</button>
                 <button onclick="saveTargetTime()" class="w-2/3 py-3 bg-k-accent hover:bg-sky-400 text-gray-900 rounded-xl font-black uppercase tracking-widest text-xs transition-colors shadow-lg shadow-sky-500/20">Save Target</button>
             </div>
         </div>
     </div>
 
+    <!-- 🟢 PREMIUM STATION ALERT MODAL -->
     <div id="station-alert-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[950] hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div id="station-alert-box" class="bg-gray-900 border border-amber-500/50 rounded-3xl shadow-[0_0_50px_rgba(217,119,6,0.3)] max-w-sm w-full p-6 text-center transform scale-95 transition-transform duration-300 flex flex-col items-center">
             <div class="w-16 h-16 bg-amber-500/20 text-amber-500 rounded-full flex items-center justify-center mb-4 border border-amber-500/30 animate-pulse">
@@ -325,28 +326,7 @@
         </div>
     </div>
 
-    <div id="notif-history-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[700] hidden flex-col justify-end">
-            <div class="flex gap-3">
-                <button onclick="closeTargetModal()" class="w-1/3 py-3 text-gray-400 bg-gray-800 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:text-white transition-colors">Cancel</button>
-                <button onclick="saveTargetTime()" class="w-2/3 py-3 bg-k-accent hover:bg-sky-400 text-gray-900 rounded-xl font-black uppercase tracking-widest text-xs transition-colors shadow-lg shadow-sky-500/20">Save Target</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="global-bump-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[950] hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div id="global-bump-box" class="bg-gray-900 border border-amber-500/50 rounded-3xl shadow-[0_0_50px_rgba(217,119,6,0.3)] max-w-sm w-full p-6 text-center transform scale-95 transition-transform duration-300 flex flex-col items-center">
-            <div class="w-16 h-16 bg-amber-500/20 text-amber-500 rounded-full flex items-center justify-center mb-4 border border-amber-500/30 animate-pulse">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-            </div>
-            <h2 class="text-xl font-black tracking-widest uppercase text-white mb-2">Global Clear</h2>
-            <p class="text-gray-400 text-xs font-bold leading-relaxed mb-6">You are about to mark this order READY and clear it for the ENTIRE kitchen.<br><br><span class="text-amber-400">Are you sure ALL stations have finished?</span></p>
-            <div class="flex gap-3 w-full">
-                <button onclick="closeGlobalBumpModal()" class="w-1/2 py-3 bg-gray-800 text-gray-400 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:text-white hover:bg-gray-700 transition-colors">Cancel</button>
-                <button onclick="confirmGlobalBump()" class="w-1/2 py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-colors shadow-[0_0_15px_rgba(217,119,6,0.4)]">Yes, Clear It</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- 🟢 NOTIFICATION HISTORY MODAL -->
     <div id="notif-history-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[700] hidden flex-col justify-end">
         <div class="bg-gray-900 w-full md:w-96 md:absolute md:right-6 md:top-24 h-[70vh] md:h-[60vh] rounded-t-[32px] md:rounded-[24px] shadow-[0_0_40px_rgba(0,0,0,0.8)] flex flex-col border border-gray-800 animate-[slideIn_0.3s_ease-out]">
             <div class="p-5 border-b border-gray-800 flex justify-between items-center shrink-0">
