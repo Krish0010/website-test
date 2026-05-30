@@ -579,14 +579,30 @@
                                     let oldC = JSON.parse(prevCartStr);
                                     let hasAddition = false;
                                     
-                                    // 🟢 FIX: Match by Name & Note instead of ID. This prevents Waiter edits from waking up wrong stations!
-                                    filteredCart.forEach(newItem => {
-                                        let oldItem = oldC.find(old => 
-                                            String(old.name).trim().toLowerCase() === String(newItem.name).trim().toLowerCase() && 
-                                            String(old.note || '').trim().toLowerCase() === String(newItem.note || '').trim().toLowerCase()
-                                        );
-                                        if (!oldItem || parseInt(newItem.qty) > parseInt(oldItem.qty)) hasAddition = true;
+                                    // 🟢 BULLETPROOF SUMMATION FIX: Calculate total quantities to prevent false alarms on split items!
+                                    let oldStationTotals = {};
+                                    oldC.forEach(o => {
+                                        let cat = String(o.category || "Kitchen").trim().toLowerCase();
+                                        let active = String(currentStationFilter).trim().toLowerCase();
+                                        if (currentStationFilter === "All" || cat === active || cat.includes(active)) {
+                                            let key = String(o.name).trim().toLowerCase() + "_" + String(o.note || '').trim().toLowerCase();
+                                            oldStationTotals[key] = (oldStationTotals[key] || 0) + parseInt(o.qty);
+                                        }
                                     });
+
+                                    let newStationTotals = {};
+                                    filteredCart.forEach(n => {
+                                        let key = String(n.name).trim().toLowerCase() + "_" + String(n.note || '').trim().toLowerCase();
+                                        newStationTotals[key] = (newStationTotals[key] || 0) + parseInt(n.qty);
+                                    });
+
+                                    // If a dish total in the new cart is greater than the old cart, it's a true addition!
+                                    for (let key in newStationTotals) {
+                                        if (!oldStationTotals[key] || newStationTotals[key] > oldStationTotals[key]) {
+                                            hasAddition = true;
+                                            break;
+                                        }
+                                    }
 
                                     if (hasAddition) {
                                         let tableNum = t.status.split('-')[0].replace('Table','').trim();
@@ -748,40 +764,59 @@
 
                     if (filteredCart.length === 0) return; 
 
-                    const sortedCart = [...filteredCart].sort((a, b) => {
+                const sortedCart = [...filteredCart].sort((a, b) => {
                         const rank = { "Serve First": 1, "Main Course": 2, "Serve Last": 3 };
                         return (rank[a.pacing] || 2) - (rank[b.pacing] || 2);
                     });
 
+                    // 🟢 BULK STRIKE FIX: Track occurrences of identical dishes to give them unique IDs
+                    const occurrenceTracker = {};
+                    let usedOldItems = new Set(); // Tracks matched items to prevent duplicate Update badges
+
                     sortedCart.forEach((item, index) => {
-                        // 🟢 FIX: Ignore item.id to prevent strike memory from resetting when modifying other dishes!
                         const safeNote = String(item.note || "").replace(/[^a-zA-Z0-9]/g, "");
-                        const uniqueItemId = `${ticket.token}_${item.name.replace(/\s+/g, '')}_${safeNote}`;
+                        const baseId = `${ticket.token}_${item.name.replace(/\s+/g, '')}_${safeNote}`;
+                        
+                        occurrenceTracker[baseId] = (occurrenceTracker[baseId] || 0) + 1;
+                        const uniqueItemId = `${baseId}_idx${occurrenceTracker[baseId]}`; // Appends _idx1, _idx2 etc.
+                        
                         const itemCat = String(item.category || "Kitchen").trim().toLowerCase();
                         
-                        // 🟢 AUTO-STRIKE FIX: Force cross-out if server says it's ready
                         const isServerStruck = readyStations.some(rs => itemCat.includes(rs));
                         const isItemStruck = isServerStruck || strikeMemory.has(uniqueItemId) || bumpedMemory.has(uniqueItemId);
                         const isItemLocked = isServerStruck || bumpedMemory.has(uniqueItemId);
                         
                         if (isUpdated) {
                             let oldCart = unacknowledgedUpdates[ticket.token] || [];
-                            let oldItem = oldCart.find(old => String(old.id) === String(item.id));
-                            if (!oldItem) {
+                            
+                            // 🟢 FIX: Match by Name & Note instead of volatile IDs to survive Waiter edits!
+                            let oldItemIdx = oldCart.findIndex((old, idx) => {
+                                return !usedOldItems.has(idx) &&
+                                    String(old.name).trim().toLowerCase() === String(item.name).trim().toLowerCase() && 
+                                    String(old.note || '').trim().toLowerCase() === String(item.note || '').trim().toLowerCase();
+                            });
+
+                            if (oldItemIdx === -1) {
+                                // Completely new item addition
                                 newUpdateItems.push({ ...item, renderId: uniqueItemId, isStruck: isItemStruck, isLocked: isItemLocked });
-                            } else if (parseInt(item.qty) > parseInt(oldItem.qty)) {
-                                if (isItemStruck) {
-                                    const oldQty = parseInt(oldItem.qty);
-                                    const newQty = parseInt(item.qty) - oldQty;
-                                    baseItems.push({ ...item, qty: oldQty, renderId: uniqueItemId, isStruck: true, isLocked: isItemLocked });
-                                    const newRenderId = uniqueItemId + '_new';
-                                    newUpdateItems.push({ ...item, qty: newQty, renderId: newRenderId, isStruck: strikeMemory.has(newRenderId), isLocked: false });
-                                } else {
-                                    const diff = parseInt(item.qty) - parseInt(oldItem.qty);
-                                    baseItems.push({ ...item, renderId: uniqueItemId, isStruck: false, isLocked: false, qtyDiff: diff });
-                                }
                             } else {
-                                baseItems.push({ ...item, renderId: uniqueItemId, isStruck: isItemStruck, isLocked: isItemLocked });
+                                usedOldItems.add(oldItemIdx);
+                                let oldItem = oldCart[oldItemIdx];
+                                
+                                if (parseInt(item.qty) > parseInt(oldItem.qty)) {
+                                    if (isItemStruck) {
+                                        const oldQty = parseInt(oldItem.qty);
+                                        const newQty = parseInt(item.qty) - oldQty;
+                                        baseItems.push({ ...item, qty: oldQty, renderId: uniqueItemId, isStruck: true, isLocked: isItemLocked });
+                                        const newRenderId = uniqueItemId + '_new';
+                                        newUpdateItems.push({ ...item, qty: newQty, renderId: newRenderId, isStruck: strikeMemory.has(newRenderId), isLocked: false });
+                                    } else {
+                                        const diff = parseInt(item.qty) - parseInt(oldItem.qty);
+                                        baseItems.push({ ...item, renderId: uniqueItemId, isStruck: false, isLocked: false, qtyDiff: diff });
+                                    }
+                                } else {
+                                    baseItems.push({ ...item, renderId: uniqueItemId, isStruck: isItemStruck, isLocked: isItemLocked });
+                                }
                             }
                         } else {
                             baseItems.push({ ...item, renderId: uniqueItemId, isStruck: isItemStruck, isLocked: isItemLocked });
@@ -841,15 +876,19 @@
                         `;
                         itemsHTML += newUpdateItems.map(i => generateRow(i, true)).join('');
                     }
-const totalRenderedItems = baseItems.length + newUpdateItems.length;
+
+                    const totalRenderedItems = baseItems.length + newUpdateItems.length;
                     const struckItemsCount = baseItems.filter(i => i.isStruck).length + newUpdateItems.filter(i => i.isStruck).length;
                     
                     const isFullyStruck = totalRenderedItems > 0 && struckItemsCount === totalRenderedItems;
-                    const isStationReady = ticket.status.includes(`${currentStationFilter}:Ready`);
+                    
+                    // 🟢 RESURRECTION FIX: Use local memory to force the ticket closed, even if Waiter overwrites!
+                    let localCleared = JSON.parse(localStorage.getItem(`kds_cleared_tokens_${currentStationFilter}`) || "[]");
+                    const isServerReady = ticket.status.includes(`${currentStationFilter}:Ready`);
+                    const isStationReady = (isServerReady || localCleared.includes(String(ticket.token))) && !isUpdated;
                     
                     // 🟢 THE FIX: If the Prep Cook has sent this to Expo, completely hide it from their board!
-                    // (But bring it back if there is a new unacknowledged update!)
-                    if (isPrepMode && isStationReady && !isUpdated) {
+                    if (isPrepMode && isStationReady) {
                         return; // Skip rendering this ticket completely!
                     }
 
