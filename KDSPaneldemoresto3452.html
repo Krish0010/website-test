@@ -386,7 +386,7 @@
 
     <script>
         // REPLACE WITH YOUR ACTUAL SCRIPT URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDCWQ_akSYdGVl2GvootRvxpHrqA3h_CCtCzDMetOIt9SxZrjF_2ERgMda-K2EN-G4/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyG4QIhH8N9zOLXLGFLRU9S6NShcpQ7n2KeOVrc6vXXGXIgrs62PVAE00RhxlC_0NUR/exec"; 
 
         let strikeMemory = new Set();
         let bumpedMemory = new Set(); 
@@ -987,8 +987,8 @@
 
                 if (mainContent) mainContent.scrollTop = mainScrollPos;
                 
-                // 🟢 SCROLL FIX: Stop forcing the scrollbar to the bottom every 8 seconds!
-                // We only restore the scroll position exactly where the cook left it.
+                // 🟢 SCROLL FIX: Never force the scrollbar to the bottom!
+                // We ONLY restore the scroll position exactly where the cook left it.
                 document.querySelectorAll('.ticket-card').forEach(card => {
                     const token = card.getAttribute('data-token');
                     const scrollBox = card.querySelector('.overflow-y-auto');
