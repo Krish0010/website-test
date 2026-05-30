@@ -938,17 +938,14 @@ const totalRenderedItems = baseItems.length + newUpdateItems.length;
                 // Only restore scroll positions if we actually redrew the DOM
                 if (mainContent) mainContent.scrollTop = mainScrollPos;
                 
+                // 🟢 SCROLL FIX: Stop forcing the scrollbar to the bottom every 8 seconds!
+                // We only restore the scroll position exactly where the cook left it.
                 document.querySelectorAll('.ticket-card').forEach(card => {
                     const token = card.getAttribute('data-token');
                     const scrollBox = card.querySelector('.overflow-y-auto');
-                    const isUpdated = !!unacknowledgedUpdates[token];
 
-                    if (scrollBox) {
-                        if (isUpdated) {
-                            scrollBox.scrollTop = scrollBox.scrollHeight;
-                        } else if (ticketScrolls[token] !== undefined) {
-                            scrollBox.scrollTop = ticketScrolls[token];
-                        }
+                    if (scrollBox && ticketScrolls[token] !== undefined) {
+                        scrollBox.scrollTop = ticketScrolls[token];
                     }
                 });
             }
