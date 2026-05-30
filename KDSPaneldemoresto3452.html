@@ -755,54 +755,69 @@
                         });
                     }
 
-                    // 🟢 STRICTER CATEGORY FILTER
-                    const filteredCart = cart.filter(item => {
-                        if (currentStationFilter === "All") return true; 
-                        const itemCategory = String(item.category || "Kitchen").trim().toLowerCase();
-                        const activeFilter = String(currentStationFilter).trim().toLowerCase();
-                        return itemCategory === activeFilter || itemCategory.includes(activeFilter);
+                    // 🟢 STRICTER CATEGORY FILTER & DUPLICATE MERGER
+                    let mergedCartMap = {};
+                    cart.forEach(item => {
+                        if (currentStationFilter !== "All") {
+                            const itemCategory = String(item.category || "Kitchen").trim().toLowerCase();
+                            const activeFilter = String(currentStationFilter).trim().toLowerCase();
+                            if (itemCategory !== activeFilter && !itemCategory.includes(activeFilter)) return;
+                        }
+                        
+                        const safeNote = String(item.note || "").trim().toLowerCase();
+                        const mergeKey = `${String(item.name).trim().toLowerCase()}_${safeNote}_${item.pacing || 'Main Course'}`;
+                        
+                        if (!mergedCartMap[mergeKey]) {
+                            mergedCartMap[mergeKey] = { ...item, qty: parseInt(item.qty) };
+                        } else {
+                            mergedCartMap[mergeKey].qty += parseInt(item.qty);
+                        }
                     });
-
+                    
+                    const filteredCart = Object.values(mergedCartMap);
                     if (filteredCart.length === 0) return; 
 
-                const sortedCart = [...filteredCart].sort((a, b) => {
+                    const sortedCart = filteredCart.sort((a, b) => {
                         const rank = { "Serve First": 1, "Main Course": 2, "Serve Last": 3 };
                         return (rank[a.pacing] || 2) - (rank[b.pacing] || 2);
                     });
 
-                    // 🟢 BULK STRIKE FIX: Track occurrences of identical dishes to give them unique IDs
-                    const occurrenceTracker = {};
-                    let usedOldItems = new Set(); // Tracks matched items to prevent duplicate Update badges
+                    let usedOldItems = new Set();
+                    let mergedOldCart = [];
+                    
+                    if (isUpdated) {
+                        let oldCart = unacknowledgedUpdates[ticket.token] || [];
+                        let oldMap = {};
+                        oldCart.forEach(old => {
+                            const safeNote = String(old.note || "").trim().toLowerCase();
+                            const key = `${String(old.name).trim().toLowerCase()}_${safeNote}_${old.pacing || 'Main Course'}`;
+                            if (!oldMap[key]) oldMap[key] = { ...old, qty: parseInt(old.qty) };
+                            else oldMap[key].qty += parseInt(old.qty);
+                        });
+                        mergedOldCart = Object.values(oldMap);
+                    }
 
-                    sortedCart.forEach((item, index) => {
+                    sortedCart.forEach((item) => {
                         const safeNote = String(item.note || "").replace(/[^a-zA-Z0-9]/g, "");
-                        const baseId = `${ticket.token}_${item.name.replace(/\s+/g, '')}_${safeNote}`;
-                        
-                        occurrenceTracker[baseId] = (occurrenceTracker[baseId] || 0) + 1;
-                        const uniqueItemId = `${baseId}_idx${occurrenceTracker[baseId]}`; // Appends _idx1, _idx2 etc.
+                        const uniqueItemId = `${ticket.token}_${item.name.replace(/\s+/g, '')}_${safeNote}`; 
                         
                         const itemCat = String(item.category || "Kitchen").trim().toLowerCase();
-                        
                         const isServerStruck = readyStations.some(rs => itemCat.includes(rs));
                         const isItemStruck = isServerStruck || strikeMemory.has(uniqueItemId) || bumpedMemory.has(uniqueItemId);
                         const isItemLocked = isServerStruck || bumpedMemory.has(uniqueItemId);
                         
                         if (isUpdated) {
-                            let oldCart = unacknowledgedUpdates[ticket.token] || [];
-                            
-                            // 🟢 FIX: Match by Name & Note instead of volatile IDs to survive Waiter edits!
-                            let oldItemIdx = oldCart.findIndex((old, idx) => {
+                            let oldItemIdx = mergedOldCart.findIndex((old, idx) => {
                                 return !usedOldItems.has(idx) &&
                                     String(old.name).trim().toLowerCase() === String(item.name).trim().toLowerCase() && 
                                     String(old.note || '').trim().toLowerCase() === String(item.note || '').trim().toLowerCase();
                             });
 
                             if (oldItemIdx === -1) {
-                                // Completely new item addition
                                 newUpdateItems.push({ ...item, renderId: uniqueItemId, isStruck: isItemStruck, isLocked: isItemLocked });
                             } else {
                                 usedOldItems.add(oldItemIdx);
-                                let oldItem = oldCart[oldItemIdx];
+                                let oldItem = mergedOldCart[oldItemIdx];
                                 
                                 if (parseInt(item.qty) > parseInt(oldItem.qty)) {
                                     if (isItemStruck) {
