@@ -579,14 +579,30 @@
                                     let oldC = JSON.parse(prevCartStr);
                                     let hasAddition = false;
                                     
-                                    // 🟢 FIX: Match by Name & Note instead of ID. This prevents Waiter edits from waking up wrong stations!
-                                    filteredCart.forEach(newItem => {
-                                        let oldItem = oldC.find(old => 
-                                            String(old.name).trim().toLowerCase() === String(newItem.name).trim().toLowerCase() && 
-                                            String(old.note || '').trim().toLowerCase() === String(newItem.note || '').trim().toLowerCase()
-                                        );
-                                        if (!oldItem || parseInt(newItem.qty) > parseInt(oldItem.qty)) hasAddition = true;
+                                    // 🟢 BULLETPROOF SUMMATION FIX: Calculate total quantities to prevent false alarms on split items!
+                                    let oldStationTotals = {};
+                                    oldC.forEach(o => {
+                                        let cat = String(o.category || "Kitchen").trim().toLowerCase();
+                                        let active = String(currentStationFilter).trim().toLowerCase();
+                                        if (currentStationFilter === "All" || cat === active || cat.includes(active)) {
+                                            let key = String(o.name).trim().toLowerCase() + "_" + String(o.note || '').trim().toLowerCase();
+                                            oldStationTotals[key] = (oldStationTotals[key] || 0) + parseInt(o.qty);
+                                        }
                                     });
+
+                                    let newStationTotals = {};
+                                    filteredCart.forEach(n => {
+                                        let key = String(n.name).trim().toLowerCase() + "_" + String(n.note || '').trim().toLowerCase();
+                                        newStationTotals[key] = (newStationTotals[key] || 0) + parseInt(n.qty);
+                                    });
+
+                                    // If a dish total in the new cart is greater than the old cart, it's a true addition!
+                                    for (let key in newStationTotals) {
+                                        if (!oldStationTotals[key] || newStationTotals[key] > oldStationTotals[key]) {
+                                            hasAddition = true;
+                                            break;
+                                        }
+                                    }
 
                                     if (hasAddition) {
                                         let tableNum = t.status.split('-')[0].replace('Table','').trim();
