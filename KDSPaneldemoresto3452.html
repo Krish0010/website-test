@@ -388,7 +388,8 @@
         // REPLACE WITH YOUR ACTUAL SCRIPT URL
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwuP-MVji5QWdX2mYA_xXn56dbpkFPqNn5iv7MqmTqmjQ7X17cUk289tWbIpEGSH95e/exec"; 
 
-        let strikeMemory = new Set();
+        // 🟢 PERSISTENCE FIX: Load strike memory from the tablet's hard drive so it survives refreshes
+        let strikeMemory = new Set(JSON.parse(localStorage.getItem('kds_strike_memory') || "[]"));
         let bumpedMemory = new Set(); 
         let previousTicketStates = {}; 
         let currentActiveTickets = []; 
@@ -578,8 +579,8 @@
                                 else if (prevCartStr && prevCartStr !== currentCartStr && !t.status.includes("READY")) {
                                     let oldC = JSON.parse(prevCartStr);
                                     let hasAddition = false;
+                                    let addedCategories = new Set(); // 🟢 NEW: Track exactly which stations got additions
                                     
-                                    // 🟢 VOLATILE CATEGORY FIX: Ignore categories in the old cart to prevent Waiter cache-drop bugs
                                     let oldTotals = {};
                                     oldC.forEach(o => {
                                         let key = String(o.name).trim().toLowerCase() + "_" + String(o.note || '').trim().toLowerCase();
@@ -587,18 +588,25 @@
                                     });
 
                                     let newStationTotals = {};
-                                    filteredCart.forEach(n => {
+                                    // 🟢 Evaluate ALL items on the ticket to find additions
+                                    cart.forEach(n => { 
                                         let key = String(n.name).trim().toLowerCase() + "_" + String(n.note || '').trim().toLowerCase();
                                         newStationTotals[key] = (newStationTotals[key] || 0) + parseInt(n.qty);
+                                        
+                                        if (!oldTotals[key] || newStationTotals[key] > oldTotals[key]) {
+                                            let cat = String(n.category || "Kitchen").trim();
+                                            addedCategories.add(cat);
+                                        }
                                     });
 
-                                    // If the new cart has MORE of a specific item than the ENTIRE old cart, it's a real addition!
-                                    for (let key in newStationTotals) {
-                                        if (!oldTotals[key] || newStationTotals[key] > oldTotals[key]) {
+                                    // Filter addedCategories to see if any belong to the current KDS filter
+                                    addedCategories.forEach(cat => {
+                                        let catLower = cat.toLowerCase();
+                                        let activeLower = String(currentStationFilter).trim().toLowerCase();
+                                        if (currentStationFilter === "All" || catLower === activeLower || catLower.includes(activeLower)) {
                                             hasAddition = true;
-                                            break;
                                         }
-                                    }
+                                    });
 
                                     if (hasAddition) {
                                         let tableNum = t.status.split('-')[0].replace('Table','').trim();
@@ -611,11 +619,17 @@
                                         cleared = cleared.filter(tok => String(tok) !== String(t.token));
                                         localStorage.setItem(`kds_cleared_tokens_${currentStationFilter}`, JSON.stringify(cleared));
                                         
-                                       // 🟢 UN-STRIKE SERVER FIX: Strip tag locally AND ping backend to wipe the "Ready" tag!
-                                        if (t.status.includes(`${currentStationFilter}:Ready`)) {
-                                            t.status = t.status.replace(new RegExp(` \\| ${currentStationFilter}:Ready`, 'gi'), '');
-                                            try { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_station_unready", token: t.token, station: currentStationFilter }) }); } catch(e) {}
-                                        }
+                                        // 🟢 TARGETED UN-STRIKE FIX: Ping backend to wipe the "Ready" tag for ONLY the modified stations!
+                                        addedCategories.forEach(cat => {
+                                            // Capitalize first letter to match format "Beverages:Ready"
+                                            let properCat = cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase();
+                                            let tagRegex = new RegExp(` \\| ${properCat}:Ready`, 'gi');
+                                            
+                                            if (t.status.match(tagRegex)) {
+                                                t.status = t.status.replace(tagRegex, ''); // Wipe locally immediately
+                                                try { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_station_unready", token: t.token, station: properCat }) }); } catch(e) {}
+                                            }
+                                        });
                                     }
                                 }
                             }
@@ -1004,6 +1018,9 @@
             if (strikeMemory.has(uniqueItemId)) strikeMemory.delete(uniqueItemId);
             else strikeMemory.add(uniqueItemId);
             
+            // 🟢 MEMORY PERSISTENCE: Save to local storage so chef strikes survive page refreshes!
+            localStorage.setItem('kds_strike_memory', JSON.stringify(Array.from(strikeMemory)));
+            
             // 🟢 VIRTUAL DOM FIX: Instantly redraw the grid so the Blue/Gray buttons update immediately!
             lastGeneratedGridHTML = ""; 
             renderKDSGrid(currentActiveTickets); 
@@ -1199,41 +1216,10 @@
 
         function acknowledgeUpdate(token, event) {
             if (event) event.stopPropagation();
-            
-            // 🟢 LOCAL UN-STRIKE FIX: Wipes strike memory completely based on TOTAL cart quantities
-            let oldCart = unacknowledgedUpdates[token];
-            const t = currentActiveTickets.find(ticket => ticket.token === token);
-            
-            if (t && oldCart) {
-                let oldTotals = {};
-                oldCart.forEach(o => {
-                    let key = String(o.name).trim().toLowerCase() + "_" + String(o.note || '').trim().toLowerCase();
-                    oldTotals[key] = (oldTotals[key] || 0) + parseInt(o.qty);
-                });
-                
-                let newTotals = {};
-                t.cart.forEach(n => {
-                    let key = String(n.name).trim().toLowerCase() + "_" + String(n.note || '').trim().toLowerCase();
-                    newTotals[key] = (newTotals[key] || 0) + parseInt(n.qty);
-                });
-                
-                t.cart.forEach(item => {
-                    let key = String(item.name).trim().toLowerCase() + "_" + String(item.note || '').trim().toLowerCase();
-                    const safeNote = String(item.note || "").replace(/[^a-zA-Z0-9]/g, "");
-                    const baseId = `${token}_${item.name.replace(/\s+/g, '')}_${safeNote}`;
-                    
-                    // 🟢 THE FIX: If the OVERALL quantity on the new ticket is higher, wipe ALL strikes for this dish!
-                    // This forces the line to un-strike when OK is clicked so the chef knows to cook the new ones!
-                    if (newTotals[key] > (oldTotals[key] || 0)) {
-                        for(let i=1; i<=30; i++) { 
-                            strikeMemory.delete(`${baseId}_idx${i}`);
-                            bumpedMemory.delete(`${baseId}_idx${i}`);
-                        }
-                    }
-                });
-            }
-
             delete unacknowledgedUpdates[token];
+            
+            // 🟢 FORCE REDRAW: Ensures the grid immediately drops the blue update badges
+            lastGeneratedGridHTML = ""; 
             renderKDSGrid(currentActiveTickets);
         }
 
@@ -1531,8 +1517,10 @@
         function runEODWipe() {
             if (confirm("Are you sure? This will wipe all strikes and cache from this tablet.")) {
                 strikeMemory.clear();
+                localStorage.removeItem('kds_strike_memory'); // 🟢 Clear persistent strikes
                 bumpedMemory.clear();
                 unacknowledgedUpdates = {};
+                localStorage.removeItem(`kds_cleared_tokens_${currentStationFilter}`); // 🟢 Clear local lock memory
                 showKDSToast("EOD Reset", "Tablet memory wiped successfully.", "bg-green-600 text-white");
                 closeManagerHub();
                 lastGeneratedGridHTML = "";
