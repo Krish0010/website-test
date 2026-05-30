@@ -617,6 +617,8 @@
                                             try { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_station_unready", token: t.token, station: currentStationFilter }) }); } catch(e) {}
                                         }
                                     }
+                                }
+                            }
 
                             // Always track global state so switching station tabs doesn't cause late alarms
                             previousTicketStates[t.token] = t.status;
