@@ -588,7 +588,7 @@
                                     });
 
                                     let newStationTotals = {};
-                                    // 🟢 Evaluate ALL items on the ticket to find additions
+                                    // Evaluate ALL items to find additions, even if we are filtered
                                     cart.forEach(n => { 
                                         let key = String(n.name).trim().toLowerCase() + "_" + String(n.note || '').trim().toLowerCase();
                                         newStationTotals[key] = (newStationTotals[key] || 0) + parseInt(n.qty);
@@ -599,7 +599,7 @@
                                         }
                                     });
 
-                                    // Filter addedCategories to see if any belong to the current KDS filter
+                                    // Check if any of the added categories belong to our current tab
                                     addedCategories.forEach(cat => {
                                         let catLower = cat.toLowerCase();
                                         let activeLower = String(currentStationFilter).trim().toLowerCase();
@@ -621,7 +621,7 @@
                                         
                                         // 🟢 TARGETED UN-STRIKE FIX: Ping backend to wipe the "Ready" tag for ONLY the modified stations!
                                         addedCategories.forEach(cat => {
-                                            // Capitalize first letter to match format "Beverages:Ready"
+                                            // Capitalize first letter to exactly match "Beverages:Ready"
                                             let properCat = cat.charAt(0).toUpperCase() + cat.slice(1).toLowerCase();
                                             let tagRegex = new RegExp(` \\| ${properCat}:Ready`, 'gi');
                                             
