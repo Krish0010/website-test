@@ -386,7 +386,7 @@
 
     <script>
         // REPLACE WITH YOUR ACTUAL SCRIPT URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwx_slWz1fHN2hdxVaCgl_xGinQqtKy1CqyvBODMPSxMoOdDJHGwf2SH7eprTPdMXo/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwuP-MVji5QWdX2mYA_xXn56dbpkFPqNn5iv7MqmTqmjQ7X17cUk289tWbIpEGSH95e/exec"; 
 
         let strikeMemory = new Set();
         let bumpedMemory = new Set(); 
@@ -611,8 +611,9 @@
                                         cleared = cleared.filter(tok => String(tok) !== String(t.token));
                                         localStorage.setItem(`kds_cleared_tokens_${currentStationFilter}`, JSON.stringify(cleared));
                                         
-                                        // 🟢 UN-STRIKE SERVER FIX: Ping backend to wipe the "Ready" tag so the 5 new coolers stay un-struck!
+                                        // 🟢 UN-STRIKE SERVER FIX: Strip the tag locally AND ping backend
                                         if (t.status.includes(`${currentStationFilter}:Ready`)) {
+                                            t.status = t.status.replace(new RegExp(` \\| ${currentStationFilter}:Ready`, 'gi'), '');
                                             try { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_station_unready", token: t.token, station: currentStationFilter }) }); } catch(e) {}
                                         }
                                     }
@@ -756,26 +757,14 @@
                         });
                     }
 
-                    // 🟢 STRICTER CATEGORY FILTER & DUPLICATE MERGER
-                    let mergedCartMap = {};
-                    cart.forEach(item => {
-                        if (currentStationFilter !== "All") {
-                            const itemCategory = String(item.category || "Kitchen").trim().toLowerCase();
-                            const activeFilter = String(currentStationFilter).trim().toLowerCase();
-                            if (itemCategory !== activeFilter && !itemCategory.includes(activeFilter)) return;
-                        }
-                        
-                        const safeNote = String(item.note || "").trim().toLowerCase();
-                        const mergeKey = `${String(item.name).trim().toLowerCase()}_${safeNote}_${item.pacing || 'Main Course'}`;
-                        
-                        if (!mergedCartMap[mergeKey]) {
-                            mergedCartMap[mergeKey] = { ...item, qty: parseInt(item.qty) };
-                        } else {
-                            mergedCartMap[mergeKey].qty += parseInt(item.qty);
-                        }
+                    // 🟢 STRICTER CATEGORY FILTER
+                    const filteredCart = cart.filter(item => {
+                        if (currentStationFilter === "All") return true; 
+                        const itemCategory = String(item.category || "Kitchen").trim().toLowerCase();
+                        const activeFilter = String(currentStationFilter).trim().toLowerCase();
+                        return itemCategory === activeFilter || itemCategory.includes(activeFilter);
                     });
-                    
-                    const filteredCart = Object.values(mergedCartMap);
+
                     if (filteredCart.length === 0) return; 
 
                     const sortedCart = filteredCart.sort((a, b) => {
@@ -783,24 +772,17 @@
                         return (rank[a.pacing] || 2) - (rank[b.pacing] || 2);
                     });
 
+                    // 🟢 BATCH SEPARATION FIX: Treat items added at different times as completely independent lines!
+                    const occurrenceTracker = {};
                     let usedOldItems = new Set();
-                    let mergedOldCart = [];
-                    
-                    if (isUpdated) {
-                        let oldCart = unacknowledgedUpdates[ticket.token] || [];
-                        let oldMap = {};
-                        oldCart.forEach(old => {
-                            const safeNote = String(old.note || "").trim().toLowerCase();
-                            const key = `${String(old.name).trim().toLowerCase()}_${safeNote}_${old.pacing || 'Main Course'}`;
-                            if (!oldMap[key]) oldMap[key] = { ...old, qty: parseInt(old.qty) };
-                            else oldMap[key].qty += parseInt(old.qty);
-                        });
-                        mergedOldCart = Object.values(oldMap);
-                    }
+                    let oldCart = isUpdated ? (unacknowledgedUpdates[ticket.token] || []) : [];
 
                     sortedCart.forEach((item) => {
                         const safeNote = String(item.note || "").replace(/[^a-zA-Z0-9]/g, "");
-                        const uniqueItemId = `${ticket.token}_${item.name.replace(/\s+/g, '')}_${safeNote}`; 
+                        const baseId = `${ticket.token}_${item.name.replace(/\s+/g, '')}_${safeNote}`; 
+                        
+                        occurrenceTracker[baseId] = (occurrenceTracker[baseId] || 0) + 1;
+                        const uniqueItemId = `${baseId}_idx${occurrenceTracker[baseId]}`; // Appends _idx1, _idx2, etc.
                         
                         const itemCat = String(item.category || "Kitchen").trim().toLowerCase();
                         const isServerStruck = readyStations.some(rs => itemCat.includes(rs));
@@ -808,32 +790,18 @@
                         const isItemLocked = isServerStruck || bumpedMemory.has(uniqueItemId);
                         
                         if (isUpdated) {
-                            let oldItemIdx = mergedOldCart.findIndex((old, idx) => {
+                            let oldItemIdx = oldCart.findIndex((old, idx) => {
                                 return !usedOldItems.has(idx) &&
                                     String(old.name).trim().toLowerCase() === String(item.name).trim().toLowerCase() && 
-                                    String(old.note || '').trim().toLowerCase() === String(item.note || '').trim().toLowerCase();
+                                    String(old.note || '').trim().toLowerCase() === String(item.note || '').trim().toLowerCase() &&
+                                    parseInt(old.qty) === parseInt(item.qty); // Exact match including quantity prevents false collapsing
                             });
 
                             if (oldItemIdx === -1) {
                                 newUpdateItems.push({ ...item, renderId: uniqueItemId, isStruck: isItemStruck, isLocked: isItemLocked });
                             } else {
                                 usedOldItems.add(oldItemIdx);
-                                let oldItem = mergedOldCart[oldItemIdx];
-                                
-                                if (parseInt(item.qty) > parseInt(oldItem.qty)) {
-                                    if (isItemStruck) {
-                                        const oldQty = parseInt(oldItem.qty);
-                                        const newQty = parseInt(item.qty) - oldQty;
-                                        baseItems.push({ ...item, qty: oldQty, renderId: uniqueItemId, isStruck: true, isLocked: isItemLocked });
-                                        const newRenderId = uniqueItemId + '_new';
-                                        newUpdateItems.push({ ...item, qty: newQty, renderId: newRenderId, isStruck: strikeMemory.has(newRenderId), isLocked: false });
-                                    } else {
-                                        const diff = parseInt(item.qty) - parseInt(oldItem.qty);
-                                        baseItems.push({ ...item, renderId: uniqueItemId, isStruck: false, isLocked: false, qtyDiff: diff });
-                                    }
-                                } else {
-                                    baseItems.push({ ...item, renderId: uniqueItemId, isStruck: isItemStruck, isLocked: isItemLocked });
-                                }
+                                baseItems.push({ ...item, renderId: uniqueItemId, isStruck: isItemStruck, isLocked: isItemLocked });
                             }
                         } else {
                             baseItems.push({ ...item, renderId: uniqueItemId, isStruck: isItemStruck, isLocked: isItemLocked });
@@ -1208,34 +1176,6 @@
 
         function acknowledgeUpdate(token, event) {
             if (event) event.stopPropagation();
-            
-            // 🟢 LOCAL UN-STRIKE FIX: If a quantity increased, wipe its strike memory so the chef knows to make the new items!
-            let oldCart = unacknowledgedUpdates[token];
-            const t = currentActiveTickets.find(ticket => ticket.token === token);
-            
-            if (t && oldCart) {
-                let oldStationTotals = {};
-                oldCart.forEach(o => {
-                    let key = String(o.name).trim().toLowerCase() + "_" + String(o.note || '').trim().toLowerCase();
-                    oldStationTotals[key] = (oldStationTotals[key] || 0) + parseInt(o.qty);
-                });
-                
-                t.cart.forEach(item => {
-                    const safeNote = String(item.note || "").replace(/[^a-zA-Z0-9]/g, "");
-                    const baseId = `${token}_${item.name.replace(/\s+/g, '')}_${safeNote}`;
-                    
-                    let key = String(item.name).trim().toLowerCase() + "_" + String(item.note || '').trim().toLowerCase();
-                    let oldTotal = oldStationTotals[key] || 0;
-                    
-                    // If the new quantity is greater than the old quantity, erase it from the strike memory!
-                    if (parseInt(item.qty) > oldTotal) {
-                        for(let i=1; i<=20; i++) { 
-                            strikeMemory.delete(`${baseId}_idx${i}`);
-                        }
-                    }
-                });
-            }
-
             delete unacknowledgedUpdates[token];
             renderKDSGrid(currentActiveTickets);
         }
