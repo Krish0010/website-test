@@ -611,7 +611,7 @@
                                         cleared = cleared.filter(tok => String(tok) !== String(t.token));
                                         localStorage.setItem(`kds_cleared_tokens_${currentStationFilter}`, JSON.stringify(cleared));
                                         
-                                        // 🟢 UN-STRIKE SERVER FIX: Strip the tag locally AND ping backend
+                                       // 🟢 UN-STRIKE SERVER FIX: Strip tag locally AND ping backend to wipe the "Ready" tag!
                                         if (t.status.includes(`${currentStationFilter}:Ready`)) {
                                             t.status = t.status.replace(new RegExp(` \\| ${currentStationFilter}:Ready`, 'gi'), '');
                                             try { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_station_unready", token: t.token, station: currentStationFilter }) }); } catch(e) {}
@@ -767,7 +767,7 @@
 
                     if (filteredCart.length === 0) return; 
 
-                    const sortedCart = filteredCart.sort((a, b) => {
+                    const sortedCart = [...filteredCart].sort((a, b) => {
                         const rank = { "Serve First": 1, "Main Course": 2, "Serve Last": 3 };
                         return (rank[a.pacing] || 2) - (rank[b.pacing] || 2);
                     });
@@ -782,7 +782,7 @@
                         const baseId = `${ticket.token}_${item.name.replace(/\s+/g, '')}_${safeNote}`; 
                         
                         occurrenceTracker[baseId] = (occurrenceTracker[baseId] || 0) + 1;
-                        const uniqueItemId = `${baseId}_idx${occurrenceTracker[baseId]}`; // Appends _idx1, _idx2, etc.
+                        const uniqueItemId = `${baseId}_idx${occurrenceTracker[baseId]}`; 
                         
                         const itemCat = String(item.category || "Kitchen").trim().toLowerCase();
                         const isServerStruck = readyStations.some(rs => itemCat.includes(rs));
@@ -794,11 +794,34 @@
                                 return !usedOldItems.has(idx) &&
                                     String(old.name).trim().toLowerCase() === String(item.name).trim().toLowerCase() && 
                                     String(old.note || '').trim().toLowerCase() === String(item.note || '').trim().toLowerCase() &&
-                                    parseInt(old.qty) === parseInt(item.qty); // Exact match including quantity prevents false collapsing
+                                    parseInt(old.qty) === parseInt(item.qty); // Exact match including quantity
                             });
 
                             if (oldItemIdx === -1) {
-                                newUpdateItems.push({ ...item, renderId: uniqueItemId, isStruck: isItemStruck, isLocked: isItemLocked });
+                                // If exact qty didn't match, check if it was a direct edit of an existing item
+                                let smallerOldIdx = oldCart.findIndex((old, idx) => {
+                                    return !usedOldItems.has(idx) &&
+                                        String(old.name).trim().toLowerCase() === String(item.name).trim().toLowerCase() && 
+                                        String(old.note || '').trim().toLowerCase() === String(item.note || '').trim().toLowerCase() &&
+                                        parseInt(item.qty) > parseInt(old.qty);
+                                });
+
+                                if (smallerOldIdx !== -1) {
+                                    usedOldItems.add(smallerOldIdx);
+                                    let oldItem = oldCart[smallerOldIdx];
+                                    if (isItemStruck) {
+                                        const oldQty = parseInt(oldItem.qty);
+                                        const newQty = parseInt(item.qty) - oldQty;
+                                        baseItems.push({ ...item, qty: oldQty, renderId: uniqueItemId, isStruck: true, isLocked: isItemLocked });
+                                        const newRenderId = uniqueItemId + '_new';
+                                        newUpdateItems.push({ ...item, qty: newQty, renderId: newRenderId, isStruck: strikeMemory.has(newRenderId), isLocked: false });
+                                    } else {
+                                        const diff = parseInt(item.qty) - parseInt(oldItem.qty);
+                                        baseItems.push({ ...item, renderId: uniqueItemId, isStruck: false, isLocked: false, qtyDiff: diff });
+                                    }
+                                } else {
+                                    newUpdateItems.push({ ...item, renderId: uniqueItemId, isStruck: isItemStruck, isLocked: isItemLocked });
+                                }
                             } else {
                                 usedOldItems.add(oldItemIdx);
                                 baseItems.push({ ...item, renderId: uniqueItemId, isStruck: isItemStruck, isLocked: isItemLocked });
@@ -1176,6 +1199,40 @@
 
         function acknowledgeUpdate(token, event) {
             if (event) event.stopPropagation();
+            
+            // 🟢 LOCAL UN-STRIKE FIX: Wipes strike memory completely based on TOTAL cart quantities
+            let oldCart = unacknowledgedUpdates[token];
+            const t = currentActiveTickets.find(ticket => ticket.token === token);
+            
+            if (t && oldCart) {
+                let oldTotals = {};
+                oldCart.forEach(o => {
+                    let key = String(o.name).trim().toLowerCase() + "_" + String(o.note || '').trim().toLowerCase();
+                    oldTotals[key] = (oldTotals[key] || 0) + parseInt(o.qty);
+                });
+                
+                let newTotals = {};
+                t.cart.forEach(n => {
+                    let key = String(n.name).trim().toLowerCase() + "_" + String(n.note || '').trim().toLowerCase();
+                    newTotals[key] = (newTotals[key] || 0) + parseInt(n.qty);
+                });
+                
+                t.cart.forEach(item => {
+                    let key = String(item.name).trim().toLowerCase() + "_" + String(item.note || '').trim().toLowerCase();
+                    const safeNote = String(item.note || "").replace(/[^a-zA-Z0-9]/g, "");
+                    const baseId = `${token}_${item.name.replace(/\s+/g, '')}_${safeNote}`;
+                    
+                    // 🟢 THE FIX: If the OVERALL quantity on the new ticket is higher, wipe ALL strikes for this dish!
+                    // This forces the line to un-strike when OK is clicked so the chef knows to cook the new ones!
+                    if (newTotals[key] > (oldTotals[key] || 0)) {
+                        for(let i=1; i<=30; i++) { 
+                            strikeMemory.delete(`${baseId}_idx${i}`);
+                            bumpedMemory.delete(`${baseId}_idx${i}`);
+                        }
+                    }
+                });
+            }
+
             delete unacknowledgedUpdates[token];
             renderKDSGrid(currentActiveTickets);
         }
