@@ -747,8 +747,8 @@
                     });
 
                     if (filteredCart.length === 0) return; 
-                
-                  const sortedCart = [...filteredCart].sort((a, b) => {
+
+                const sortedCart = [...filteredCart].sort((a, b) => {
                         const rank = { "Serve First": 1, "Main Course": 2, "Serve Last": 3 };
                         return (rank[a.pacing] || 2) - (rank[b.pacing] || 2);
                     });
@@ -863,9 +863,10 @@
 
                     const totalRenderedItems = baseItems.length + newUpdateItems.length;
                     const struckItemsCount = baseItems.filter(i => i.isStruck).length + newUpdateItems.filter(i => i.isStruck).length;
+                    
                     const isFullyStruck = totalRenderedItems > 0 && struckItemsCount === totalRenderedItems;
                     
-                    // 🟢 RESURRECTION FIX: Use local memory to force the ticket closed, even if the Waiter erases the tag!
+                    // 🟢 RESURRECTION FIX: Use local memory to force the ticket closed, even if Waiter overwrites!
                     let localCleared = JSON.parse(localStorage.getItem(`kds_cleared_tokens_${currentStationFilter}`) || "[]");
                     const isServerReady = ticket.status.includes(`${currentStationFilter}:Ready`);
                     const isStationReady = (isServerReady || localCleared.includes(String(ticket.token))) && !isUpdated;
