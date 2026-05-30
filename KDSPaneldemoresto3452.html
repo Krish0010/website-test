@@ -386,7 +386,7 @@
 
     <script>
         // REPLACE WITH YOUR ACTUAL SCRIPT URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyG4QIhH8N9zOLXLGFLRU9S6NShcpQ7n2KeOVrc6vXXGXIgrs62PVAE00RhxlC_0NUR/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwx_slWz1fHN2hdxVaCgl_xGinQqtKy1CqyvBODMPSxMoOdDJHGwf2SH7eprTPdMXo/exec"; 
 
         let strikeMemory = new Set();
         let bumpedMemory = new Set(); 
@@ -605,11 +605,16 @@
                                         updateNotifications.push({ title: "ORDER UPDATED", msg: `Table ${tableNum} modified their order.`, color: "bg-blue-600 text-white border-blue-400" });
                                         unacknowledgedUpdates[t.token] = oldC; // Store old cart for badging
                                         
-                                        // 🟢 WAKE UP FIX: Remove ticket from cleared memory so it reappears instantly!
+                                        // 🟢 WAKE UP FIX: Remove ticket from local cleared memory
                                         try { if(typeof localAmberState !== 'undefined') localAmberState.delete(String(t.token)); } catch(e) {}
                                         let cleared = JSON.parse(localStorage.getItem(`kds_cleared_tokens_${currentStationFilter}`) || "[]");
                                         cleared = cleared.filter(tok => String(tok) !== String(t.token));
                                         localStorage.setItem(`kds_cleared_tokens_${currentStationFilter}`, JSON.stringify(cleared));
+                                        
+                                        // 🟢 UN-STRIKE SERVER FIX: Ping backend to wipe the "Ready" tag so the 5 new coolers stay un-struck!
+                                        if (t.status.includes(`${currentStationFilter}:Ready`)) {
+                                            try { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_station_unready", token: t.token, station: currentStationFilter }) }); } catch(e) {}
+                                        }
                                     }
                                 }
                             }
@@ -1203,6 +1208,34 @@
 
         function acknowledgeUpdate(token, event) {
             if (event) event.stopPropagation();
+            
+            // 🟢 LOCAL UN-STRIKE FIX: If a quantity increased, wipe its strike memory so the chef knows to make the new items!
+            let oldCart = unacknowledgedUpdates[token];
+            const t = currentActiveTickets.find(ticket => ticket.token === token);
+            
+            if (t && oldCart) {
+                let oldStationTotals = {};
+                oldCart.forEach(o => {
+                    let key = String(o.name).trim().toLowerCase() + "_" + String(o.note || '').trim().toLowerCase();
+                    oldStationTotals[key] = (oldStationTotals[key] || 0) + parseInt(o.qty);
+                });
+                
+                t.cart.forEach(item => {
+                    const safeNote = String(item.note || "").replace(/[^a-zA-Z0-9]/g, "");
+                    const baseId = `${token}_${item.name.replace(/\s+/g, '')}_${safeNote}`;
+                    
+                    let key = String(item.name).trim().toLowerCase() + "_" + String(item.note || '').trim().toLowerCase();
+                    let oldTotal = oldStationTotals[key] || 0;
+                    
+                    // If the new quantity is greater than the old quantity, erase it from the strike memory!
+                    if (parseInt(item.qty) > oldTotal) {
+                        for(let i=1; i<=20; i++) { 
+                            strikeMemory.delete(`${baseId}_idx${i}`);
+                        }
+                    }
+                });
+            }
+
             delete unacknowledgedUpdates[token];
             renderKDSGrid(currentActiveTickets);
         }
