@@ -184,7 +184,7 @@
             <input type="password" id="mgr-kds-pin" class="w-full bg-gray-800 border-2 border-gray-700 rounded-xl px-4 py-4 font-black text-center tracking-[0.3em] text-white outline-none focus:border-k-accent transition-colors mb-4">
             <div class="flex gap-3">
                 <button onclick="closeManagerAuth()" class="w-1/3 py-3 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:text-white transition-colors">Cancel</button>
-                <button onclick="verifyManagerKDS()" class="w-2/3 py-3 bg-k-accent hover:bg-sky-400 text-gray-900 rounded-xl font-black uppercase tracking-widest text-xs transition-colors shadow-lg">Unlock</button>
+                <button onclick="verifyManagerKDS()" class="w-2/3 py-3 bg-k-accent hover:bg-sky-400 text-gray-900 rounded-xl font-black uppercase tracking-widest text-xs transition-colors shadow-lg flex items-center justify-center">Unlock</button>
             </div>
         </div>
     </div>
@@ -338,7 +338,7 @@
         </div>
     </div>
 
-    <div id="kds-alert-modal" class="fixed inset-0 glass-overlay z-[600] hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div id="kds-alert-modal" class="fixed inset-0 glass-overlay z-[1000] hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div id="kds-alert-box" class="bg-gray-900 border border-gray-700 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform scale-95 transition-transform duration-300">
             <div class="h-2 w-full bg-red-500"></div>
             <div class="p-8 text-center flex flex-col items-center">
@@ -1428,7 +1428,9 @@
             // Target the unlock button to add a loading spinner
             const btn = document.querySelector('#mgr-auth-box button:last-child');
             const originalText = btn.innerText;
-            btn.innerHTML = `<div class="w-4 h-4 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>`;
+            
+            // 🟢 UI FIX: A larger, bolder, perfectly centered spinner
+            btn.innerHTML = `<div class="w-5 h-5 border-[3px] border-gray-900 border-t-transparent rounded-full animate-spin"></div>`;
             btn.disabled = true;
 
             try {
@@ -1443,11 +1445,12 @@
                     closeManagerAuth();
                     setTimeout(openManagerHub, 300);
                 } else {
-                    alert("Incorrect Password.");
+                    // 🟢 UX FIX: Replaced native browser alert with our premium dark-mode modal
+                    showKDSAlert("Access Denied", "Incorrect Manager Passcode. Please try again.");
                     pinInput.value = '';
                 }
             } catch (err) {
-                alert("Network error verifying password.");
+                showKDSAlert("Network Error", "Unable to verify password. Please check your internet connection.");
             } finally {
                 btn.innerText = originalText;
                 btn.disabled = false;
