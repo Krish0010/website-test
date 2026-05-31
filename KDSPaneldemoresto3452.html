@@ -108,7 +108,20 @@
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
         }
-
+/* 🟢 SPOTLIGHT TOUR ENGINE CSS */
+        #tour-spotlight {
+            box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.85); /* Deep dark blue blur */
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            pointer-events: none;
+            z-index: 8000;
+        }
+        .tour-tooltip-anim {
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.9) translateY(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -125,6 +138,28 @@
             <button onclick="startKDS()" class="w-full py-4 sm:py-5 bg-k-accent hover:bg-sky-400 text-gray-900 rounded-xl font-black uppercase tracking-widest text-base sm:text-lg shadow-[0_0_20px_rgba(56,189,248,0.4)] transition-all active:scale-95">
                 Tap Here to Go Live
             </button>
+        </div>
+    </div>
+
+    <div id="tour-container" class="fixed inset-0 z-[8000] hidden overflow-hidden pointer-events-none">
+        <div id="tour-spotlight" class="absolute rounded-2xl border-4 border-k-accent"></div>
+        
+        <div id="tour-dialogue" class="absolute w-80 bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-gray-200 p-6 pointer-events-auto flex flex-col gap-3 tour-tooltip-anim z-[8001]">
+            <div class="flex items-center gap-3 mb-1">
+                <div class="w-10 h-10 bg-k-accent/20 text-sky-600 rounded-full flex items-center justify-center border border-k-accent/30 shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.25 5.25 0 005.25 21h13.5a5.25 5.25 0 001.257-5.407m-14.514 0a48.64 48.64 0 003.478-.397m11.036 0a48.64 48.64 0 01-3.478-.397m-5.558 0a48.24 48.24 0 012.08-.184"></path></svg>
+                </div>
+                <h3 id="tour-title" class="font-black text-gray-900 text-lg uppercase tracking-widest leading-tight">Welcome</h3>
+            </div>
+            <p id="tour-text" class="text-sm font-medium text-gray-600 leading-relaxed"></p>
+            
+            <div class="flex justify-between items-center mt-3 pt-4 border-t border-gray-100">
+                <span id="tour-progress" class="text-[10px] font-black tracking-widest text-gray-400">1 / 5</span>
+                <div class="flex gap-2">
+                    <button onclick="endTour()" class="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-900 uppercase tracking-widest transition-colors">Skip</button>
+                    <button id="tour-next-btn" onclick="nextTourStep()" class="px-6 py-2 bg-k-accent hover:bg-sky-400 text-gray-900 rounded-xl text-xs font-black uppercase tracking-widest transition-colors shadow-md shadow-sky-500/30">Next</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1498,8 +1533,21 @@
             } else if (setting === 'demo') {
                 isDemoMode = !isDemoMode;
                 updateToggleUI('demo', isDemoMode);
-                if (isDemoMode) injectDemoTickets();
-                else { lastGeneratedGridHTML = ""; fetchKDS(); }
+                
+                if (isDemoMode) {
+                    closeManagerHub(); // Close the settings menu so they can see the tour!
+                    injectDemoTickets();
+                    
+                    // 🟢 Automatically launch the tour if they've never seen it
+                    if (localStorage.getItem('kds_tour_completed') !== 'true') {
+                        setTimeout(startTour, 500); 
+                    } else {
+                        showKDSToast("Demo Mode Active", "Free play mode enabled. Tap the KDS logo to refresh.", "bg-purple-600 text-white");
+                    }
+                } else { 
+                    lastGeneratedGridHTML = ""; 
+                    fetchKDS(); 
+                }
             }
         }
         
@@ -1531,22 +1579,186 @@
             }
         }
 
-        // 🟢 DEMO ENGINE: Intercepts fetch logic
+        // 🟢 THE CHEF'S MASTERCLASS: 5 Realistic Kitchen Scenarios
         function injectDemoTickets() {
             if (!isDemoMode) return;
-            const fakeTime = Date.now() - (8 * 60000); // 8 minutes ago
+            const now = Date.now();
+            
+            // Artificial Ghost Data for the Mid-Meal Update ticket
+            unacknowledgedUpdates["D-104"] = [
+                { id: "x1", name: "Classic Mojito", qty: 2, note: "", category: "Beverages", pacing: "Serve First" }
+            ];
+
             const fakeTickets = [
-                { token: "D-101", timestamp: fakeTime, status: "Table 12 - LOCKED", cart: [
-                    { id: "d1", name: "Training Burger", qty: 2, note: "No onions", category: "Kitchen", pacing: "Main Course", prepTime: 12 },
-                    { id: "d2", name: "Demo Fries", qty: 1, note: "", category: "Kitchen", pacing: "Main Course", prepTime: 5 }
+                // SCENARIO 1: The Perfect Ticket (Normal pacing, simple notes)
+                { token: "D-101", timestamp: now - (5 * 60000), status: "Table 12 - LOCKED", cart: [
+                    { id: "d1", name: "Truffle Mushroom Pasta", qty: 1, note: "Extra parmesan", category: "Kitchen", pacing: "Main Course", prepTime: 15 },
+                    { id: "d2", name: "Garlic Bread", qty: 2, note: "", category: "Kitchen", pacing: "Serve First", prepTime: 5 }
                 ]},
-                { token: "D-102", timestamp: fakeTime - (10 * 60000), status: "Table 4 - LOCKED", cart: [ // 18 mins ago (Should trigger red)
-                    { id: "d3", name: "Practice Steak", qty: 1, note: "Well Done", category: "Grill", pacing: "Serve Last", prepTime: 20 },
-                    { id: "d4", name: "Allergy Salad", qty: 1, note: "Nut Allergy", category: "Kitchen", pacing: "Serve First", prepTime: 8 }
+                
+                // SCENARIO 2: The High-Risk Allergy (Purple styling)
+                { token: "D-102", timestamp: now - (8 * 60000), status: "Table 4 - LOCKED", cart: [
+                    { id: "d3", name: "Peanut Butter Brownie", qty: 1, note: "SEVERE NUT ALLERGY", category: "Dessert", pacing: "Serve Last", prepTime: 10 },
+                    { id: "d4", name: "Grilled Salmon", qty: 1, note: "Sauce on side", category: "Grill", pacing: "Main Course", prepTime: 20 }
+                ]},
+
+                // SCENARIO 3: The Overdue Disaster (Red pulsing, 35 mins elapsed)
+                { token: "D-103", timestamp: now - (35 * 60000), status: "Table 8 - LOCKED", cart: [
+                    { id: "d5", name: "Ribeye Steak", qty: 2, note: "Medium Rare", category: "Grill", pacing: "Main Course", prepTime: 25 },
+                    { id: "d6", name: "Mashed Potatoes", qty: 2, note: "", category: "Kitchen", pacing: "Main Course", prepTime: 10 }
+                ]},
+
+                // SCENARIO 4: The Mid-Meal Update (Blue pulsing, qty increased)
+                { token: "D-104", timestamp: now - (12 * 60000), status: "Table 6 - LOCKED", cart: [
+                    { id: "d7", name: "Classic Mojito", qty: 5, note: "", category: "Beverages", pacing: "Serve First", prepTime: 5 }, // Increased from 2 to 5!
+                    { id: "d8", name: "Chicken Tikka", qty: 1, note: "Extra spicy", category: "Grill", pacing: "Serve First", prepTime: 15 }
+                ]},
+
+                // SCENARIO 5: The "Fire Next" VIP (Amber pulsing, waiter wants food NOW)
+                { token: "D-105", timestamp: now - (22 * 60000), status: "Table 2 - FIRE NEXT", cart: [
+                    { id: "d9", name: "Molten Lava Cake", qty: 1, note: "Birthday sparkler", category: "Dessert", pacing: "Serve Last", prepTime: 12 }
                 ]}
             ];
+            
             lastGeneratedGridHTML = ""; // Force redraw for demo
             renderKDSGrid(fakeTickets);
+        }
+
+        // ==========================================
+        // 🎓 INTERACTIVE ONBOARDING TOUR ENGINE
+        // ==========================================
+        let currentTourStep = 0;
+        let isTourActive = false;
+
+        const tourSteps = [
+            {
+                title: "The KDS Grid",
+                text: "Welcome to your Kitchen Display System. This board automatically sorts and prioritizes tickets. Let's look at the different scenarios you'll face during a rush.",
+                targetSelector: "#kds-grid > div:nth-child(1)" // Targets Ticket 1
+            },
+            {
+                title: "Safety First",
+                text: "When a waiter types an allergy note, the item automatically turns <b class='text-purple-400'>PURPLE</b>. Cross-contamination protocols must be strictly followed for these items.",
+                targetSelector: "#kds-grid > div:nth-child(2)" // Targets Allergy Ticket
+            },
+            {
+                title: "Overdue Tickets",
+                text: "Every dish has a Target Time. If the ticket sits longer than the target, it flashes <b class='text-red-500'>RED</b>. These are critical priority.",
+                targetSelector: "#kds-grid > div:nth-child(3)" // Targets Late Ticket
+            },
+            {
+                title: "Order Updates",
+                text: "If a waiter adds an item mid-meal, the ticket flashes <b class='text-blue-400'>BLUE</b>. The new items are highlighted so you don't miss them. Click 'OK' to acknowledge.",
+                targetSelector: "#kds-grid > div:nth-child(4)" // Targets Update Ticket
+            },
+            {
+                title: "Fire Next Course",
+                text: "When the waiter tells you the table is ready for their next course, the ticket turns <b class='text-amber-500'>AMBER</b>. Stop prepping and fire these items immediately.",
+                targetSelector: "#kds-grid > div:nth-child(5)" // Targets Fire Next Ticket
+            },
+            {
+                title: "Prep Sidebar",
+                text: "Need to know how many Steaks to throw on the grill in total? Open this sidebar to see a live sum of all un-cooked items currently on your screen.",
+                targetSelector: "#prep-sidebar" // Targets Sidebar button
+            },
+            {
+                title: "Emergency Pause",
+                text: "If the kitchen is completely overwhelmed, hit the <b class='text-red-500'>PAUSE</b> button. It blocks waiters from sending new orders for 5-15 minutes while you catch up.",
+                targetSelector: "#kds-sos-btn" // Targets SOS Button
+            }
+        ];
+
+        function startTour() {
+            if (isTourActive) return;
+            isTourActive = true;
+            currentTourStep = 0;
+            
+            document.getElementById('tour-container').classList.remove('hidden');
+            document.getElementById('tour-container').classList.add('block');
+            
+            // Slight delay to ensure DOM is fully rendered before measuring coords
+            setTimeout(() => renderTourStep(), 300);
+        }
+
+        function nextTourStep() {
+            currentTourStep++;
+            if (currentTourStep >= tourSteps.length) {
+                endTour();
+            } else {
+                renderTourStep();
+            }
+        }
+
+        function endTour() {
+            isTourActive = false;
+            document.getElementById('tour-container').classList.add('hidden');
+            document.getElementById('tour-container').classList.remove('block');
+            localStorage.setItem('kds_tour_completed', 'true');
+            showKDSToast("Training Complete", "You are now free to play around with the demo tickets!", "bg-k-success text-white");
+        }
+
+        function renderTourStep() {
+            const step = tourSteps[currentTourStep];
+            document.getElementById('tour-title').innerText = step.title;
+            document.getElementById('tour-text').innerHTML = step.text;
+            document.getElementById('tour-progress').innerText = `${currentTourStep + 1} / ${tourSteps.length}`;
+            
+            if (currentTourStep === tourSteps.length - 1) {
+                document.getElementById('tour-next-btn').innerText = "Finish";
+            } else {
+                document.getElementById('tour-next-btn').innerText = "Next";
+            }
+
+            // Re-trigger dialogue animation
+            const dialogue = document.getElementById('tour-dialogue');
+            dialogue.classList.remove('tour-tooltip-anim');
+            void dialogue.offsetWidth; // Trigger reflow
+            dialogue.classList.add('tour-tooltip-anim');
+
+            positionSpotlight(step.targetSelector);
+        }
+
+        function positionSpotlight(selector) {
+            const target = document.querySelector(selector);
+            const spotlight = document.getElementById('tour-spotlight');
+            const dialogue = document.getElementById('tour-dialogue');
+
+            if (target) {
+                // Scroll the target into view smoothly
+                target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                
+                setTimeout(() => {
+                    const rect = target.getBoundingClientRect();
+                    // Add padding to the spotlight cutout
+                    const pad = 12; 
+                    
+                    spotlight.style.top = `${rect.top - pad}px`;
+                    spotlight.style.left = `${rect.left - pad}px`;
+                    spotlight.style.width = `${rect.width + (pad * 2)}px`;
+                    spotlight.style.height = `${rect.height + (pad * 2)}px`;
+
+                    // Smart-position the dialogue box so it doesn't cover the spotlight
+                    const viewportCenterY = window.innerHeight / 2;
+                    if (rect.top > viewportCenterY) {
+                        // Target is in bottom half, put dialogue above it
+                        dialogue.style.top = `${Math.max(20, rect.top - dialogue.offsetHeight - 40)}px`;
+                    } else {
+                        // Target is in top half, put dialogue below it
+                        dialogue.style.top = `${rect.bottom + 40}px`;
+                    }
+                    
+                    // Center dialogue horizontally relative to target
+                    let desiredLeft = rect.left + (rect.width / 2) - (dialogue.offsetWidth / 2);
+                    // Keep it on screen
+                    desiredLeft = Math.max(20, Math.min(desiredLeft, window.innerWidth - dialogue.offsetWidth - 20));
+                    dialogue.style.left = `${desiredLeft}px`;
+
+                }, 300); // Wait for scroll to finish
+            } else {
+                // Fallback if element not found (hide spotlight)
+                spotlight.style.width = '0px';
+                spotlight.style.height = '0px';
+            }
         }
 
         // 🟢 INTERCEPT fetchKDS to respect Demo Mode
