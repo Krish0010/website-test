@@ -110,8 +110,8 @@
         }
 /* 🟢 SPOTLIGHT TOUR ENGINE CSS */
         #tour-spotlight {
-            box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.85); /* Deep dark blue blur */
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.85), 0 0 30px 5px rgba(56,189,248,0.5); /* Deep blur + Neon Glow */
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
             pointer-events: none;
             z-index: 8000;
         }
@@ -119,8 +119,8 @@
             animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
         @keyframes popIn {
-            0% { opacity: 0; transform: scale(0.9) translateY(10px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
+            0% { opacity: 0; margin-top: 15px; }
+            100% { opacity: 1; margin-top: 0; }
         }
     </style>
 </head>
@@ -1634,37 +1634,52 @@
             {
                 title: "The KDS Grid",
                 text: "Welcome to your Kitchen Display System. This board automatically sorts and prioritizes tickets. Let's look at the different scenarios you'll face during a rush.",
-                targetSelector: "#kds-grid > div:nth-child(1)" // Targets Ticket 1
+                targetSelector: "#kds-grid > div:nth-child(1)" 
             },
             {
                 title: "Safety First",
                 text: "When a waiter types an allergy note, the item automatically turns <b class='text-purple-400'>PURPLE</b>. Cross-contamination protocols must be strictly followed for these items.",
-                targetSelector: "#kds-grid > div:nth-child(2)" // Targets Allergy Ticket
+                targetSelector: "#kds-grid > div:nth-child(2)" 
             },
             {
                 title: "Overdue Tickets",
                 text: "Every dish has a Target Time. If the ticket sits longer than the target, it flashes <b class='text-red-500'>RED</b>. These are critical priority.",
-                targetSelector: "#kds-grid > div:nth-child(3)" // Targets Late Ticket
+                targetSelector: "#kds-grid > div:nth-child(3)" 
             },
             {
                 title: "Order Updates",
                 text: "If a waiter adds an item mid-meal, the ticket flashes <b class='text-blue-400'>BLUE</b>. The new items are highlighted so you don't miss them. Click 'OK' to acknowledge.",
-                targetSelector: "#kds-grid > div:nth-child(4)" // Targets Update Ticket
+                targetSelector: "#kds-grid > div:nth-child(4)" 
             },
             {
                 title: "Fire Next Course",
                 text: "When the waiter tells you the table is ready for their next course, the ticket turns <b class='text-amber-500'>AMBER</b>. Stop prepping and fire these items immediately.",
-                targetSelector: "#kds-grid > div:nth-child(5)" // Targets Fire Next Ticket
+                targetSelector: "#kds-grid > div:nth-child(5)" 
+            },
+            {
+                title: "Dynamic Target Times",
+                text: "Dish taking longer than expected? Tap the <b>TARGET</b> clock on any ticket to adjust it. This recalculates the pace and prevents the ticket from turning red too early.",
+                targetSelector: "#kds-grid > div:nth-child(1) .flex.flex-col.items-center.cursor-pointer" // Targets the time box
+            },
+            {
+                title: "The Undo Button",
+                text: "Accidentally bumped a ticket? Panic not. Tap the <b class='text-w-accent'>Recall</b> button up here in the header to bring it back instantly.",
+                targetSelector: "header button[title='Recall Bumped Tickets']" // Targets the recall arrow
             },
             {
                 title: "Prep Sidebar",
                 text: "Need to know how many Steaks to throw on the grill in total? Open this sidebar to see a live sum of all un-cooked items currently on your screen.",
-                targetSelector: "#prep-sidebar" // Targets Sidebar button
+                targetSelector: "button[onclick='togglePrepSidebar()']" 
             },
             {
                 title: "Emergency Pause",
                 text: "If the kitchen is completely overwhelmed, hit the <b class='text-red-500'>PAUSE</b> button. It blocks waiters from sending new orders for 5-15 minutes while you catch up.",
-                targetSelector: "#kds-sos-btn" // Targets SOS Button
+                targetSelector: "#kds-sos-btn" 
+            },
+            {
+                title: "You're Ready!",
+                text: "You now know how to handle the rush like a pro.<br><br>The system is now in <b>Free Play Mode</b>. Feel free to click around, strike items, and bump tickets to get the hang of it!",
+                targetSelector: "center" // Triggers the graduation modal
             }
         ];
 
@@ -1676,7 +1691,6 @@
             document.getElementById('tour-container').classList.remove('hidden');
             document.getElementById('tour-container').classList.add('block');
             
-            // Slight delay to ensure DOM is fully rendered before measuring coords
             setTimeout(() => renderTourStep(), 300);
         }
 
@@ -1694,7 +1708,7 @@
             document.getElementById('tour-container').classList.add('hidden');
             document.getElementById('tour-container').classList.remove('block');
             localStorage.setItem('kds_tour_completed', 'true');
-            showKDSToast("Training Complete", "You are now free to play around with the demo tickets!", "bg-k-success text-white");
+            showKDSToast("Training Complete", "Free play mode enabled. Tap the KDS logo to refresh.", "bg-k-success text-white");
         }
 
         function renderTourStep() {
@@ -1704,9 +1718,11 @@
             document.getElementById('tour-progress').innerText = `${currentTourStep + 1} / ${tourSteps.length}`;
             
             if (currentTourStep === tourSteps.length - 1) {
-                document.getElementById('tour-next-btn').innerText = "Finish";
+                document.getElementById('tour-next-btn').innerText = "Start Free Play";
+                document.getElementById('tour-next-btn').className = "px-6 py-2 bg-k-success hover:bg-green-500 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-colors shadow-md";
             } else {
                 document.getElementById('tour-next-btn').innerText = "Next";
+                document.getElementById('tour-next-btn').className = "px-6 py-2 bg-k-accent hover:bg-sky-400 text-gray-900 rounded-xl text-xs font-black uppercase tracking-widest transition-colors shadow-md shadow-sky-500/30";
             }
 
             // Re-trigger dialogue animation
@@ -1719,45 +1735,58 @@
         }
 
         function positionSpotlight(selector) {
-            const target = document.querySelector(selector);
             const spotlight = document.getElementById('tour-spotlight');
             const dialogue = document.getElementById('tour-dialogue');
 
+            // 🟢 GRADUATION STEP: Center the screen and dim everything
+            if (selector === "center") {
+                spotlight.style.width = '0px';
+                spotlight.style.height = '0px';
+                spotlight.style.top = '50%';
+                spotlight.style.left = '50%';
+                spotlight.style.boxShadow = '0 0 0 9999px rgba(15, 23, 42, 0.95)'; // Extra dark for finale
+                
+                dialogue.style.left = `${(window.innerWidth / 2) - (dialogue.offsetWidth / 2)}px`;
+                dialogue.style.top = `${(window.innerHeight / 2) - (dialogue.offsetHeight / 2)}px`;
+                return;
+            }
+
+            const target = document.querySelector(selector);
+
             if (target) {
-                // Scroll the target into view smoothly
-                target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                // 🟢 SCROLL FIX: 'block' handles vertical scroll, removing 'inline' prevents horizontal jumping!
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
                 
                 setTimeout(() => {
                     const rect = target.getBoundingClientRect();
-                    // Add padding to the spotlight cutout
                     const pad = 12; 
                     
                     spotlight.style.top = `${rect.top - pad}px`;
                     spotlight.style.left = `${rect.left - pad}px`;
                     spotlight.style.width = `${rect.width + (pad * 2)}px`;
                     spotlight.style.height = `${rect.height + (pad * 2)}px`;
+                    spotlight.style.boxShadow = '0 0 0 9999px rgba(15, 23, 42, 0.85), 0 0 30px 5px rgba(56,189,248,0.5)';
 
-                    // Smart-position the dialogue box so it doesn't cover the spotlight
+                    // 🟢 SMART ALIGNMENT FIX: Prevent the dialogue from covering the highlighted target
                     const viewportCenterY = window.innerHeight / 2;
+                    let dialogTop, dialogLeft;
+
                     if (rect.top > viewportCenterY) {
-                        // Target is in bottom half, put dialogue above it
-                        dialogue.style.top = `${Math.max(20, rect.top - dialogue.offsetHeight - 40)}px`;
+                        // Target is in bottom half, put dialogue safely above it
+                        dialogTop = Math.max(20, rect.top - dialogue.offsetHeight - 40);
                     } else {
-                        // Target is in top half, put dialogue below it
-                        dialogue.style.top = `${rect.bottom + 40}px`;
+                        // Target is in top half, put dialogue safely below it
+                        dialogTop = Math.min(window.innerHeight - dialogue.offsetHeight - 20, rect.bottom + 40);
                     }
                     
-                    // Center dialogue horizontally relative to target
-                    let desiredLeft = rect.left + (rect.width / 2) - (dialogue.offsetWidth / 2);
-                    // Keep it on screen
-                    desiredLeft = Math.max(20, Math.min(desiredLeft, window.innerWidth - dialogue.offsetWidth - 20));
-                    dialogue.style.left = `${desiredLeft}px`;
+                    // Center horizontally relative to target, but lock it within screen bounds
+                    dialogLeft = rect.left + (rect.width / 2) - (dialogue.offsetWidth / 2);
+                    dialogLeft = Math.max(20, Math.min(dialogLeft, window.innerWidth - dialogue.offsetWidth - 20));
+                    
+                    dialogue.style.top = `${dialogTop}px`;
+                    dialogue.style.left = `${dialogLeft}px`;
 
                 }, 300); // Wait for scroll to finish
-            } else {
-                // Fallback if element not found (hide spotlight)
-                spotlight.style.width = '0px';
-                spotlight.style.height = '0px';
             }
         }
 
