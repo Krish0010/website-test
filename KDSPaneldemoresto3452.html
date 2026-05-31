@@ -375,16 +375,18 @@
 
     <div id="kds-alert-modal" class="fixed inset-0 glass-overlay z-[1000] hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div id="kds-alert-box" class="bg-gray-900 border border-gray-700 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform scale-95 transition-transform duration-300">
-            <div class="h-2 w-full bg-red-500"></div>
+            <div id="kds-alert-header" class="h-2 w-full bg-red-500"></div>
             <div class="p-8 text-center flex flex-col items-center">
-                <div class="w-20 h-20 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-6 border border-red-500/20">
-                    <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                <div id="kds-alert-icon-box" class="w-20 h-20 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-6 border border-red-500/20">
+                    <div id="kds-alert-icon">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    </div>
                 </div>
                 <h2 id="kds-alert-title" class="text-xl font-black tracking-widest uppercase text-white mb-2">Notice</h2>
                 <div id="kds-alert-message" class="text-gray-400 font-medium leading-relaxed mb-8 text-sm"></div>
-                <button onclick="closeKDSAlert()" class="w-full py-4 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-black uppercase tracking-widest text-sm transition-colors border border-gray-700 shadow-lg active:scale-95">
-                    Understood
-                </button>
+                <div id="kds-alert-buttons" class="w-full flex gap-3">
+                    <!-- Dynamic Buttons Injected Here -->
+                </div>
             </div>
         </div>
     </div>
@@ -435,6 +437,7 @@
         let latestReadyTickets = []; 
         let targetTimeOverrides = {}; 
         let lastGeneratedGridHTML = ""; 
+        let isOfflineAlerted = false; // 🟢 Tracks server connection loss
 
         // 🟢 MANAGER HUB SETTINGS (Bound perfectly to the current station)
         let isAudioMuted = localStorage.getItem(`kds_audio_${currentStationFilter}`) === 'true';
@@ -463,9 +466,31 @@
             setTimeout(() => { toast.classList.remove('translate-x-0', 'opacity-100'); toast.classList.add('translate-x-[120%]', 'opacity-0'); setTimeout(() => { if (toast.parentNode) toast.remove(); }, 500); }, 6000);
         }
 
-        function showKDSAlert(title, message) {
+        function showKDSAlert(title, message, type = "error", customButtons = null) {
             document.getElementById('kds-alert-title').innerText = title;
             document.getElementById('kds-alert-message').innerHTML = message;
+            
+            const header = document.getElementById('kds-alert-header');
+            const iconBox = document.getElementById('kds-alert-icon-box');
+            const icon = document.getElementById('kds-alert-icon');
+            const btnContainer = document.getElementById('kds-alert-buttons');
+
+            if (type === "error") {
+                header.className = "h-2 w-full bg-red-500";
+                iconBox.className = "w-20 h-20 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-6 border border-red-500/20";
+                icon.innerHTML = `<svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+            } else if (type === "info") {
+                header.className = "h-2 w-full bg-k-accent";
+                iconBox.className = "w-20 h-20 bg-sky-500/10 text-k-accent rounded-full flex items-center justify-center mb-6 border border-sky-500/20";
+                icon.innerHTML = `<svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"></path></svg>`;
+            }
+
+            if (customButtons) {
+                btnContainer.innerHTML = customButtons;
+            } else {
+                btnContainer.innerHTML = `<button onclick="closeKDSAlert()" class="w-full py-4 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-black uppercase tracking-widest text-sm transition-colors border border-gray-700 shadow-lg active:scale-95">Understood</button>`;
+            }
+
             const modal = document.getElementById('kds-alert-modal');
             const box = document.getElementById('kds-alert-box');
             modal.classList.remove('hidden'); modal.classList.add('flex');
@@ -580,6 +605,16 @@
                 if (data.success) {
                     dot.className = "w-3 h-3 rounded-full bg-k-success shadow-[0_0_8px_rgba(34,197,94,0.8)]";
                     status.innerText = "Online";
+                    
+                    // 🟢 OFFLINE RECOVERY: Clear the alert if we reconnected
+                    if (isOfflineAlerted) {
+                        isOfflineAlerted = false;
+                        showKDSToast("Connection Restored", "The KDS is back online.", "bg-k-success text-white");
+                        const alertModal = document.getElementById('kds-alert-modal');
+                        if (alertModal && !alertModal.classList.contains('hidden') && document.getElementById('kds-alert-title').innerText === "System Offline") {
+                            closeKDSAlert();
+                        }
+                    }
                     
                     let newTicketsArrived = false;
                     let updateNotifications = [];
@@ -696,6 +731,18 @@
             } catch (err) {
                 dot.className = "w-3 h-3 rounded-full bg-k-danger shadow-[0_0_8px_rgba(239,68,68,0.8)] animate-pulse";
                 status.innerText = "Offline - Retrying";
+                
+                // 🟢 OFFLINE ALERT TRIGGER
+                if (!isOfflineAlerted && !isDemoMode) {
+                    isOfflineAlerted = true;
+                    playOfflineSound();
+                    showKDSAlert(
+                        "System Offline", 
+                        "The KDS has lost connection to the server. Please check your Wi-Fi or internet connection.<br><br>The system will automatically reconnect when the signal is restored.",
+                        "error",
+                        `<button onclick="closeKDSAlert()" class="w-full py-4 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black uppercase tracking-widest text-sm transition-colors shadow-[0_0_15px_rgba(239,68,68,0.4)] active:scale-95">Dismiss</button>`
+                    );
+                }
             } finally { setTimeout(fetchKDS, REFRESH_RATE); }
         }
 
@@ -725,9 +772,9 @@
         }
 
         const originalShowKDSAlert = showKDSAlert;
-        showKDSAlert = function(title, message) {
+        showKDSAlert = function(title, message, type = "error", customButtons = null) {
             logNotification(title, message.replace(/<[^>]*>?/gm, '')); 
-            originalShowKDSAlert(title, message);
+            originalShowKDSAlert(title, message, type, customButtons);
         };
         const originalShowKDSToast = showKDSToast;
         showKDSToast = function(title, message, colorClass) {
@@ -1302,6 +1349,29 @@
                 const now = globalAudioCtx.currentTime; playTone(1046.50, now, 0.15, 0.4); playTone(1318.51, now + 0.15, 0.15, 0.4); playTone(1567.98, now + 0.3, 0.3, 0.4); 
             } catch(e) {}
         }
+        function playOfflineSound() {
+            if (!globalAudioCtx || isAudioMuted) return; 
+            try {
+                if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
+                const playTone = (freq, type, startTime, duration) => {
+                    const osc = globalAudioCtx.createOscillator(); 
+                    const gain = globalAudioCtx.createGain();
+                    osc.type = type; 
+                    osc.frequency.setValueAtTime(freq, startTime);
+                    gain.gain.setValueAtTime(0, startTime); 
+                    gain.gain.linearRampToValueAtTime(0.5, startTime + 0.1); 
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+                    osc.connect(gain); 
+                    gain.connect(globalAudioCtx.destination); 
+                    osc.start(startTime); 
+                    osc.stop(startTime + duration);
+                };
+                const now = globalAudioCtx.currentTime; 
+                // A jarring, dissonant double-buzz for critical error
+                playTone(250, 'sawtooth', now, 0.4); 
+                playTone(200, 'sawtooth', now + 0.5, 0.6); 
+            } catch(e) {}
+        }
         function stopAlertSound(e) {
             // 🟢 MUTE-SLAP DEFENSE: If the alarm is actively ringing, we kill the click event.
             // This guarantees the chef can slap the screen anywhere to mute the alarm 
@@ -1535,15 +1605,21 @@
                 updateToggleUI('demo', isDemoMode);
                 
                 if (isDemoMode) {
-                    closeManagerHub(); // Close the settings menu so they can see the tour!
+                    closeManagerHub(); 
                     injectDemoTickets();
                     
-                    // 🟢 Automatically launch the tour if they've never seen it
-                    if (localStorage.getItem('kds_tour_completed') !== 'true') {
-                        setTimeout(startTour, 500); 
-                    } else {
-                        showKDSToast("Demo Mode Active", "Free play mode enabled. Tap the KDS logo to refresh.", "bg-purple-600 text-white");
-                    }
+                    // 🟢 UX Enhancement: Always ask if they want the tour!
+                    setTimeout(() => {
+                        showKDSAlert(
+                            "Training Mode", 
+                            "Would you like to take the interactive guided tour, or skip directly to free-play?",
+                            "info",
+                            `
+                            <button onclick="closeKDSAlert(); startTour();" class="flex-1 py-4 bg-k-accent hover:bg-sky-400 text-gray-900 rounded-xl font-black uppercase tracking-widest text-xs transition-colors shadow-lg active:scale-95">Start Tour</button>
+                            <button onclick="closeKDSAlert(); showKDSToast('Demo Mode Active', 'Free play mode enabled.', 'bg-purple-600 text-white');" class="flex-1 py-4 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-colors shadow-lg active:scale-95 border border-gray-700">Skip</button>
+                            `
+                        );
+                    }, 400);
                 } else { 
                     lastGeneratedGridHTML = ""; 
                     fetchKDS(); 
