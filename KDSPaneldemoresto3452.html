@@ -964,8 +964,8 @@
                         }
                     } else {
                         // EXPO MODE: Head Chef can bump globally
-                        const bumpBtnClass = (isFullyStruck && !isUpdated) ? "bg-k-success text-white shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:bg-green-500 active:scale-95" : "bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 active:scale-95";
-                        bottomButtonHTML = `<button onclick="executeBump('${ticket.token}', '${tableNum}', this)" class="w-full py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all duration-300 flex items-center justify-center gap-1.5 ${bumpBtnClass}"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path></svg> Mark Ready</button>`;
+                        const bumpBtnClass = (isFullyStruck && !isUpdated) ? "!bg-green-500 !text-white !border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.5)] hover:!bg-green-600 active:scale-95" : "bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 active:scale-95";
+                        bottomButtonHTML = `<button onclick="executeBump('${ticket.token}', '${tableNum}', this)" class="w-full py-2.5 rounded-md font-black uppercase tracking-widest text-[11px] transition-all duration-300 flex items-center justify-center gap-2 ${bumpBtnClass}"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path></svg> Mark Ready</button>`;
                     }
 
                     // 🟢 Extract sub-routing badges for the Expo tablet
@@ -1714,21 +1714,36 @@
         function renderTourStep() {
             const step = tourSteps[currentTourStep];
             document.getElementById('tour-title').innerText = step.title;
-            document.getElementById('tour-text').innerHTML = step.text;
+            
+            const isLastStep = currentTourStep === tourSteps.length - 1;
+            
+            // 🟢 UI FIX: Center text cleanly on the final step
+            document.getElementById('tour-text').innerHTML = isLastStep 
+                ? `<div class="text-center pb-2">${step.text}</div>` 
+                : step.text;
+                
             document.getElementById('tour-progress').innerText = `${currentTourStep + 1} / ${tourSteps.length}`;
             
-            if (currentTourStep === tourSteps.length - 1) {
-                document.getElementById('tour-next-btn').innerText = "Start Free Play";
-                document.getElementById('tour-next-btn').className = "px-6 py-2 bg-k-success hover:bg-green-500 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-colors shadow-md";
+            const skipBtn = document.querySelector("button[onclick='endTour()']");
+            const progressText = document.getElementById('tour-progress');
+            const nextBtn = document.getElementById('tour-next-btn');
+
+            if (isLastStep) {
+                // 🟢 UX FIX: Clean Graduation layout
+                nextBtn.innerText = "Start Free Play";
+                nextBtn.className = "w-full px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-black uppercase tracking-widest transition-colors shadow-lg shadow-green-500/30";
+                skipBtn.classList.add('hidden');
+                progressText.classList.add('hidden');
             } else {
-                document.getElementById('tour-next-btn').innerText = "Next";
-                document.getElementById('tour-next-btn').className = "px-6 py-2 bg-k-accent hover:bg-sky-400 text-gray-900 rounded-xl text-xs font-black uppercase tracking-widest transition-colors shadow-md shadow-sky-500/30";
+                nextBtn.innerText = "Next";
+                nextBtn.className = "px-6 py-2 bg-k-accent hover:bg-sky-400 text-gray-900 rounded-xl text-xs font-black uppercase tracking-widest transition-colors shadow-md shadow-sky-500/30";
+                skipBtn.classList.remove('hidden');
+                progressText.classList.remove('hidden');
             }
 
-            // Re-trigger dialogue animation
             const dialogue = document.getElementById('tour-dialogue');
             dialogue.classList.remove('tour-tooltip-anim');
-            void dialogue.offsetWidth; // Trigger reflow
+            void dialogue.offsetWidth; 
             dialogue.classList.add('tour-tooltip-anim');
 
             positionSpotlight(step.targetSelector);
@@ -1738,13 +1753,12 @@
             const spotlight = document.getElementById('tour-spotlight');
             const dialogue = document.getElementById('tour-dialogue');
 
-            // 🟢 GRADUATION STEP: Center the screen and dim everything
             if (selector === "center") {
                 spotlight.style.width = '0px';
                 spotlight.style.height = '0px';
                 spotlight.style.top = '50%';
                 spotlight.style.left = '50%';
-                spotlight.style.boxShadow = '0 0 0 9999px rgba(15, 23, 42, 0.95)'; // Extra dark for finale
+                spotlight.style.boxShadow = '0 0 0 9999px rgba(15, 23, 42, 0.95)'; 
                 
                 dialogue.style.left = `${(window.innerWidth / 2) - (dialogue.offsetWidth / 2)}px`;
                 dialogue.style.top = `${(window.innerHeight / 2) - (dialogue.offsetHeight / 2)}px`;
@@ -1754,8 +1768,8 @@
             const target = document.querySelector(selector);
 
             if (target) {
-                // 🟢 SCROLL FIX: 'block' handles vertical scroll, removing 'inline' prevents horizontal jumping!
-                target.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
+                // 🟢 SCROLL FIX: Pull the element to the top of the view so there is max room below it
+                target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' }); 
                 
                 setTimeout(() => {
                     const rect = target.getBoundingClientRect();
@@ -1767,26 +1781,26 @@
                     spotlight.style.height = `${rect.height + (pad * 2)}px`;
                     spotlight.style.boxShadow = '0 0 0 9999px rgba(15, 23, 42, 0.85), 0 0 30px 5px rgba(56,189,248,0.5)';
 
-                    // 🟢 SMART ALIGNMENT FIX: Prevent the dialogue from covering the highlighted target
-                    const viewportCenterY = window.innerHeight / 2;
-                    let dialogTop, dialogLeft;
+                    // 🟢 SMART ALIGNMENT FIX: Dynamic Popup Collision Engine
+                    let dialogTop = rect.top;
+                    let dialogLeft = rect.right + 30; 
 
-                    if (rect.top > viewportCenterY) {
-                        // Target is in bottom half, put dialogue safely above it
-                        dialogTop = Math.max(20, rect.top - dialogue.offsetHeight - 40);
-                    } else {
-                        // Target is in top half, put dialogue safely below it
-                        dialogTop = Math.min(window.innerHeight - dialogue.offsetHeight - 20, rect.bottom + 40);
+                    // Prioritize putting the dialogue to the RIGHT. If it hits the edge of the screen, put it BELOW.
+                    if (dialogLeft + dialogue.offsetWidth > window.innerWidth) {
+                        dialogLeft = rect.left + (rect.width / 2) - (dialogue.offsetWidth / 2);
+                        dialogLeft = Math.max(20, Math.min(dialogLeft, window.innerWidth - dialogue.offsetWidth - 20)); // Lock bounds
+                        
+                        if (rect.bottom + dialogue.offsetHeight + 40 < window.innerHeight) {
+                            dialogTop = rect.bottom + 30; 
+                        } else {
+                            dialogTop = Math.max(20, rect.top - dialogue.offsetHeight - 30); // Fallback: Above
+                        }
                     }
-                    
-                    // Center horizontally relative to target, but lock it within screen bounds
-                    dialogLeft = rect.left + (rect.width / 2) - (dialogue.offsetWidth / 2);
-                    dialogLeft = Math.max(20, Math.min(dialogLeft, window.innerWidth - dialogue.offsetWidth - 20));
                     
                     dialogue.style.top = `${dialogTop}px`;
                     dialogue.style.left = `${dialogLeft}px`;
 
-                }, 300); // Wait for scroll to finish
+                }, 350); 
             }
         }
 
