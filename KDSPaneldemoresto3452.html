@@ -219,6 +219,12 @@
                     <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"></path></svg>
                 </button>
                 
+                <!-- 🟢 NEW: Restart Tour Button (Hidden by default) -->
+                <button id="restart-tour-btn" onclick="restartDemoTour()" class="hidden relative h-9 sm:h-10 px-3 bg-purple-600/20 border border-purple-500/50 rounded-xl items-center justify-center text-purple-400 hover:bg-purple-600 hover:text-white transition-all shadow-[0_0_15px_rgba(147,51,234,0.3)] gap-1.5 active:scale-95" title="Restart Training Tour">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.25 5.25 0 005.25 21h13.5a5.25 5.25 0 001.257-5.407m-14.514 0a48.64 48.64 0 003.478-.397m11.036 0a48.64 48.64 0 01-3.478-.397m-5.558 0a48.24 48.24 0 012.08-.184"></path></svg>
+                    <span class="font-black text-[10px] uppercase tracking-widest hidden md:block">Restart Tour</span>
+                </button>
+                
                 <button onclick="openManagerAuth()" class="relative w-9 h-9 sm:w-10 sm:h-10 bg-gray-800 rounded-xl flex items-center justify-center text-gray-400 hover:text-k-accent hover:bg-gray-700 transition-colors" title="Manager Hub">
                     <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                 </button>
@@ -1670,10 +1676,16 @@
             } else if (setting === 'demo') {
                 isDemoMode = !isDemoMode;
                 updateToggleUI('demo', isDemoMode);
+                const restartBtn = document.getElementById('restart-tour-btn');
                 
                 if (isDemoMode) {
                     closeManagerHub(); 
                     injectDemoTickets();
+                    
+                    if (restartBtn) {
+                        restartBtn.classList.remove('hidden');
+                        restartBtn.classList.add('flex');
+                    }
                     
                     // 🟢 UX Enhancement: Always ask if they want the tour!
                     setTimeout(() => {
@@ -1688,10 +1700,33 @@
                         );
                     }, 400);
                 } else { 
+                    if (restartBtn) {
+                        restartBtn.classList.add('hidden');
+                        restartBtn.classList.remove('flex');
+                    }
                     lastGeneratedGridHTML = ""; 
                     fetchKDS(); 
                 }
             }
+        }
+
+        // 🟢 INSTANT RESTART: Wipes all free-play strikes and resets the demo tickets to perfect condition
+        function restartDemoTour() {
+            hiddenDemoTokens.clear(); // Un-hide any bumped tickets
+            
+            // Wipe only the strikes associated with Demo tickets
+            const keysToClear = Array.from(strikeMemory).filter(key => key.startsWith(`D-`));
+            keysToClear.forEach(key => strikeMemory.delete(key)); 
+            localStorage.setItem('kds_strike_memory', JSON.stringify(Array.from(strikeMemory))); 
+            
+            // Revert ghost updates
+            unacknowledgedUpdates["D-104"] = [
+                { id: "x1", name: "Classic Mojito", qty: 2, note: "", category: "Beverages", pacing: "Serve First" }
+            ];
+            
+            injectDemoTickets(); // Refresh tickets to original state
+            setTimeout(startTour, 300); // Start the tour smoothly
+        }
         }
         
 
