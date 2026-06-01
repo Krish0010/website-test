@@ -532,6 +532,11 @@
                 mainContent.style.marginRight = '0px';
                 icon.style.transform = 'rotate(0deg)'; sidebar.dataset.state = 'closed';
             }
+            
+            // 🟢 DYNAMIC ALIGNMENT FIX: Reposition the spotlight tour if the sidebar slides out!
+            if (typeof isTourActive !== 'undefined' && isTourActive) {
+                setTimeout(() => renderTourStep(), 550); // Wait for the 500ms CSS slide animation to finish
+            }
         }
 
         function updatePrepSummary() {
@@ -1213,12 +1218,28 @@
             const overlay = document.getElementById('bump-overlay');
             overlay.classList.remove('hidden'); overlay.classList.add('flex');
 
-            // 🟢 MOCK API: Simulate success in Demo Mode!
+            // 🟢 MOCK API: Simulate success in Demo Mode with a 10s Respawn!
             if (isDemoMode) {
                 setTimeout(() => {
                     overlay.classList.add('hidden'); overlay.classList.remove('flex');
-                    card.remove(); // Visually delete the ticket
-                    showKDSToast("Training", `Demo Ticket for Table ${tableNum} Cleared!`, "bg-k-success text-white");
+                    hiddenDemoTokens.add(token); // Hide the ticket from the UI
+                    injectDemoTickets(); // Redraw the grid without the ticket
+                    showKDSToast("Training Mode", `Great job! Ticket for Table ${tableNum} cleared. It will respawn in 10 seconds.`, "bg-k-success text-white");
+                    
+                    if (isTourActive) setTimeout(() => renderTourStep(), 600); // Realign tour guide
+
+                    // Respawn logic
+                    setTimeout(() => {
+                        hiddenDemoTokens.delete(token); 
+                        
+                        // Wipe the strike memory for this specific ticket so it spawns fresh!
+                        const keysToLock = Array.from(strikeMemory).filter(key => key.startsWith(`${token}_`));
+                        keysToLock.forEach(key => strikeMemory.delete(key));
+                        localStorage.setItem('kds_strike_memory', JSON.stringify(Array.from(strikeMemory)));
+                        
+                        injectDemoTickets(); // Redraw grid with the ticket back
+                        if (isTourActive) setTimeout(() => renderTourStep(), 600); // Realign tour guide
+                    }, 10000);
                 }, 600);
                 return;
             }
@@ -1226,6 +1247,7 @@
             try {
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_bump", token: token, table: tableNum }) });
                 const data = await response.json();
+                
                 if (data.success) {
                     const keysToLock = Array.from(strikeMemory).filter(key => key.startsWith(`${token}_`));
                     keysToLock.forEach(key => bumpedMemory.add(key));
@@ -1700,48 +1722,43 @@
             }
         }
 
+        let hiddenDemoTokens = new Set(); // 🟢 Tracks cleared demo tickets
+
         // 🟢 THE CHEF'S MASTERCLASS: 5 Realistic Kitchen Scenarios
         function injectDemoTickets() {
             if (!isDemoMode) return;
             const now = Date.now();
             
-            // Artificial Ghost Data for the Mid-Meal Update ticket
             unacknowledgedUpdates["D-104"] = [
                 { id: "x1", name: "Classic Mojito", qty: 2, note: "", category: "Beverages", pacing: "Serve First" }
             ];
 
-            const fakeTickets = [
-                // SCENARIO 1: The Perfect Ticket (Normal pacing, simple notes)
+            const allFakeTickets = [
                 { token: "D-101", timestamp: now - (5 * 60000), status: "Table 12 - LOCKED", cart: [
                     { id: "d1", name: "Truffle Mushroom Pasta", qty: 1, note: "Extra parmesan", category: "Kitchen", pacing: "Main Course", prepTime: 15 },
                     { id: "d2", name: "Garlic Bread", qty: 2, note: "", category: "Kitchen", pacing: "Serve First", prepTime: 5 }
                 ]},
-                
-                // SCENARIO 2: The High-Risk Allergy (Purple styling)
                 { token: "D-102", timestamp: now - (8 * 60000), status: "Table 4 - LOCKED", cart: [
                     { id: "d3", name: "Peanut Butter Brownie", qty: 1, note: "SEVERE NUT ALLERGY", category: "Dessert", pacing: "Serve Last", prepTime: 10 },
                     { id: "d4", name: "Grilled Salmon", qty: 1, note: "Sauce on side", category: "Grill", pacing: "Main Course", prepTime: 20 }
                 ]},
-
-                // SCENARIO 3: The Overdue Disaster (Red pulsing, 35 mins elapsed)
                 { token: "D-103", timestamp: now - (35 * 60000), status: "Table 8 - LOCKED", cart: [
                     { id: "d5", name: "Ribeye Steak", qty: 2, note: "Medium Rare", category: "Grill", pacing: "Main Course", prepTime: 25 },
                     { id: "d6", name: "Mashed Potatoes", qty: 2, note: "", category: "Kitchen", pacing: "Main Course", prepTime: 10 }
                 ]},
-
-                // SCENARIO 4: The Mid-Meal Update (Blue pulsing, qty increased)
                 { token: "D-104", timestamp: now - (12 * 60000), status: "Table 6 - LOCKED", cart: [
-                    { id: "d7", name: "Classic Mojito", qty: 5, note: "", category: "Beverages", pacing: "Serve First", prepTime: 5 }, // Increased from 2 to 5!
+                    { id: "d7", name: "Classic Mojito", qty: 5, note: "", category: "Beverages", pacing: "Serve First", prepTime: 5 }, 
                     { id: "d8", name: "Chicken Tikka", qty: 1, note: "Extra spicy", category: "Grill", pacing: "Serve First", prepTime: 15 }
                 ]},
-
-                // SCENARIO 5: The "Fire Next" VIP (Amber pulsing, waiter wants food NOW)
                 { token: "D-105", timestamp: now - (22 * 60000), status: "Table 2 - FIRE NEXT", cart: [
                     { id: "d9", name: "Molten Lava Cake", qty: 1, note: "Birthday sparkler", category: "Dessert", pacing: "Serve Last", prepTime: 12 }
                 ]}
             ];
             
-            lastGeneratedGridHTML = ""; // Force redraw for demo
+            // 🟢 Filter out any tickets the trainee recently bumped
+            const fakeTickets = allFakeTickets.filter(t => !hiddenDemoTokens.has(t.token));
+            
+            lastGeneratedGridHTML = ""; 
             renderKDSGrid(fakeTickets);
         }
 
@@ -1929,6 +1946,7 @@
                     mainContent.scrollTo({ top: absoluteTop - (containerRect.height / 2) + (rect.height / 2), behavior: 'smooth' });
                 }
                 
+                // 🟢 ANIMATION RACE FIX: Increased to 600ms so Tailwind's "duration-500" animations finish completely before measuring!
                 setTimeout(() => {
                     const rect = target.getBoundingClientRect();
                     const pad = 12; 
