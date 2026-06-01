@@ -1588,7 +1588,15 @@
         function forceExitKDS() {
             allowExit = true; // Disables the popstate trap
             isIntentionalNavigation = true; // Disables the beforeunload trap
-            window.history.back(); // Physically navigates them backward
+            
+            // 1. Try to navigate backward normally
+            window.history.back(); 
+            
+            // 2. BULLETPROOF FALLBACK: If there is no history (e.g., opened in a new tab or shortcut),
+            // history.back() will silently fail. This timer catches the failure and safely routes them to your root homepage.
+            setTimeout(() => {
+                window.location.replace('/'); 
+            }, 300);
         }
 
         async function executeSOS(minutes) {
