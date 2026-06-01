@@ -473,7 +473,7 @@
 
     <script>
         // REPLACE WITH YOUR ACTUAL SCRIPT URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwuP-MVji5QWdX2mYA_xXn56dbpkFPqNn5iv7MqmTqmjQ7X17cUk289tWbIpEGSH95e/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbylrL2lcgL5RofluEXwbvoyHNKX82npZTtWPN4KnRhnLscdhB5Iqtjaz9doh_4fAypd/exec"; 
 
         // 🟢 PERSISTENCE FIX: Load strike memory from the tablet's hard drive so it survives refreshes
         let strikeMemory = new Set(JSON.parse(localStorage.getItem('kds_strike_memory') || "[]"));
@@ -497,6 +497,30 @@
         let isDemoMode = false;
 
         let allowExit = false; // 🟢 Controls our custom back-button trap
+
+        // 🟢 SMART SLEEP MODE: Pauses polling if tab is hidden for > 20 seconds
+        let isPollingPaused = false;
+        let sleepTimer = null;
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "hidden") {
+                // Start the 20-second grace period countdown
+                sleepTimer = setTimeout(() => {
+                    isPollingPaused = true;
+                    console.log("KDS sleeping to save quota.");
+                }, 20000); 
+            } else {
+                // Tab is visible again! Cancel the sleep timer if it hasn't fired yet
+                clearTimeout(sleepTimer);
+                
+                // If the system actually went to sleep, wake it up immediately
+                if (isPollingPaused) {
+                    isPollingPaused = false;
+                    console.log("KDS waking up.");
+                    fetchKDS(); // Force an instant sync
+                }
+            }
+        });
 
         // 🟢 SINGLE BOOT INITIALIZER
         document.addEventListener("DOMContentLoaded", () => {
@@ -676,6 +700,13 @@
 
         // --- BACKEND SYNC ---
         async function fetchKDS() {
+            // 🟢 ABORT FETCH IF SYSTEM IS ASLEEP
+            if (isPollingPaused) {
+                // Check again quietly in 2 seconds without hitting the server
+                setTimeout(fetchKDS, 2000); 
+                return;
+            }
+
             const dot = document.getElementById('connection-dot');
             const status = document.getElementById('sync-status');
             try {
@@ -823,8 +854,14 @@
                         `<button onclick="closeKDSAlert()" class="w-full py-4 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black uppercase tracking-widest text-sm transition-colors shadow-[0_0_15px_rgba(239,68,68,0.4)] active:scale-95">Dismiss</button>`
                     );
                 }
-            } finally { setTimeout(fetchKDS, REFRESH_RATE); }
-        }
+            // FIX: Slow down polling to 20s if the network is failing
+                window.dynamicRefreshRate = 20000;
+            } finally { 
+                // FIX: Adaptive polling. Back off if there are no active tickets.
+                const hasTickets = currentActiveTickets && currentActiveTickets.length > 0;
+                window.dynamicRefreshRate = hasTickets ? 8000 : 25000;
+                setTimeout(fetchKDS, window.dynamicRefreshRate); 
+            }
 
         // --- NOTIFICATION HISTORY ---
         let notificationHistory = [];
@@ -915,8 +952,9 @@
             activeTickets.forEach(ticket => {
                 try {
                     const isFireNext = ticket.status.includes("FIRE NEXT");
-                    const tableNum = ticket.status.split("-")[0].replace("Table", "").trim();
-                    const orderTime = ticket.timestamp || Date.now();
+// FIX: Force HTML escaping on the extracted table string
+const tableNum = escapeHTML(ticket.status.split("-")[0].replace("Table", "").trim());
+const orderTime = ticket.timestamp || Date.now();
                     const isUpdated = !!unacknowledgedUpdates[ticket.token];
 
                     let baseItems = [];
@@ -1179,16 +1217,25 @@
         }
     // --- STRIKE & BUMP ---
         function toggleStrike(uniqueItemId, rowElement) {
-            if (strikeMemory.has(uniqueItemId)) strikeMemory.delete(uniqueItemId);
-            else strikeMemory.add(uniqueItemId);
-            
-            // 🟢 MEMORY PERSISTENCE: Save to local storage so chef strikes survive page refreshes!
-            localStorage.setItem('kds_strike_memory', JSON.stringify(Array.from(strikeMemory)));
-            
-            // 🟢 VIRTUAL DOM FIX: Instantly redraw the grid so the Blue/Gray buttons update immediately!
-            lastGeneratedGridHTML = ""; 
-            renderKDSGrid(currentActiveTickets); 
-        }
+    const isAdding = !strikeMemory.has(uniqueItemId);
+    if (isAdding) strikeMemory.add(uniqueItemId);
+    else strikeMemory.delete(uniqueItemId);
+    
+    localStorage.setItem('kds_strike_memory', JSON.stringify(Array.from(strikeMemory)));
+    
+    // FIX: Fire-and-forget sync to backend so other tablets see the strike
+    fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+            action: "kds_sync_strike",
+            itemId: uniqueItemId,
+            state: isAdding
+        })
+    }).catch(e => console.warn("Strike sync failed, will retry on next fetch"));
+    
+    lastGeneratedGridHTML = ""; 
+    renderKDSGrid(currentActiveTickets); 
+}
 
         // 🟢 SAFETY NET 1: Prevents lazy mass-striking
         function attemptEarlySend() {
@@ -1306,7 +1353,17 @@
             }
 
             try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_bump", token: token, table: tableNum }) });
+                // FIX: Implement a 10-second timeout controller to prevent infinite hanging
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                
+                const response = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: "kds_bump", token: token, table: tableNum }),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                
                 const data = await response.json();
                 
                 if (data.success) {
