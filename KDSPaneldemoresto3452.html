@@ -166,10 +166,11 @@
             </div>
             <p id="tour-text" class="text-sm font-medium text-gray-600 leading-relaxed"></p>
             
-            <div id="tour-footer" class="flex justify-between items-center mt-3 pt-4 border-t border-gray-100 w-full">
+            <div id="tour-footer" class="flex justify-between items-center mt-3 pt-4 border-t border-gray-100 w-full transition-all">
                 <span id="tour-progress" class="text-[10px] font-black tracking-widest text-gray-400 shrink-0">1 / 10</span>
                 <div id="tour-btn-group" class="flex gap-2 w-full justify-end">
-                    <button id="tour-skip-btn" onclick="endTour()" class="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-900 uppercase tracking-widest transition-colors">Skip</button>
+                    <button id="tour-prev-btn" onclick="prevTourStep()" class="hidden px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-900 uppercase tracking-widest transition-colors">Prev</button>
+                    <button id="tour-skip-btn" onclick="endTour()" class="px-4 py-2 text-xs font-bold text-gray-400 hover:text-red-500 uppercase tracking-widest transition-colors">Skip Tour</button>
                     <button id="tour-next-btn" onclick="nextTourStep()" class="px-6 py-2 bg-k-accent hover:bg-sky-400 text-gray-900 rounded-xl text-xs font-black uppercase tracking-widest transition-colors shadow-md shadow-sky-500/30">Next</button>
                 </div>
             </div>
@@ -1025,7 +1026,7 @@
                     } else {
                         // EXPO MODE: Head Chef can bump globally
                         const bumpBtnClass = (isFullyStruck && !isUpdated) 
-                            ? "bg-green-500 text-white border-green-600 shadow-[0_0_15px_rgba(34,197,94,0.5)] hover:bg-green-600" 
+                            ? "!bg-green-500 !text-white !border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.6)] hover:!bg-green-600" 
                             : "bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white";
                         bottomButtonHTML = `<button onclick="executeBump('${ticket.token}', '${tableNum}', this)" class="w-full py-2.5 rounded-md border font-black uppercase tracking-widest text-[11px] transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 ${bumpBtnClass}"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path></svg> Mark Ready</button>`;
                     }
@@ -1212,14 +1213,23 @@
             const overlay = document.getElementById('bump-overlay');
             overlay.classList.remove('hidden'); overlay.classList.add('flex');
 
+            // 🟢 MOCK API: Simulate success in Demo Mode!
+            if (isDemoMode) {
+                setTimeout(() => {
+                    overlay.classList.add('hidden'); overlay.classList.remove('flex');
+                    card.remove(); // Visually delete the ticket
+                    showKDSToast("Training", `Demo Ticket for Table ${tableNum} Cleared!`, "bg-k-success text-white");
+                }, 600);
+                return;
+            }
+
             try {
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_bump", token: token, table: tableNum }) });
                 const data = await response.json();
-                
                 if (data.success) {
                     const keysToLock = Array.from(strikeMemory).filter(key => key.startsWith(`${token}_`));
                     keysToLock.forEach(key => bumpedMemory.add(key));
-                    delete unacknowledgedUpdates[token]; // 🟢 Clear update state on Bump too!
+                    delete unacknowledgedUpdates[token]; 
                     fetchKDS(); 
                 } else { alert("Error marking ticket ready: " + data.message); }
             } catch (err) { alert("Network error. Could not bump ticket.");
@@ -1439,6 +1449,17 @@
             const originalHTML = btnElement.innerHTML;
             btnElement.innerHTML = `<div class="w-4 h-4 border-2 border-k-accent border-t-transparent rounded-full animate-spin"></div>`;
             btnElement.disabled = true;
+            
+            // 🟢 MOCK API: Simulate Recall in Demo Mode!
+            if (isDemoMode) {
+                setTimeout(() => {
+                    toggleRecallModal();
+                    btnElement.innerHTML = originalHTML; btnElement.disabled = false;
+                    showKDSToast("Training", `Demo Ticket recalled successfully!`, "bg-k-accent text-white");
+                }, 600);
+                return;
+            }
+
             try {
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_recall", token: token, table: tableNum }) });
                 const data = await response.json();
@@ -1480,6 +1501,14 @@
 
         async function executeSOS(minutes) {
             closeSOSModal();
+            // 🟢 MOCK API: Simulate SOS in Demo Mode!
+            if (isDemoMode) {
+                const expiry = Date.now() + (minutes * 60000);
+                updateSOSUI(expiry.toString());
+                showKDSToast("Training", `Kitchen paused for ${minutes} mins in Demo Mode.`, "bg-red-600 text-white");
+                return;
+            }
+
             try {
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_toggle_sos", duration: minutes }) });
                 const data = await response.json();
@@ -1516,6 +1545,7 @@
             targetTimeOverrides[editingToken] = currentEditingValue;
             closeTargetModal();
             updateTimers(); 
+            if (isDemoMode) showKDSToast("Training", "Target time successfully updated!", "bg-k-accent text-white");
         }
 
         function closeTargetModal() {
@@ -1724,12 +1754,12 @@
         const tourSteps = [
             {
                 title: "The KDS Grid",
-                text: "Welcome to your Kitchen Display System. This board automatically sorts and prioritizes tickets. Let's look at the different scenarios you'll face during a rush.",
+                text: "Welcome to your Kitchen Display System. This board sorts and prioritizes tickets automatically. Let's explore the edge cases.",
                 targetSelector: "#kds-grid > div:nth-child(1)" 
             },
             {
                 title: "Safety First",
-                text: "When a waiter types an allergy note, the item automatically turns <b class='text-purple-400'>PURPLE</b>. Cross-contamination protocols must be strictly followed.",
+                text: "When a waiter types an allergy note, the item turns <b class='text-purple-400'>PURPLE</b>. Cross-contamination protocols must be strictly followed.",
                 targetSelector: "#kds-grid > div:nth-child(2)" 
             },
             {
@@ -1739,37 +1769,42 @@
             },
             {
                 title: "Order Updates",
-                text: "If a waiter adds an item mid-meal, the ticket flashes <b class='text-blue-400'>BLUE</b>. The new items are highlighted so you don't miss them.",
+                text: "If a waiter adds an item mid-meal, the ticket flashes <b class='text-blue-400'>BLUE</b>. Go ahead, tap the 'OK' button to clear the blue alert!",
                 targetSelector: "#kds-grid > div:nth-child(4)" 
             },
             {
                 title: "Fire Next Course",
-                text: "When the waiter tells you the table is ready for their next course, the ticket turns <b class='text-amber-500'>AMBER</b>. Stop prepping and fire these items immediately.",
+                text: "When the waiter tells you the table is ready for their next course, the ticket turns <b class='text-amber-500'>AMBER</b>. Fire these items immediately.",
                 targetSelector: "#kds-grid > div:nth-child(5)" 
             },
             {
                 title: "Dynamic Target Times",
-                text: "Dish taking longer than expected? Tap the <b>TARGET</b> clock on the highlighted ticket now to see the menu. Hit Cancel, then click Next.",
-                targetSelector: "#kds-grid > div:nth-child(1) .flex.flex-col.items-center.cursor-pointer"
+                text: "Dish taking longer than expected? Tap the <b>TARGET</b> clock on the highlighted ticket, adjust the time, and hit Save. Watch the pace recalculate!",
+                targetSelector: "#kds-grid > div:nth-child(1) .flex.flex-col.items-center.cursor-pointer" 
             },
             {
                 title: "The Undo Button",
-                text: "Accidentally bumped a ticket? Panic not. Tap the <b class='text-w-accent'>Recall</b> arrow up here in the header to bring it back instantly. Close it, then hit Next.",
+                text: "Accidentally bumped a ticket? Tap the <b class='text-w-accent'>Recall</b> arrow up here in the header to bring it back instantly. Try it, then close it.",
                 targetSelector: "header button[title='Recall Bumped Tickets']" 
             },
             {
                 title: "Prep Sidebar",
-                text: "Need to know how many Steaks to throw on the grill in total? Tap the <b class='text-sky-400'>Sidebar Icon</b> on the far right to see live totals. Close it, then hit Next.",
+                text: "Need to know how many Steaks to throw on the grill? Tap the <b class='text-sky-400'>Sidebar Icon</b> to see live totals. Keep it open and hit Next!",
                 targetSelector: "button[onclick='togglePrepSidebar()']" 
             },
             {
                 title: "Emergency Pause",
-                text: "If the kitchen is completely overwhelmed, tap the <b class='text-red-500'>PAUSE</b> button. It blocks waiters from sending new orders for 5-15 minutes while you catch up.",
+                text: "Kitchen overwhelmed? Tap the <b class='text-red-500'>PAUSE</b> button. This blocks waiters from sending new orders while you catch up.",
                 targetSelector: "#kds-sos-btn" 
             },
             {
+                title: "Marking Ready",
+                text: "Finally, tap all the dishes on a ticket to cross them off. Once they are all dark, the 'Mark Ready' button turns <b class='text-green-500'>GREEN</b>. Click it to clear the order!",
+                targetSelector: "#kds-grid > div:nth-child(2)" 
+            },
+            {
                 title: "You're Ready!",
-                text: "You now know how to handle the rush like a pro.",
+                text: "You now know how to handle the rush like a pro.<br><br>The system is now in <b>Free Play Mode</b>. Feel free to click around, strike items, and clear tickets to get the hang of it!",
                 targetSelector: "center" 
             }
         ];
@@ -1781,15 +1816,18 @@
             
             document.getElementById('tour-container').classList.remove('hidden');
             document.getElementById('tour-container').classList.add('block');
-            
             setTimeout(() => renderTourStep(), 300);
         }
 
         function nextTourStep() {
             currentTourStep++;
-            if (currentTourStep >= tourSteps.length) {
-                endTour();
-            } else {
+            if (currentTourStep >= tourSteps.length) endTour();
+            else renderTourStep();
+        }
+
+        function prevTourStep() {
+            if (currentTourStep > 0) {
+                currentTourStep--;
                 renderTourStep();
             }
         }
@@ -1799,7 +1837,7 @@
             document.getElementById('tour-container').classList.add('hidden');
             document.getElementById('tour-container').classList.remove('block');
             localStorage.setItem('kds_tour_completed', 'true');
-            showKDSToast("Training Complete", "Free play mode enabled. Tap the KDS logo to refresh.", "bg-k-success text-white");
+            showKDSToast("Training Active", "Sandbox Mode enabled. Tickets cleared here will not affect the main server.", "bg-purple-600 text-white");
         }
 
         function renderTourStep() {
@@ -1811,26 +1849,29 @@
             const progressEl = document.getElementById('tour-progress');
             const skipBtn = document.getElementById('tour-skip-btn');
             const nextBtn = document.getElementById('tour-next-btn');
-            const footerDiv = document.getElementById('tour-footer');
+            const prevBtn = document.getElementById('tour-prev-btn');
             const btnGroup = document.getElementById('tour-btn-group');
 
             titleEl.innerText = step.title;
 
+            // 🟢 PREVIOUS BUTTON LOGIC
+            if (currentTourStep > 0 && !isLastStep) prevBtn.classList.remove('hidden');
+            else prevBtn.classList.add('hidden');
+
             // 🟢 GRADUATION SCREEN REDESIGN
             if (isLastStep) {
-                textEl.innerHTML = `<div class="text-center flex flex-col items-center py-4">
+                textEl.innerHTML = `<div class="text-center flex flex-col items-center py-2">
                     <div class="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-4 border-2 border-green-200">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
-                    <span class="font-medium text-gray-600 leading-relaxed">${step.text}</span>
-                    <span class="text-xs text-gray-400 mt-4 block">The system is now in <b>Free Play Mode</b>. Feel free to click around, strike items, and bump tickets to get the hang of it!</span>
+                    <span class="font-medium text-gray-600 leading-relaxed text-sm">${step.text}</span>
                 </div>`;
                 titleEl.classList.add('w-full', 'text-center');
                 progressEl.classList.add('hidden');
                 skipBtn.classList.add('hidden');
                 
-                nextBtn.innerText = "Start Free Play";
-                nextBtn.className = "w-full py-4 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-black uppercase tracking-widest transition-colors shadow-lg shadow-green-500/30";
+                nextBtn.innerText = "Finish & Practice";
+                nextBtn.className = "w-full py-4 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-black uppercase tracking-widest transition-colors shadow-lg shadow-green-500/30 active:scale-95";
                 
                 btnGroup.classList.remove('w-auto', 'justify-end');
                 btnGroup.classList.add('w-full');
@@ -1842,7 +1883,7 @@
                 skipBtn.classList.remove('hidden');
                 
                 nextBtn.innerText = "Next";
-                nextBtn.className = "px-6 py-2.5 bg-k-accent hover:bg-sky-400 text-gray-900 rounded-xl text-xs font-black uppercase tracking-widest transition-colors shadow-md shadow-sky-500/30";
+                nextBtn.className = "px-6 py-2.5 bg-k-accent hover:bg-sky-400 text-gray-900 rounded-xl text-xs font-black uppercase tracking-widest transition-colors shadow-md shadow-sky-500/30 active:scale-95";
                 
                 btnGroup.classList.remove('w-full');
                 btnGroup.classList.add('w-auto', 'justify-end');
@@ -1879,8 +1920,14 @@
             const target = document.querySelector(selector);
 
             if (target) {
-                // 🟢 SCROLL FIX: 'block' handles vertical scroll safely, removed inline scrolling to prevent horizontal jumping
-                target.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
+                // 🟢 SCROLL FIX: Pure vertical scroll calculation to prevent horizontal glitches
+                const mainContent = document.getElementById('main-content');
+                if (mainContent && selector.includes('kds-grid')) {
+                    const rect = target.getBoundingClientRect();
+                    const containerRect = mainContent.getBoundingClientRect();
+                    const absoluteTop = mainContent.scrollTop + (rect.top - containerRect.top);
+                    mainContent.scrollTo({ top: absoluteTop - (containerRect.height / 2) + (rect.height / 2), behavior: 'smooth' });
+                }
                 
                 setTimeout(() => {
                     const rect = target.getBoundingClientRect();
@@ -1890,63 +1937,62 @@
                     spotlight.style.left = `${rect.left - pad}px`;
                     spotlight.style.width = `${rect.width + (pad * 2)}px`;
                     spotlight.style.height = `${rect.height + (pad * 2)}px`;
-                    
-                    // Add a solid ring inside the blur for sharper definition
                     spotlight.style.boxShadow = '0 0 0 9999px rgba(15, 23, 42, 0.85), 0 0 0 4px #38bdf8, 0 0 30px 5px rgba(56,189,248,0.5)';
-
-                    // Reset transform from center mode
                     dialogue.style.transform = 'none';
 
-                    // 🟢 SMART COLLISION ENGINE: Responsive Positioning
+                    // 🟢 DYNAMIC SIDEBAR COLLISION FIX
+                    const sidebar = document.getElementById('prep-sidebar');
+                    const sidebarWidth = (sidebar && sidebar.dataset.state === 'open' && window.innerWidth >= 768) ? 288 : 0;
+                    const safeScreenWidth = window.innerWidth - sidebarWidth;
+
                     if (window.innerWidth < 768) {
-                        // MOBILE: Dock to bottom or top
+                        // MOBILE
                         dialogue.style.left = '50%';
                         dialogue.style.transform = 'translateX(-50%)';
-                        
                         if (rect.top > window.innerHeight / 2) {
-                            dialogue.style.top = '20px'; // Target is at bottom, put dialog at top
+                            dialogue.style.top = '20px'; 
                             dialogue.style.bottom = 'auto';
                         } else {
-                            dialogue.style.top = 'auto'; // Target is at top, put dialog at bottom
+                            dialogue.style.top = 'auto'; 
                             dialogue.style.bottom = '20px'; 
                         }
                     } else {
-                        // DESKTOP/TABLET: Place to the right or left
+                        // DESKTOP/TABLET: Intelligent offset
                         let dialogTop = Math.max(20, rect.top);
                         let dialogLeft;
 
-                        if (rect.right + 340 < window.innerWidth) {
-                            dialogLeft = rect.right + 20; // Room on right
+                        if (rect.right + 340 < safeScreenWidth) {
+                            dialogLeft = rect.right + 20; // Safe on right
                         } else if (rect.left - 340 > 0) {
-                            dialogLeft = rect.left - 340; // Room on left
+                            dialogLeft = rect.left - 340; // Safe on left
                         } else {
-                            // Fallback if ticket takes up whole screen
-                            dialogLeft = (window.innerWidth / 2) - 160;
-                            if (rect.top > 300) dialogTop = rect.top - 280;
+                            // Top/Bottom Fallback
+                            dialogLeft = (safeScreenWidth / 2) - (dialogue.offsetWidth / 2);
+                            if (rect.top > 300) dialogTop = rect.top - dialogue.offsetHeight - 20;
                             else dialogTop = rect.bottom + 20;
                         }
+                        
+                        // Absolute boundaries
+                        dialogLeft = Math.max(20, Math.min(dialogLeft, safeScreenWidth - dialogue.offsetWidth - 20));
                         
                         dialogue.style.top = `${dialogTop}px`;
                         dialogue.style.left = `${dialogLeft}px`;
                         dialogue.style.bottom = 'auto';
                     }
-
                 }, 350); 
             }
         }
 
-        // 🟢 INTERCEPT fetchKDS to respect Demo Mode
         const originalFetchKDS = fetchKDS;
         fetchKDS = async function() {
             if (isDemoMode) {
                 injectDemoTickets();
-                setTimeout(fetchKDS, REFRESH_RATE); // Loop locally
+                setTimeout(fetchKDS, REFRESH_RATE); 
                 return;
             }
-            originalFetchKDS(); // Run normal sync if not in demo mode
+            originalFetchKDS(); 
         };
         
-        // Ensure SOS button respects Strict Mode on boot
         document.addEventListener("DOMContentLoaded", () => {
             const sosBtn = document.getElementById('kds-sos-btn');
             if (isSOSDisabled && sosBtn) sosBtn.style.display = 'none';
