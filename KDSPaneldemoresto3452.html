@@ -312,6 +312,21 @@
             </div>
         </div>
     </div>
+    
+<!-- 🟢 PREMIUM EXIT WARNING MODAL -->
+    <div id="exit-warning-modal" class="fixed inset-0 glass-overlay z-[9999] hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div id="exit-warning-box" class="bg-gray-900 border border-red-500/50 rounded-3xl shadow-[0_0_50px_rgba(239,68,68,0.3)] max-w-sm w-full p-6 text-center transform scale-95 transition-transform duration-300 flex flex-col items-center">
+            <div class="w-16 h-16 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mb-4 border border-red-500/30 animate-pulse">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"></path></svg>
+            </div>
+            <h2 class="text-xl font-black tracking-widest uppercase text-white mb-2">Exit KDS?</h2>
+            <p class="text-gray-400 text-xs font-bold leading-relaxed mb-6">Are you sure you want to leave the Kitchen Display System? You might miss incoming orders.</p>
+            <div class="flex gap-3 w-full">
+                <button onclick="closeExitWarning()" class="w-1/2 py-3 bg-gray-800 text-gray-400 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:text-white hover:bg-gray-700 transition-colors">Stay Here</button>
+                <button onclick="forceExitKDS()" class="w-1/2 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-colors shadow-[0_0_15px_rgba(239,68,68,0.4)]">Yes, Exit</button>
+            </div>
+        </div>
+    </div>
 
     <div id="recall-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-[800] hidden flex-col items-center justify-center p-4">
         <div class="bg-gray-900 w-full max-w-2xl h-[80vh] rounded-[24px] shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col border border-gray-700 overflow-hidden">
@@ -466,17 +481,33 @@
         let isPrepMode = localStorage.getItem(`kds_prep_${currentStationFilter}`) === 'true'; 
         let isDemoMode = false;
 
+        let allowExit = false; // 🟢 Controls our custom back-button trap
+
         // 🟢 SINGLE BOOT INITIALIZER
         document.addEventListener("DOMContentLoaded", () => {
             updateStationLabel(currentStationFilter); 
             startClock();
             fetchKDS();
             
-            // 🟢 ACCIDENTAL CLOSE PREVENTER: Blocks edge-swipes and tab closures
+            // 🟢 MOBILE BACK-BUTTON TRAP
+            // Pushes a dummy state into the browser history immediately
+            window.history.pushState({ page: "kds_main" }, "", window.location.href);
+
+            window.addEventListener('popstate', function (e) {
+                if (!allowExit) {
+                    // They pressed the back button or swiped the edge of the screen!
+                    // Trap them by pushing the state back in
+                    window.history.pushState({ page: "kds_main" }, "", window.location.href);
+                    // Trigger our beautiful custom UI instead of closing the app
+                    showExitWarningModal();
+                }
+            });
+
+            // 🟢 TAB CLOSE TRAP (Triggers the ugly native browser warning only if they close the tab or swipe app away)
             window.addEventListener('beforeunload', function (e) {
-                if (!isIntentionalNavigation) {
+                if (!isIntentionalNavigation && !allowExit) {
                     e.preventDefault();
-                    e.returnValue = ''; // This triggers the browser's native safety warning
+                    e.returnValue = ''; 
                 }
             });
         });
@@ -1534,6 +1565,30 @@
             const modal = document.getElementById('sos-modal'); const box = document.getElementById('sos-box');
             modal.classList.add('opacity-0'); box.classList.remove('scale-100'); box.classList.add('scale-95');
             setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 300);
+        }
+// --- EXIT TRAP LOGIC ---
+        function showExitWarningModal() {
+            const modal = document.getElementById('exit-warning-modal'); 
+            const box = document.getElementById('exit-warning-box');
+            if(modal && box) {
+                modal.classList.remove('hidden'); modal.classList.add('flex');
+                setTimeout(() => { modal.classList.remove('opacity-0'); box.classList.remove('scale-95'); box.classList.add('scale-100'); }, 10);
+            }
+        }
+
+        function closeExitWarning() {
+            const modal = document.getElementById('exit-warning-modal'); 
+            const box = document.getElementById('exit-warning-box');
+            if(modal && box) {
+                modal.classList.add('opacity-0'); box.classList.remove('scale-100'); box.classList.add('scale-95');
+                setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 300);
+            }
+        }
+
+        function forceExitKDS() {
+            allowExit = true; // Disables the popstate trap
+            isIntentionalNavigation = true; // Disables the beforeunload trap
+            window.history.back(); // Physically navigates them backward
         }
 
         async function executeSOS(minutes) {
