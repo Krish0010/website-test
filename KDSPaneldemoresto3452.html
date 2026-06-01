@@ -458,6 +458,7 @@
         let targetTimeOverrides = {}; 
         let lastGeneratedGridHTML = ""; 
         let isOfflineAlerted = false; // 🟢 Tracks server connection loss
+        let isIntentionalNavigation = false; // 🟢 Tracks deliberate refreshes
 
         // 🟢 MANAGER HUB SETTINGS (Bound perfectly to the current station)
         let isAudioMuted = localStorage.getItem(`kds_audio_${currentStationFilter}`) === 'true';
@@ -470,6 +471,14 @@
             updateStationLabel(currentStationFilter); 
             startClock();
             fetchKDS();
+            
+            // 🟢 ACCIDENTAL CLOSE PREVENTER: Blocks edge-swipes and tab closures
+            window.addEventListener('beforeunload', function (e) {
+                if (!isIntentionalNavigation) {
+                    e.preventDefault();
+                    e.returnValue = ''; // This triggers the browser's native safety warning
+                }
+            });
         });
 
         // Auto-refresh interval (milliseconds)
