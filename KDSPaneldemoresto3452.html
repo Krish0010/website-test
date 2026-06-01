@@ -110,7 +110,7 @@
         }
 /* 🟢 SPOTLIGHT TOUR ENGINE CSS */
         #tour-spotlight {
-            box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.85), 0 0 30px 5px rgba(56,189,248,0.5); /* Deep blur + Neon Glow */
+            box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.85); /* Deep dark blue blur */
             transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
             pointer-events: none;
             z-index: 8000;
@@ -121,6 +121,19 @@
         @keyframes popIn {
             0% { opacity: 0; margin-top: 15px; }
             100% { opacity: 1; margin-top: 0; }
+        }
+        
+        /* 🟢 INTERACTIVE TOUR OVERRIDES */
+        #target-edit-modal, #sos-modal, #recall-modal, #kds-alert-modal, #prep-sidebar {
+            z-index: 9000 !important;
+        }
+        .tour-interactive {
+            position: relative !important;
+            z-index: 8005 !important;
+            pointer-events: auto !important;
+            border-color: #38bdf8 !important;
+            box-shadow: 0 0 0 4px rgba(56,189,248,0.3), 0 0 20px rgba(56,189,248,0.6) !important;
+            border-radius: inherit;
         }
     </style>
 </head>
@@ -153,10 +166,10 @@
             </div>
             <p id="tour-text" class="text-sm font-medium text-gray-600 leading-relaxed"></p>
             
-            <div class="flex justify-between items-center mt-3 pt-4 border-t border-gray-100">
-                <span id="tour-progress" class="text-[10px] font-black tracking-widest text-gray-400">1 / 5</span>
-                <div class="flex gap-2">
-                    <button onclick="endTour()" class="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-900 uppercase tracking-widest transition-colors">Skip</button>
+            <div id="tour-footer" class="flex justify-between items-center mt-3 pt-4 border-t border-gray-100 w-full">
+                <span id="tour-progress" class="text-[10px] font-black tracking-widest text-gray-400 shrink-0">1 / 10</span>
+                <div id="tour-btn-group" class="flex gap-2 w-full justify-end">
+                    <button id="tour-skip-btn" onclick="endTour()" class="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-900 uppercase tracking-widest transition-colors">Skip</button>
                     <button id="tour-next-btn" onclick="nextTourStep()" class="px-6 py-2 bg-k-accent hover:bg-sky-400 text-gray-900 rounded-xl text-xs font-black uppercase tracking-widest transition-colors shadow-md shadow-sky-500/30">Next</button>
                 </div>
             </div>
@@ -1011,8 +1024,10 @@
                         }
                     } else {
                         // EXPO MODE: Head Chef can bump globally
-                        const bumpBtnClass = (isFullyStruck && !isUpdated) ? "!bg-green-500 !text-white !border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.5)] hover:!bg-green-600 active:scale-95" : "bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 active:scale-95";
-                        bottomButtonHTML = `<button onclick="executeBump('${ticket.token}', '${tableNum}', this)" class="w-full py-2.5 rounded-md font-black uppercase tracking-widest text-[11px] transition-all duration-300 flex items-center justify-center gap-2 ${bumpBtnClass}"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path></svg> Mark Ready</button>`;
+                        const bumpBtnClass = (isFullyStruck && !isUpdated) 
+                            ? "bg-green-500 text-white border-green-600 shadow-[0_0_15px_rgba(34,197,94,0.5)] hover:bg-green-600" 
+                            : "bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white";
+                        bottomButtonHTML = `<button onclick="executeBump('${ticket.token}', '${tableNum}', this)" class="w-full py-2.5 rounded-md border font-black uppercase tracking-widest text-[11px] transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 ${bumpBtnClass}"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path></svg> Mark Ready</button>`;
                     }
 
                     // 🟢 Extract sub-routing badges for the Expo tablet
@@ -1714,7 +1729,7 @@
             },
             {
                 title: "Safety First",
-                text: "When a waiter types an allergy note, the item automatically turns <b class='text-purple-400'>PURPLE</b>. Cross-contamination protocols must be strictly followed for these items.",
+                text: "When a waiter types an allergy note, the item automatically turns <b class='text-purple-400'>PURPLE</b>. Cross-contamination protocols must be strictly followed.",
                 targetSelector: "#kds-grid > div:nth-child(2)" 
             },
             {
@@ -1724,7 +1739,7 @@
             },
             {
                 title: "Order Updates",
-                text: "If a waiter adds an item mid-meal, the ticket flashes <b class='text-blue-400'>BLUE</b>. The new items are highlighted so you don't miss them. Click 'OK' to acknowledge.",
+                text: "If a waiter adds an item mid-meal, the ticket flashes <b class='text-blue-400'>BLUE</b>. The new items are highlighted so you don't miss them.",
                 targetSelector: "#kds-grid > div:nth-child(4)" 
             },
             {
@@ -1734,28 +1749,28 @@
             },
             {
                 title: "Dynamic Target Times",
-                text: "Dish taking longer than expected? Tap the <b>TARGET</b> clock on any ticket to adjust it. This recalculates the pace and prevents the ticket from turning red too early.",
-                targetSelector: "#kds-grid > div:nth-child(1) .flex.flex-col.items-center.cursor-pointer" // Targets the time box
+                text: "Dish taking longer than expected? Tap the <b>TARGET</b> clock on the highlighted ticket now to see the menu. Hit Cancel, then click Next.",
+                targetSelector: "#kds-grid > div:nth-child(1) .flex.flex-col.items-center.cursor-pointer"
             },
             {
                 title: "The Undo Button",
-                text: "Accidentally bumped a ticket? Panic not. Tap the <b class='text-w-accent'>Recall</b> button up here in the header to bring it back instantly.",
-                targetSelector: "header button[title='Recall Bumped Tickets']" // Targets the recall arrow
+                text: "Accidentally bumped a ticket? Panic not. Tap the <b class='text-w-accent'>Recall</b> arrow up here in the header to bring it back instantly. Close it, then hit Next.",
+                targetSelector: "header button[title='Recall Bumped Tickets']" 
             },
             {
                 title: "Prep Sidebar",
-                text: "Need to know how many Steaks to throw on the grill in total? Open this sidebar to see a live sum of all un-cooked items currently on your screen.",
+                text: "Need to know how many Steaks to throw on the grill in total? Tap the <b class='text-sky-400'>Sidebar Icon</b> on the far right to see live totals. Close it, then hit Next.",
                 targetSelector: "button[onclick='togglePrepSidebar()']" 
             },
             {
                 title: "Emergency Pause",
-                text: "If the kitchen is completely overwhelmed, hit the <b class='text-red-500'>PAUSE</b> button. It blocks waiters from sending new orders for 5-15 minutes while you catch up.",
+                text: "If the kitchen is completely overwhelmed, tap the <b class='text-red-500'>PAUSE</b> button. It blocks waiters from sending new orders for 5-15 minutes while you catch up.",
                 targetSelector: "#kds-sos-btn" 
             },
             {
                 title: "You're Ready!",
-                text: "You now know how to handle the rush like a pro.<br><br>The system is now in <b>Free Play Mode</b>. Feel free to click around, strike items, and bump tickets to get the hang of it!",
-                targetSelector: "center" // Triggers the graduation modal
+                text: "You now know how to handle the rush like a pro.",
+                targetSelector: "center" 
             }
         ];
 
@@ -1789,34 +1804,51 @@
 
         function renderTourStep() {
             const step = tourSteps[currentTourStep];
-            document.getElementById('tour-title').innerText = step.title;
-            
             const isLastStep = currentTourStep === tourSteps.length - 1;
             
-            // 🟢 UI FIX: Center text cleanly on the final step
-            document.getElementById('tour-text').innerHTML = isLastStep 
-                ? `<div class="text-center pb-2">${step.text}</div>` 
-                : step.text;
-                
-            document.getElementById('tour-progress').innerText = `${currentTourStep + 1} / ${tourSteps.length}`;
-            
-            const skipBtn = document.querySelector("button[onclick='endTour()']");
-            const progressText = document.getElementById('tour-progress');
+            const titleEl = document.getElementById('tour-title');
+            const textEl = document.getElementById('tour-text');
+            const progressEl = document.getElementById('tour-progress');
+            const skipBtn = document.getElementById('tour-skip-btn');
             const nextBtn = document.getElementById('tour-next-btn');
+            const footerDiv = document.getElementById('tour-footer');
+            const btnGroup = document.getElementById('tour-btn-group');
 
+            titleEl.innerText = step.title;
+
+            // 🟢 GRADUATION SCREEN REDESIGN
             if (isLastStep) {
-                // 🟢 UX FIX: Clean Graduation layout
-                nextBtn.innerText = "Start Free Play";
-                nextBtn.className = "w-full px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-black uppercase tracking-widest transition-colors shadow-lg shadow-green-500/30";
+                textEl.innerHTML = `<div class="text-center flex flex-col items-center py-4">
+                    <div class="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-4 border-2 border-green-200">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <span class="font-medium text-gray-600 leading-relaxed">${step.text}</span>
+                    <span class="text-xs text-gray-400 mt-4 block">The system is now in <b>Free Play Mode</b>. Feel free to click around, strike items, and bump tickets to get the hang of it!</span>
+                </div>`;
+                titleEl.classList.add('w-full', 'text-center');
+                progressEl.classList.add('hidden');
                 skipBtn.classList.add('hidden');
-                progressText.classList.add('hidden');
+                
+                nextBtn.innerText = "Start Free Play";
+                nextBtn.className = "w-full py-4 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-black uppercase tracking-widest transition-colors shadow-lg shadow-green-500/30";
+                
+                btnGroup.classList.remove('w-auto', 'justify-end');
+                btnGroup.classList.add('w-full');
             } else {
-                nextBtn.innerText = "Next";
-                nextBtn.className = "px-6 py-2 bg-k-accent hover:bg-sky-400 text-gray-900 rounded-xl text-xs font-black uppercase tracking-widest transition-colors shadow-md shadow-sky-500/30";
+                textEl.innerHTML = step.text;
+                titleEl.classList.remove('w-full', 'text-center');
+                progressEl.classList.remove('hidden');
+                progressEl.innerText = `${currentTourStep + 1} / ${tourSteps.length - 1}`;
                 skipBtn.classList.remove('hidden');
-                progressText.classList.remove('hidden');
+                
+                nextBtn.innerText = "Next";
+                nextBtn.className = "px-6 py-2.5 bg-k-accent hover:bg-sky-400 text-gray-900 rounded-xl text-xs font-black uppercase tracking-widest transition-colors shadow-md shadow-sky-500/30";
+                
+                btnGroup.classList.remove('w-full');
+                btnGroup.classList.add('w-auto', 'justify-end');
             }
 
+            // Re-trigger dialogue animation
             const dialogue = document.getElementById('tour-dialogue');
             dialogue.classList.remove('tour-tooltip-anim');
             void dialogue.offsetWidth; 
@@ -1829,6 +1861,7 @@
             const spotlight = document.getElementById('tour-spotlight');
             const dialogue = document.getElementById('tour-dialogue');
 
+            // 🟢 GRADUATION STEP: Center the screen and dim everything
             if (selector === "center") {
                 spotlight.style.width = '0px';
                 spotlight.style.height = '0px';
@@ -1836,16 +1869,18 @@
                 spotlight.style.left = '50%';
                 spotlight.style.boxShadow = '0 0 0 9999px rgba(15, 23, 42, 0.95)'; 
                 
-                dialogue.style.left = `${(window.innerWidth / 2) - (dialogue.offsetWidth / 2)}px`;
-                dialogue.style.top = `${(window.innerHeight / 2) - (dialogue.offsetHeight / 2)}px`;
+                dialogue.style.transform = 'translate(-50%, -50%)';
+                dialogue.style.left = '50%';
+                dialogue.style.top = '50%';
+                dialogue.style.bottom = 'auto';
                 return;
             }
 
             const target = document.querySelector(selector);
 
             if (target) {
-                // 🟢 SCROLL FIX: Pull the element to the top of the view so there is max room below it
-                target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' }); 
+                // 🟢 SCROLL FIX: 'block' handles vertical scroll safely, removed inline scrolling to prevent horizontal jumping
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
                 
                 setTimeout(() => {
                     const rect = target.getBoundingClientRect();
@@ -1855,26 +1890,46 @@
                     spotlight.style.left = `${rect.left - pad}px`;
                     spotlight.style.width = `${rect.width + (pad * 2)}px`;
                     spotlight.style.height = `${rect.height + (pad * 2)}px`;
-                    spotlight.style.boxShadow = '0 0 0 9999px rgba(15, 23, 42, 0.85), 0 0 30px 5px rgba(56,189,248,0.5)';
-
-                    // 🟢 SMART ALIGNMENT FIX: Dynamic Popup Collision Engine
-                    let dialogTop = rect.top;
-                    let dialogLeft = rect.right + 30; 
-
-                    // Prioritize putting the dialogue to the RIGHT. If it hits the edge of the screen, put it BELOW.
-                    if (dialogLeft + dialogue.offsetWidth > window.innerWidth) {
-                        dialogLeft = rect.left + (rect.width / 2) - (dialogue.offsetWidth / 2);
-                        dialogLeft = Math.max(20, Math.min(dialogLeft, window.innerWidth - dialogue.offsetWidth - 20)); // Lock bounds
-                        
-                        if (rect.bottom + dialogue.offsetHeight + 40 < window.innerHeight) {
-                            dialogTop = rect.bottom + 30; 
-                        } else {
-                            dialogTop = Math.max(20, rect.top - dialogue.offsetHeight - 30); // Fallback: Above
-                        }
-                    }
                     
-                    dialogue.style.top = `${dialogTop}px`;
-                    dialogue.style.left = `${dialogLeft}px`;
+                    // Add a solid ring inside the blur for sharper definition
+                    spotlight.style.boxShadow = '0 0 0 9999px rgba(15, 23, 42, 0.85), 0 0 0 4px #38bdf8, 0 0 30px 5px rgba(56,189,248,0.5)';
+
+                    // Reset transform from center mode
+                    dialogue.style.transform = 'none';
+
+                    // 🟢 SMART COLLISION ENGINE: Responsive Positioning
+                    if (window.innerWidth < 768) {
+                        // MOBILE: Dock to bottom or top
+                        dialogue.style.left = '50%';
+                        dialogue.style.transform = 'translateX(-50%)';
+                        
+                        if (rect.top > window.innerHeight / 2) {
+                            dialogue.style.top = '20px'; // Target is at bottom, put dialog at top
+                            dialogue.style.bottom = 'auto';
+                        } else {
+                            dialogue.style.top = 'auto'; // Target is at top, put dialog at bottom
+                            dialogue.style.bottom = '20px'; 
+                        }
+                    } else {
+                        // DESKTOP/TABLET: Place to the right or left
+                        let dialogTop = Math.max(20, rect.top);
+                        let dialogLeft;
+
+                        if (rect.right + 340 < window.innerWidth) {
+                            dialogLeft = rect.right + 20; // Room on right
+                        } else if (rect.left - 340 > 0) {
+                            dialogLeft = rect.left - 340; // Room on left
+                        } else {
+                            // Fallback if ticket takes up whole screen
+                            dialogLeft = (window.innerWidth / 2) - 160;
+                            if (rect.top > 300) dialogTop = rect.top - 280;
+                            else dialogTop = rect.bottom + 20;
+                        }
+                        
+                        dialogue.style.top = `${dialogTop}px`;
+                        dialogue.style.left = `${dialogLeft}px`;
+                        dialogue.style.bottom = 'auto';
+                    }
 
                 }, 350); 
             }
