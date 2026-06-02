@@ -685,10 +685,9 @@
                 icon.style.transform = 'rotate(0deg)'; sidebar.dataset.state = 'closed';
             }
             
-            // 🟢 DYNAMIC ALIGNMENT FIX: Snaps the tour guide left instantly so it isn't covered!
+            // 🟢 DYNAMIC ALIGNMENT FIX: Reposition the spotlight tour if the sidebar slides out!
             if (typeof isTourActive !== 'undefined' && isTourActive) {
-                setTimeout(() => positionSpotlight(tourSteps[currentTourStep].targetSelector), 50); 
-                setTimeout(() => positionSpotlight(tourSteps[currentTourStep].targetSelector), 550); 
+                setTimeout(() => renderTourStep(), 550); // Wait for the 500ms CSS slide animation to finish
             }
         }
 
@@ -1398,39 +1397,33 @@ async function processStrikeQueue() {
             }
 
             const overlay = document.getElementById('bump-overlay');
+            overlay.classList.remove('hidden'); overlay.classList.add('flex');
 
-            // 🟢 MOCK API: Custom Success Screen for Demo Mode!
+            // 🟢 MOCK API: Simulate success in Demo Mode with a 10s Respawn!
             if (isDemoMode) {
-                overlay.innerHTML = `<div class="w-20 h-20 bg-green-500 text-white rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(34,197,94,0.6)]"><svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path></svg></div><p class="text-green-400 font-black text-xl uppercase tracking-widest">Demo Ticket Cleared!</p>`;
-                overlay.classList.remove('hidden'); overlay.classList.add('flex');
-                
                 setTimeout(() => {
                     overlay.classList.add('hidden'); overlay.classList.remove('flex');
-                    hiddenDemoTokens.add(token); 
-                    injectDemoTickets(); 
+                    hiddenDemoTokens.add(token); // Hide the ticket from the UI
+                    injectDemoTickets(); // Redraw the grid without the ticket
+                    showKDSToast("Training Mode", `Great job! Ticket for Table ${tableNum} cleared. It will respawn in 10 seconds.`, "bg-k-success text-white");
                     
-                    if (isTourActive) setTimeout(() => renderTourStep(), 150); 
-                    
-                    // Reset overlay back to normal
-                    setTimeout(() => {
-                        overlay.innerHTML = `<div class="w-16 h-16 border-4 border-gray-800 border-t-k-success rounded-full animate-spin mb-4"></div><p class="text-k-success font-black uppercase tracking-widest">Clearing Ticket...</p>`;
-                    }, 500);
+                    if (isTourActive) setTimeout(() => renderTourStep(), 600); // Realign tour guide
 
-                    // 10 Second Respawn
+                    // Respawn logic
                     setTimeout(() => {
                         hiddenDemoTokens.delete(token); 
+                        
+                        // Wipe the strike memory for this specific ticket so it spawns fresh!
                         const keysToLock = Array.from(strikeMemory).filter(key => key.startsWith(`${token}_`));
                         keysToLock.forEach(key => strikeMemory.delete(key));
                         localStorage.setItem('kds_strike_memory', JSON.stringify(Array.from(strikeMemory)));
                         
-                        injectDemoTickets(); 
-                        if (isTourActive) setTimeout(() => renderTourStep(), 150); 
+                        injectDemoTickets(); // Redraw grid with the ticket back
+                        if (isTourActive) setTimeout(() => renderTourStep(), 600); // Realign tour guide
                     }, 10000);
-                }, 1200);
+                }, 600);
                 return;
             }
-
-            overlay.classList.remove('hidden'); overlay.classList.add('flex');
 
             try {
                 // FIX: Implement a 10-second timeout controller to prevent infinite hanging
@@ -2054,12 +2047,12 @@ async function processStrikeQueue() {
             },
             {
                 title: "Dynamic Target Times",
-                text: "Dish taking longer than expected? Tap the <b>TARGET</b> clock on the highlighted ticket to open the menu. Adjust the time, hit Save, and watch the pace recalculate!",
+                text: "Dish taking longer than expected? Tap the <b>TARGET</b> clock on the highlighted ticket, adjust the time, and hit Save. Watch the pace recalculate!",
                 targetSelector: "#kds-grid > div:nth-child(1) .flex.flex-col.items-center.cursor-pointer" 
             },
             {
                 title: "The Undo Button",
-                text: "Accidentally bumped a ticket? Panic not. Tap the <b class='text-w-accent'>Recall</b> arrow up here in the header to bring it back instantly. Try it, then hit Next.",
+                text: "Accidentally bumped a ticket? Tap the <b class='text-w-accent'>Recall</b> arrow up here in the header to bring it back instantly. Try it, then close it.",
                 targetSelector: "header button[title='Recall Bumped Tickets']" 
             },
             {
@@ -2091,7 +2084,7 @@ async function processStrikeQueue() {
             
             document.getElementById('tour-container').classList.remove('hidden');
             document.getElementById('tour-container').classList.add('block');
-            setTimeout(() => renderTourStep(), 150);
+            setTimeout(() => renderTourStep(), 300);
         }
 
         function nextTourStep() {
@@ -2177,12 +2170,14 @@ async function processStrikeQueue() {
             const spotlight = document.getElementById('tour-spotlight');
             const dialogue = document.getElementById('tour-dialogue');
 
+            // 🟢 GRADUATION STEP: Center the screen and dim everything
             if (selector === "center") {
                 spotlight.style.width = '0px';
                 spotlight.style.height = '0px';
                 spotlight.style.top = '50%';
                 spotlight.style.left = '50%';
                 spotlight.style.boxShadow = '0 0 0 9999px rgba(15, 23, 42, 0.95)'; 
+                
                 dialogue.style.transform = 'translate(-50%, -50%)';
                 dialogue.style.left = '50%';
                 dialogue.style.top = '50%';
@@ -2193,16 +2188,16 @@ async function processStrikeQueue() {
             const target = document.querySelector(selector);
 
             if (target) {
-                // 🟢 GLITCH FIX: Use 'instant' scroll behavior so it never races the CSS animation
+                // 🟢 SCROLL FIX: Pure vertical scroll calculation to prevent horizontal glitches
                 const mainContent = document.getElementById('main-content');
                 if (mainContent && selector.includes('kds-grid')) {
                     const rect = target.getBoundingClientRect();
                     const containerRect = mainContent.getBoundingClientRect();
                     const absoluteTop = mainContent.scrollTop + (rect.top - containerRect.top);
-                    mainContent.scrollTo({ top: absoluteTop - (containerRect.height / 2) + (rect.height / 2), behavior: 'instant' });
+                    mainContent.scrollTo({ top: absoluteTop - (containerRect.height / 2) + (rect.height / 2), behavior: 'smooth' });
                 }
                 
-                // Only a 50ms wait is needed now because 'instant' scrolling has zero delay
+                // 🟢 ANIMATION RACE FIX: Increased to 600ms so Tailwind's "duration-500" animations finish completely before measuring!
                 setTimeout(() => {
                     const rect = target.getBoundingClientRect();
                     const pad = 12; 
@@ -2220,34 +2215,40 @@ async function processStrikeQueue() {
                     const safeScreenWidth = window.innerWidth - sidebarWidth;
 
                     if (window.innerWidth < 768) {
+                        // MOBILE
                         dialogue.style.left = '50%';
                         dialogue.style.transform = 'translateX(-50%)';
                         if (rect.top > window.innerHeight / 2) {
-                            dialogue.style.top = '20px'; dialogue.style.bottom = 'auto';
+                            dialogue.style.top = '20px'; 
+                            dialogue.style.bottom = 'auto';
                         } else {
-                            dialogue.style.top = 'auto'; dialogue.style.bottom = '20px'; 
+                            dialogue.style.top = 'auto'; 
+                            dialogue.style.bottom = '20px'; 
                         }
                     } else {
+                        // DESKTOP/TABLET: Intelligent offset
                         let dialogTop = Math.max(20, rect.top);
                         let dialogLeft;
 
                         if (rect.right + 340 < safeScreenWidth) {
-                            dialogLeft = rect.right + 20; 
+                            dialogLeft = rect.right + 20; // Safe on right
                         } else if (rect.left - 340 > 0) {
-                            dialogLeft = rect.left - 340; 
+                            dialogLeft = rect.left - 340; // Safe on left
                         } else {
+                            // Top/Bottom Fallback
                             dialogLeft = (safeScreenWidth / 2) - (dialogue.offsetWidth / 2);
                             if (rect.top > 300) dialogTop = rect.top - dialogue.offsetHeight - 20;
                             else dialogTop = rect.bottom + 20;
                         }
                         
+                        // Absolute boundaries
                         dialogLeft = Math.max(20, Math.min(dialogLeft, safeScreenWidth - dialogue.offsetWidth - 20));
                         
                         dialogue.style.top = `${dialogTop}px`;
                         dialogue.style.left = `${dialogLeft}px`;
                         dialogue.style.bottom = 'auto';
                     }
-                }, 50); 
+                }, 350); 
             }
         }
 
