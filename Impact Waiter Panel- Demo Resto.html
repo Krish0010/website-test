@@ -411,7 +411,7 @@
 
     <script>
         // REPLACE WITH YOUR ACTUAL SCRIPT URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyis0EC1b7u20Ux-WuIjWpIXva798X1vZHY7GfrFpEpOqNgFX1MGLY-GVh0JyqwWxQ/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzdqDWdJ4z3ggzaSN_abkgWpyVmCtIo1_6x1WtAgbbEk9rEThXC_yowrpsV15GpaXw/exec"; 
 
         let currentInput = "";
         let activeTicket = []; 
@@ -772,14 +772,22 @@
                     activeTicket = [];
                     
                     if (Array.isArray(data.cartData)) {
-                        data.cartData.forEach((item, index) => {
-                            let restoredCourse = "main";
-                            if (item.pacing === "Serve First") restoredCourse = "first";
-                            if (item.pacing === "Serve Last") restoredCourse = "last";
-                            // 🟢 ENTERPRISE LOCK: Tag items already sent to the kitchen as immutable
-                            activeTicket.push({ id: item.id || (Date.now() + Math.random()), name: item.name, qty: item.qty, price: item.price || 0, note: item.note || "", course: restoredCourse, isLocked: true });
-                        });
-                    } else {
+                        data.cartData.forEach((item, index) => {
+                            let restoredCourse = "main";
+                            if (item.pacing === "Serve First") restoredCourse = "first";
+                            if (item.pacing === "Serve Last") restoredCourse = "last";
+                            
+                            // 🟢 UX FIX: If price is 0 (because the customer submitted it online), securely fetch the real price locally!
+                            let itemPrice = parseFloat(item.price) || 0;
+                            if (itemPrice === 0) {
+                                const menuItem = cachedMenu.find(m => String(m.name || '').toLowerCase() === String(item.name || '').toLowerCase());
+                                itemPrice = menuItem ? menuItem.price : 0;
+                            }
+
+                            // 🟢 ENTERPRISE LOCK: Tag items already sent to the kitchen as immutable
+                            activeTicket.push({ id: item.id || (Date.now() + Math.random()), name: item.name, qty: item.qty, price: itemPrice, note: item.note || "", course: restoredCourse, isLocked: true });
+                        });
+                    } else {
                         Object.entries(data.cartData).forEach(([dishName, qty], index) => {
                             const menuItem = cachedMenu.find(m => String(m.name || '').toLowerCase() === dishName.toLowerCase());
                             const price = menuItem ? menuItem.price : 0;
@@ -1981,11 +1989,20 @@
         }
 
         async function pollReadyTables() {
-            if (localStorage.getItem('impact_device_authorized') !== 'true') return;
-            
-            try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_get_open_tables" }) });
-                const data = await response.json();
+            if (localStorage.getItem('impact_device_authorized') !== 'true') return;
+            
+            try {
+                // 🟢 SRE FIX: Prevent silent network hangs on the Waiter Tablet polling
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 12000);
+                
+                const response = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: "waiter_get_open_tables" }),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                const data = await response.json();
                 
                 if (data.success) {
                     currentOpenTables = data.openTables;
