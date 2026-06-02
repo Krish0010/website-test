@@ -473,10 +473,11 @@
 
     <script>
         // REPLACE WITH YOUR ACTUAL SCRIPT URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbylrL2lcgL5RofluEXwbvoyHNKX82npZTtWPN4KnRhnLscdhB5Iqtjaz9doh_4fAypd/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzGToZy_EZ0IWBM595Ymo1GDCbVcR7AoafC77mfl5TOoFt0XQnbqg2cXkNRt8p-epZG/exec"; 
 
         // 🟢 PERSISTENCE FIX: Load strike memory from the tablet's hard drive so it survives refreshes
-        let strikeMemory = new Set(JSON.parse(localStorage.getItem('kds_strike_memory') || "[]"));
+        let strikeMemory = new Set(JSON.parse(localStorage.getItem('kds_strike_memory') || "[]"));
+        let strikeSyncQueue = []; // 🟢 RESILIENCE FIX: Local queue for robust network strikes
         let bumpedMemory = new Set(); 
         let previousTicketStates = {}; 
         let currentActiveTickets = []; 
@@ -856,9 +857,10 @@
                 }
             // FIX: Slow down polling to 20s if the network is failing
                 window.dynamicRefreshRate = 20000;
-            } finally { 
-                // FIX: Adaptive polling. Back off if there are no active tickets.
-                const hasTickets = currentActiveTickets && currentActiveTickets.length > 0;
+            } finally { 
+                processStrikeQueue(); // 🟢 Process failed strikes during every poll
+                // FIX: Adaptive polling. Back off if there are no active tickets.
+                const hasTickets = currentActiveTickets && currentActiveTickets.length > 0;
                 window.dynamicRefreshRate = hasTickets ? 8000 : 25000;
                 setTimeout(fetchKDS, window.dynamicRefreshRate); 
             }
@@ -1223,18 +1225,27 @@ const orderTime = ticket.timestamp || Date.now();
     
     localStorage.setItem('kds_strike_memory', JSON.stringify(Array.from(strikeMemory)));
     
-    // FIX: Fire-and-forget sync to backend so other tablets see the strike
-    fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({
-            action: "kds_sync_strike",
-            itemId: uniqueItemId,
-            state: isAdding
-        })
-    }).catch(e => console.warn("Strike sync failed, will retry on next fetch"));
-    
-    lastGeneratedGridHTML = ""; 
-    renderKDSGrid(currentActiveTickets); 
+    // 🟢 RESILIENCE FIX: Add to retry queue instead of fire-and-forget
+    strikeSyncQueue.push({ itemId: uniqueItemId, state: isAdding });
+    processStrikeQueue();
+    
+    lastGeneratedGridHTML = ""; 
+    renderKDSGrid(currentActiveTickets); 
+}
+
+// 🟢 Processes strikes reliably even if the network fluctuates
+async function processStrikeQueue() {
+    if (strikeSyncQueue.length === 0) return;
+    const task = strikeSyncQueue[0];
+    try {
+        const res = await fetch(SCRIPT_URL, { 
+            method: 'POST', 
+            body: JSON.stringify({ action: "kds_sync_strike", ...task }) 
+        });
+        if (res.ok) strikeSyncQueue.shift(); // Remove on success
+    } catch(e) {
+        // Will naturally retry on the next cycle
+    }
 }
 
         // 🟢 SAFETY NET 1: Prevents lazy mass-striking
@@ -1372,8 +1383,9 @@ const orderTime = ticket.timestamp || Date.now();
                     delete unacknowledgedUpdates[token]; 
                     fetchKDS(); 
                 } else { alert("Error marking ticket ready: " + data.message); }
-            } catch (err) { alert("Network error. Could not bump ticket.");
-            } finally { overlay.classList.add('hidden'); overlay.classList.remove('flex'); }
+            } catch (err) { 
+                showKDSAlert("Network Error", "Could not bump ticket. Check connection.", "error"); 
+            } finally { overlay.classList.add('hidden'); overlay.classList.remove('flex'); }
         }
 
         // --- UTILITIES & PACE ENGINE MATH ---
@@ -1605,7 +1617,10 @@ const orderTime = ticket.timestamp || Date.now();
                 const data = await response.json();
                 if (data.success) { toggleRecallModal(); fetchKDS(); } 
                 else { alert(data.message); btnElement.innerHTML = originalHTML; btnElement.disabled = false; }
-            } catch (err) { alert("Network error."); btnElement.innerHTML = originalHTML; btnElement.disabled = false; }
+            } catch (err) { 
+                showKDSAlert("Network Error", "Could not recall ticket. Check connection.", "error"); 
+                btnElement.innerHTML = originalHTML; btnElement.disabled = false; 
+            }
         }
 
         // --- KITCHEN SOS LOGIC ---
@@ -1661,15 +1676,11 @@ const orderTime = ticket.timestamp || Date.now();
             allowExit = true; // Disables the popstate trap
             isIntentionalNavigation = true; // Disables the beforeunload trap
             
-            // 1. Try to navigate backward normally
-            window.history.back(); 
-            
-            // 2. BULLETPROOF FALLBACK: If there is no history (e.g., opened in a new tab or shortcut),
-            // history.back() will silently fail. This timer catches the failure and safely routes them to your root homepage.
-            setTimeout(() => {
-                window.location.replace('/'); 
-            }, 300);
-        }
+            // 🟢 UX FIX: Prevent infinite redirect loops by cancelling the fallback if history navigation succeeds
+            let redirectTimer = setTimeout(() => { window.location.replace('/'); }, 600);
+            window.addEventListener("unload", () => clearTimeout(redirectTimer)); 
+            window.history.back(); 
+        }
 
         async function executeSOS(minutes) {
             closeSOSModal();
