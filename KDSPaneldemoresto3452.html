@@ -486,7 +486,7 @@
 
     <script>
         // REPLACE WITH YOUR ACTUAL SCRIPT URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzGv-pngueqAdeR0TGL3-tlb3p14t0tKSGSZ61t0mKW-iSJb3mD1OSpH2eyoQHadA/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzeddwB6thr1S7DQksi5TvEYudYNxCDdclI0QQQBkeZ5dBfoOreYNgdksRaEznSBcE/exec"; 
 
         // 🟢 PERSISTENCE FIX: Load strike memory from the tablet's hard drive so it survives refreshes
         let strikeMemory = new Set(JSON.parse(localStorage.getItem('kds_strike_memory') || "[]"));
@@ -1308,26 +1308,28 @@ const orderTime = ticket.timestamp || Date.now();
 
 // 🟢 Processes strikes reliably even if the network fluctuates
 async function processStrikeQueue() {
-    if (strikeSyncQueue.length === 0 || isProcessingQueue) return;
-    isProcessingQueue = true;
-    
-    while (strikeSyncQueue.length > 0) {
-        const task = strikeSyncQueue[0];
-        try {
-            const res = await fetch(SCRIPT_URL, { 
-                method: 'POST', 
-                body: JSON.stringify({ device_token: localStorage.getItem('impact_device_token'), action: "kds_sync_strike", ...task }) 
-            });
-            if (res.ok) {
-                strikeSyncQueue.shift(); // Safely remove ONLY after confirmed success
-            } else {
-                break; // Stop and retry later on server error
-            }
-        } catch(e) {
-            break; // Network dropped. Break loop, wait for next poll to retry.
-        }
-    }
-    isProcessingQueue = false; // Release lock
+    if (strikeSyncQueue.length === 0 || isProcessingQueue) return;
+    isProcessingQueue = true;
+    
+    while (strikeSyncQueue.length > 0) {
+        const task = strikeSyncQueue[0];
+        try {
+            const res = await fetch(SCRIPT_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ device_token: localStorage.getItem('impact_device_token'), action: "kds_sync_strike", ...task }) 
+            });
+            const data = await res.json(); // 🟢 SRE FIX: Parse the actual payload
+
+            if (data.success) { // 🟢 Check logical success, not just HTTP status
+                strikeSyncQueue.shift(); 
+            } else {
+                break; // Stop and retry later on server busy/error
+            }
+        } catch(e) {
+            break; // Network dropped
+        }
+    }
+    isProcessingQueue = false; 
 }
 
         // 🟢 SAFETY NET 1: Prevents lazy mass-striking
