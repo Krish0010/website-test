@@ -627,7 +627,7 @@
 
         async function fetchInitialData() {
             try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_init" }) });
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_init", device_token: localStorage.getItem('impact_device_token') }) });
                 const data = await response.json();
                 if(data.success) {
                     cachedMenu = data.menu || [];
@@ -727,7 +727,7 @@
 
         async function syncMenuBackground() {
             try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_init" }) });
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_init", device_token: localStorage.getItem('impact_device_token') }) });
                 const data = await response.json();
                 if(data.success) {
                     cachedMenu = data.menu || [];
@@ -758,7 +758,7 @@
             fetchBtn.innerHTML = `<div class="w-7 h-7 border-4 border-white border-t-transparent rounded-full animate-spin"></div>`;
 
             try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_fetch", token: currentInput }) });
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_fetch", token: currentInput, device_token: localStorage.getItem('impact_device_token') }) });
                 const data = await response.json();
                 fetchBtn.innerHTML = `<svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg>`;
 
@@ -816,7 +816,8 @@
                     document.getElementById('view-ticket').classList.remove('hidden');
                     document.getElementById('view-ticket').classList.add('flex');
                 } else {
-                    showPosAlert("Token Not Found", "The token does not exist.", "error");
+                    // 🟢 UX FIX: Display the real server message so security blocks aren't hidden
+                    showPosAlert("Error", data.message || "The token does not exist.", "error");
                     clearNumpad();
                 }
             } catch (err) {
@@ -944,7 +945,7 @@
 
         async function fetchOpenTablesSilently() {
             try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_get_open_tables" }) });
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_get_open_tables", device_token: localStorage.getItem('impact_device_token') }) });
                 const data = await response.json();
                 if (data.success) {
                     currentOpenTables = data.openTables;
@@ -1514,7 +1515,7 @@
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: "waiter_toggle_stock", dishName: dishName, newStatus: newStatus })
+                    body: JSON.stringify({ action: "waiter_toggle_stock", dishName: dishName, newStatus: newStatus, device_token: localStorage.getItem('impact_device_token') })
                 });
                 const data = await response.json();
                 if (!data.success) {
@@ -1597,7 +1598,7 @@
 
                     try {
                         const response = await fetch(SCRIPT_URL, {
-                            method: 'POST', body: JSON.stringify({ action: "waiter_settle", token: currentInput, table: table, totalAmount: currentSubtotal })
+                            method: 'POST', body: JSON.stringify({ action: "waiter_settle", token: currentInput, table: table, totalAmount: currentSubtotal, device_token: localStorage.getItem('impact_device_token') })
                         });
                         const data = await response.json();
                         if (data.success) {
@@ -1655,7 +1656,7 @@
                         outOfStockItems.forEach(item => {
                             const m = cachedMenu.find(x => String(x.name || '').toLowerCase() === item.name.trim().toLowerCase());
                             if (m) m.inStock = "Yes";
-                            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_toggle_stock", dishName: item.name.trim(), newStatus: "Yes" })});
+                            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_toggle_stock", dishName: item.name.trim(), newStatus: "Yes", device_token: localStorage.getItem('impact_device_token') })});
                         });
                         renderTicket(); 
                         executeFire(table); 
@@ -1763,7 +1764,7 @@
             btn.disabled = true;
 
             try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_fire_next", token: currentInput, table: table }) });
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_fire_next", token: currentInput, table: table, device_token: localStorage.getItem('impact_device_token') }) });
                 const data = await response.json();
                 if (data.success) { 
                     closePosAlert();
@@ -1784,7 +1785,7 @@
             list.innerHTML = `<div class="flex items-center justify-center h-full mt-10"><div class="w-8 h-8 border-4 border-w-accent border-t-transparent rounded-full animate-spin"></div></div>`;
 
             try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_get_open_tables" }) });
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_get_open_tables", device_token: localStorage.getItem('impact_device_token') }) });
                 const data = await response.json();
                 if(data.success && data.openTables.length > 0) {
                     list.innerHTML = data.openTables.map(t => {
@@ -1938,7 +1939,7 @@
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ action: "manager_action", mgrType: actionType, name: name, price: price, category: category, pin: pin })
+                    body: JSON.stringify({ action: "manager_action", mgrType: actionType, name: name, price: price, category: category, pin: pin, device_token: localStorage.getItem('impact_device_token') })
                 });
                 const data = await response.json();
                 
@@ -1997,10 +1998,10 @@
                 const timeoutId = setTimeout(() => controller.abort(), 12000);
                 
                 const response = await fetch(SCRIPT_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ action: "waiter_get_open_tables" }),
-                    signal: controller.signal
-                });
+                    method: 'POST', 
+                    body: JSON.stringify({ action: "waiter_get_open_tables", device_token: localStorage.getItem('impact_device_token') }),
+                    signal: controller.signal
+                });
                 clearTimeout(timeoutId);
                 const data = await response.json();
                 
