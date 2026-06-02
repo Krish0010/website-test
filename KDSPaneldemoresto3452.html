@@ -746,11 +746,6 @@
             } catch (e) { console.error("Audio init failed", e); }
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            startClock();
-            fetchKDS();
-        });
-
         function startClock() {
             setInterval(() => {
                 const now = new Date();
