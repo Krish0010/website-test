@@ -140,6 +140,19 @@
 <body class="min-h-screen flex flex-col">
 
     <div id="kds-toast-container" class="fixed top-20 right-6 z-[1000] flex flex-col gap-3 pointer-events-none w-80"></div>
+<div id="view-auth" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-k-bg p-6 transition-opacity duration-500 hidden">
+        <div class="bg-gray-900 border border-gray-700 p-8 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] w-full max-w-sm flex flex-col items-center text-center">
+            <div class="w-16 h-16 bg-red-500/10 text-red-500 border border-red-500/20 rounded-full flex items-center justify-center mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
+            </div>
+            <h2 class="font-black text-2xl text-white tracking-tight mb-2">Device Locked</h2>
+            <p class="text-xs text-gray-400 font-medium mb-6 leading-relaxed">This screen is not authorized to connect to the KDS Network. Please enter the Manager PIN.</p>
+            <input type="text" id="device-auth-pin" style="-webkit-text-security: disc;" autocomplete="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" class="w-full bg-gray-800 border-2 border-gray-700 rounded-xl px-4 py-4 font-black text-center tracking-[0.3em] text-white outline-none focus:border-k-accent transition-colors mb-4" placeholder="Manager PIN">
+            <button id="auth-btn" onclick="authorizeDevice()" class="w-full py-4 bg-k-accent text-gray-900 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-sky-400 transition-colors shadow-lg active:scale-95 flex items-center justify-center">
+                Authorize Device
+            </button>
+        </div>
+    </div>
 
     <div id="kds-start-overlay" onclick="startKDS()" class="fixed inset-0 glass-overlay z-[500] flex flex-col items-center justify-center cursor-pointer transition-all duration-500">
         <div class="bg-gray-900/90 border border-gray-700 p-8 sm:p-10 rounded-3xl shadow-2xl flex flex-col items-center text-center w-[90%] max-w-md transform transition-transform hover:scale-105">
@@ -523,11 +536,21 @@
             }
         });
 
-        // 🟢 SINGLE BOOT INITIALIZER
+        // 🟢 SINGLE BOOT INITIALIZER & DEVICE LOCK
         document.addEventListener("DOMContentLoaded", () => {
             updateStationLabel(currentStationFilter); 
-            startClock();
-            fetchKDS();
+            
+            // 🟢 SECURITY: Check if device has a saved token before booting
+            const devToken = localStorage.getItem('impact_device_token');
+            if (localStorage.getItem('impact_device_authorized') === 'true' && devToken && devToken.length > 5) {
+                document.getElementById('view-auth').classList.add('hidden');
+                startClock();
+                fetchKDS();
+            } else {
+                // Lock the screen, do not fetch data!
+                document.getElementById('view-auth').classList.remove('hidden');
+                document.getElementById('view-auth').classList.add('flex');
+            }
             
             // 🟢 MOBILE BACK-BUTTON TRAP
             // Pushes a dummy state into the browser history immediately
@@ -552,6 +575,49 @@
             });
         });
 
+// 🟢 KDS DEVICE AUTHORIZATION LOGIC
+        async function authorizeDevice() {
+            const pin = document.getElementById('device-auth-pin').value;
+            if (!pin) return;
+            
+            const btn = document.getElementById('auth-btn');
+            const originalText = btn.innerText;
+            btn.innerHTML = `<div class="w-5 h-5 border-[3px] border-gray-900 border-t-transparent rounded-full animate-spin"></div>`;
+            btn.disabled = true;
+            
+            try {
+                // Ask backend to verify the PIN and return the Secret Token
+                const response = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: "verify_device", pin: pin }) 
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    localStorage.setItem('impact_device_authorized', 'true');
+                    localStorage.setItem('impact_device_token', data.device_token); // Save the crypto key secretly!
+                    
+                    document.getElementById('view-auth').classList.add('opacity-0');
+                    setTimeout(() => {
+                        document.getElementById('view-auth').classList.add('hidden');
+                        document.getElementById('view-auth').classList.remove('flex');
+                        
+                        // Boot the system!
+                        startClock();
+                        fetchKDS();
+                        showKDSToast("Device Authorized", "Secure connection established.", "bg-k-success text-white");
+                    }, 300);
+                } else {
+                    showKDSAlert("Access Denied", "Incorrect Manager Passcode.", "error");
+                    document.getElementById('device-auth-pin').value = '';
+                }
+            } catch (err) {
+                showKDSAlert("Network Error", "Unable to verify. Check connection.", "error");
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
         // Auto-refresh interval (milliseconds)
         const REFRESH_RATE = 8000; 
 
@@ -711,7 +777,7 @@
             const dot = document.getElementById('connection-dot');
             const status = document.getElementById('sync-status');
             try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_fetch" }) });
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ device_token: localStorage.getItem('impact_device_token'), action: "kds_fetch" }) });
                 const data = await response.json();
 
                 if (data.success) {
@@ -809,7 +875,7 @@
                                             
                                             if (t.status.match(tagRegex)) {
                                                 t.status = t.status.replace(tagRegex, ''); // Wipe locally immediately
-                                                try { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_station_unready", token: t.token, station: properCat }) }); } catch(e) {}
+                                                try { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ device_token: localStorage.getItem('impact_device_token'), action: "kds_station_unready", token: t.token, station: properCat }) }); } catch(e) {}
                                             }
                                         });
                                     }
@@ -1240,7 +1306,7 @@ async function processStrikeQueue() {
     try {
         const res = await fetch(SCRIPT_URL, { 
             method: 'POST', 
-            body: JSON.stringify({ action: "kds_sync_strike", ...task }) 
+            body: JSON.stringify({ device_token: localStorage.getItem('impact_device_token'), action: "kds_sync_strike", ...task }) 
         });
         if (res.ok) strikeSyncQueue.shift(); // Remove on success
     } catch(e) {
@@ -1269,7 +1335,7 @@ async function processStrikeQueue() {
             delete unacknowledgedUpdates[token];
 
             // Send silent ping to backend so Expo tablet gets the green badge
-            try { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_station_ready", token: token, station: stationName }) }); } catch(e) {}
+            try { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ device_token: localStorage.getItem('impact_device_token'), action: "kds_station_ready", token: token, station: stationName }) }); } catch(e) {}
             
             // Force an immediate Virtual DOM refresh to apply the dimmed state and Amber button
             lastGeneratedGridHTML = ""; 
@@ -1310,7 +1376,7 @@ async function processStrikeQueue() {
                 delete unacknowledgedUpdates[pendingAlertToken];
 
                 // Send silent ping to backend 
-                try { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_station_ready", token: pendingAlertToken, station: pendingAlertStation }) }); } catch(e) {}
+                try { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ device_token: localStorage.getItem('impact_device_token'), action: "kds_station_ready", token: pendingAlertToken, station: pendingAlertStation }) }); } catch(e) {}
                 
                 // 🟢 INSTANT CLEAR FIX: Locally inject the ready tag into the DOM memory so the ticket vanishes immediately!
                 const t = currentActiveTickets.find(ticket => ticket.token === pendingAlertToken);
@@ -1370,7 +1436,7 @@ async function processStrikeQueue() {
                 
                 const response = await fetch(SCRIPT_URL, { 
                     method: 'POST', 
-                    body: JSON.stringify({ action: "kds_bump", token: token, table: tableNum }),
+                    body: JSON.stringify({ device_token: localStorage.getItem('impact_device_token'), action: "kds_bump", token: token, table: tableNum }),
                     signal: controller.signal
                 });
                 clearTimeout(timeoutId);
@@ -1382,7 +1448,7 @@ async function processStrikeQueue() {
                     keysToLock.forEach(key => bumpedMemory.add(key));
                     delete unacknowledgedUpdates[token]; 
                     fetchKDS(); 
-                } else { alert("Error marking ticket ready: " + data.message); }
+                } else { showKDSAlert("Error", data.message, "error"); }
             } catch (err) { 
                 showKDSAlert("Network Error", "Could not bump ticket. Check connection.", "error"); 
             } finally { overlay.classList.add('hidden'); overlay.classList.remove('flex'); }
@@ -1613,10 +1679,10 @@ async function processStrikeQueue() {
             }
 
             try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_recall", token: token, table: tableNum }) });
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ device_token: localStorage.getItem('impact_device_token'), action: "kds_recall", token: token, table: tableNum }) });
                 const data = await response.json();
                 if (data.success) { toggleRecallModal(); fetchKDS(); } 
-                else { alert(data.message); btnElement.innerHTML = originalHTML; btnElement.disabled = false; }
+                else { showKDSAlert("Error", data.message, "error"); btnElement.innerHTML = originalHTML; btnElement.disabled = false; }
             } catch (err) { 
                 showKDSAlert("Network Error", "Could not recall ticket. Check connection.", "error"); 
                 btnElement.innerHTML = originalHTML; btnElement.disabled = false; 
@@ -1693,13 +1759,13 @@ async function processStrikeQueue() {
             }
 
             try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "kds_toggle_sos", duration: minutes }) });
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ device_token: localStorage.getItem('impact_device_token'), action: "kds_toggle_sos", duration: minutes }) });
                 const data = await response.json();
                 if (data.success) {
                     updateSOSUI(data.sosExpiry);
                     showKDSToast("SOS Updated", data.message, minutes > 0 ? "bg-red-600 text-white" : "bg-green-600 text-white");
                 }
-            } catch(e) { alert("Network error updating SOS."); }
+            } catch(e) { showKDSAlert("Network Error", "Unable to update SOS. Check connection.", "error"); }
         }
 
         // --- PACE ENGINE MODAL LOGIC ---
@@ -1770,7 +1836,7 @@ async function processStrikeQueue() {
                 // 🟢 SECURE FETCH: Ask the backend to verify the PIN
                 const response = await fetch(SCRIPT_URL, { 
                     method: 'POST', 
-                    body: JSON.stringify({ action: "verify_kds_manager", pin: pin }) 
+                    body: JSON.stringify({ device_token: localStorage.getItem('impact_device_token'), action: "verify_kds_manager", pin: pin }) 
                 });
                 const data = await response.json();
                 
