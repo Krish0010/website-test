@@ -1417,17 +1417,80 @@ async function processStrikeQueue() {
             closeStationAlertModal();
         }
 
-        async function executeBump(token, tableNum, buttonElement) {
-            const card = buttonElement.closest('.ticket-card');
-            const totalItems = card.querySelectorAll('.item-row').length;
-            const struckItems = card.querySelectorAll('.is-struck').length;
-            
-            if (struckItems < totalItems) {
-                showKDSAlert("Cannot Bump Ticket", "You still have <b>un-cooked items</b>.<br><br>If you are serving a specific course, just strike those items and leave the ticket open on the board.");
+        // 🟢 NEW: Handles partial order alerts for Starters / Desserts
+        function sendPartialAlert(token, tableNum) {
+            try { 
+                fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ 
+                        device_token: localStorage.getItem('impact_device_token'), 
+                        action: "kds_station_ready", 
+                        token: token, 
+                        station: "Expo" // 🟢 Pseudonym: Sends a notification but bypasses the auto-bump firewall
+                    }) 
+                }); 
+                
+                showKDSToast("Waiter Alerted", `Pinged waiter to pick up ready items for Table ${tableNum}`, "bg-sky-500 text-white");
+                
+                // 🟢 Locally inject the tag to prevent spamming the waiter
+                const t = currentActiveTickets.find(ticket => ticket.token === token);
+                if (t && !t.status.includes('Expo:Ready')) {
+                    t.status += ` | Expo:Ready`;
+                }
+            } catch(e) {}
+        }
+
+        async function executeBump(token, tableNum, buttonElement) {
+            const card = buttonElement.closest('.ticket-card');
+            const totalItems = card.querySelectorAll('.item-row').length;
+            const struckItems = card.querySelectorAll('.is-struck').length;
+            
+            if (struckItems === 0) {
+                showKDSAlert("Cannot Bump Ticket", "You haven't checked off any items yet.");
                 return;
             }
 
-            const overlay = document.getElementById('bump-overlay');
+            if (struckItems < totalItems) {
+                // 🟢 ASYNCHRONOUS COURSE FIX: Allow partial pinging for Starters/Desserts
+                const premiumMessage = `
+                    <div class="text-gray-400 text-[13px] leading-relaxed mb-4">
+                        You have finished <b>${struckItems} out of ${totalItems}</b> items.<br><br>
+                        Do you want to ping the Waiter to pick up the ready courses while you finish the rest?
+                    </div>
+                `;
+                showKDSAlert(
+                    "Partial Order Ready?", 
+                    premiumMessage, 
+                    "info", 
+                    `
+                    <button onclick="closeKDSAlert()" class="w-1/2 py-3 bg-gray-800 text-gray-400 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:text-white hover:bg-gray-700 transition-colors">Cancel</button>
+                    <button onclick="sendPartialAlert('${token}', '${tableNum}'); closeKDSAlert();" class="w-1/2 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-colors shadow-[0_0_15px_rgba(2,132,199,0.4)]">Alert Waiter</button>
+                    `
+                );
+                return;
+            }
+
+            if (struckItems < totalItems) {
+                // 🟢 ASYNCHRONOUS COURSE FIX: Allow partial pinging for Starters/Desserts
+                const premiumMessage = `
+                    <div class="text-gray-400 text-[13px] leading-relaxed mb-4">
+                        You have finished <b>${struckItems} out of ${totalItems}</b> items.<br><br>
+                        Do you want to ping the Waiter to pick up the ready courses while you finish the rest?
+                    </div>
+                `;
+                showKDSAlert(
+                    "Partial Order Ready?", 
+                    premiumMessage, 
+                    "info", 
+                    `
+                    <button onclick="closeKDSAlert()" class="w-1/2 py-3 bg-gray-800 text-gray-400 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:text-white hover:bg-gray-700 transition-colors">Cancel</button>
+                    <button onclick="sendPartialAlert('${token}', '${tableNum}'); closeKDSAlert();" class="w-1/2 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-colors shadow-[0_0_15px_rgba(2,132,199,0.4)]">Alert Waiter</button>
+                    `
+                );
+                return;
+            }
+
+            const overlay = document.getElementById('bump-overlay');
             overlay.classList.remove('hidden'); overlay.classList.add('flex');
 
             // 🟢 MOCK API: Simulate success in Demo Mode with a 10s Respawn!
