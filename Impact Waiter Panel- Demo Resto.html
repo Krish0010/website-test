@@ -2057,15 +2057,24 @@
                             const parts = status.split("|").slice(1);
                             parts.forEach(p => {
                                 if (p.includes(":Ready")) {
-                                    activeReadyCount++; // Keeps the red Waiter Badge lit up
-                                    const stationName = p.replace(":Ready", "").trim();
-                                    const notifKey = `${t.token}_${stationName}`;
-                                    
-                                    if (!previouslyReadyStations.has(notifKey)) {
-                                        showToastNotification("Station Alert", `${stationName} has finished their items for ${t.table}`);
-                                        previouslyReadyStations.add(notifKey);
-                                    }
-                                }
+                                    activeReadyCount++; // Keeps the red Waiter Badge lit up
+                                    const stationName = p.replace(":Ready", "").trim();
+                                    const notifKey = `${t.token}_${stationName}`;
+                                    
+                                    if (!previouslyReadyStations.has(notifKey)) {
+                                        // 🟢 UX FIX: Translate "Expo" into plain, actionable English for the Waiters
+                                        let alertTitle = "Station Alert";
+                                        let alertMessage = `${stationName} has finished their items for ${t.table}.`;
+                                        
+                                        if (stationName.toLowerCase() === "expo") {
+                                            alertTitle = "Food Ready to Run";
+                                            alertMessage = `A partial order is ready for pickup at the window for ${t.table}.`;
+                                        }
+
+                                        showToastNotification(alertTitle, alertMessage);
+                                        previouslyReadyStations.add(notifKey);
+                                    }
+                                }
                             });
                         }
                     });
