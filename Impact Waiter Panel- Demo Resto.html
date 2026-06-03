@@ -452,17 +452,11 @@
                 playTone(880, now, 0.2);
                 playTone(880, now + 0.3, 0.2);
                 playTone(1046.50, now + 0.6, 0.4);
-
-                // 🟢 HARDWARE OVERRIDE: Vibrates device persistently even if screen is dimmed/sleeping
-                if (navigator.vibrate) {
-                    navigator.vibrate([400, 200, 400, 200, 400]);
-                }
             } catch(e) {}
         }
 
-        // 🟢 UX UPGRADE: Support optional backend timestamp injection for sleep-wake recovery
-        function logNotification(title, message, timeOverride = null) {
-            const time = timeOverride || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        function logNotification(title, message) {
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             notificationHistory.unshift({ title, message, time });
             if (notificationHistory.length > 10) notificationHistory.pop(); // Keep only last 10
             
@@ -491,10 +485,11 @@
         }
 
         // 🟢 FIX: We ONLY intercept the Toast Notification (which comes from the Kitchen).
+        // This stops "Order Fired!" or "Table Occupied!" alerts from clogging the history panel.
         const originalShowToastNotification = showToastNotification;
-        showToastNotification = function(title, message, timeOverride = null) {
-            logNotification(title, message, timeOverride);
-            playWaiterAlert(); // 🟢 Play the 3-beep kitchen chime and trigger haptics
+        showToastNotification = function(title, message) {
+            logNotification(title, message);
+            playWaiterAlert(); // 🟢 Play the 3-beep kitchen chime
             originalShowToastNotification(title, message);
         };
 
@@ -776,25 +771,23 @@
                     document.getElementById('active-token-display').innerText = `#${currentInput}`;
                     activeTicket = [];
                     
-                    // 🟢 FIX: Only lock items if the kitchen has actually received them!
-                    const isActuallyLocked = data.status.includes("LOCKED") || data.status.includes("FIRE NEXT") || data.status.includes("READY");
-
                     if (Array.isArray(data.cartData)) {
-                        data.cartData.forEach((item, index) => {
-                            let restoredCourse = "main";
-                            if (item.pacing === "Serve First") restoredCourse = "first";
-                            if (item.pacing === "Serve Last") restoredCourse = "last";
-                            
-                            // 🟢 DATA FIX: Use .trim() to prevent trailing spaces from breaking the category mapping!
-                            const menuItem = cachedMenu.find(m => String(m.name || '').trim().toLowerCase() === String(item.name || '').trim().toLowerCase());
-                            
-                            let itemPrice = parseFloat(item.price) || 0;
-                            if (itemPrice === 0) itemPrice = menuItem ? menuItem.price : 0;
+                        data.cartData.forEach((item, index) => {
+                            let restoredCourse = "main";
+                            if (item.pacing === "Serve First") restoredCourse = "first";
+                            if (item.pacing === "Serve Last") restoredCourse = "last";
+                            
+                            // 🟢 UX FIX: If price is 0 (because the customer submitted it online), securely fetch the real price locally!
+                            let itemPrice = parseFloat(item.price) || 0;
+                            if (itemPrice === 0) {
+                                const menuItem = cachedMenu.find(m => String(m.name || '').toLowerCase() === String(item.name || '').toLowerCase());
+                                itemPrice = menuItem ? menuItem.price : 0;
+                            }
 
-                            // 🟢 ENTERPRISE LOCK: Apply the accurate lock state
-                            activeTicket.push({ id: item.id || (Date.now() + Math.random()), name: item.name, qty: item.qty, price: itemPrice, note: item.note || "", course: restoredCourse, isLocked: isActuallyLocked });
-                        });
-                    } else {
+                            // 🟢 ENTERPRISE LOCK: Tag items already sent to the kitchen as immutable
+                            activeTicket.push({ id: item.id || (Date.now() + Math.random()), name: item.name, qty: item.qty, price: itemPrice, note: item.note || "", course: restoredCourse, isLocked: true });
+                        });
+                    } else {
                         Object.entries(data.cartData).forEach(([dishName, qty], index) => {
                             const menuItem = cachedMenu.find(m => String(m.name || '').toLowerCase() === dishName.toLowerCase());
                             const price = menuItem ? menuItem.price : 0;
@@ -1695,8 +1688,7 @@
             fireBtn.disabled = true;
 
             let kdsPayload = activeTicket.map(item => {
-                // 🟢 DATA FIX: Use .trim() to ensure dishes like "Watermelon cooler " map to "Beverages" correctly!
-                const menuItem = cachedMenu.find(m => String(m.name || '').trim().toLowerCase() === String(item.name || '').trim().toLowerCase());
+                const menuItem = cachedMenu.find(m => String(m.name || '').toLowerCase() === item.name.toLowerCase());
                 const category = menuItem ? menuItem.category : "Kitchen"; 
                 const prepTime = menuItem ? (menuItem.prepTime || 0) : 0; // 🟢 FETCH PREP TIME
                 let pacingStr = "Main Course";
@@ -2051,14 +2043,11 @@
                     data.openTables.forEach(t => {
                         const status = t.fullStatus || "";
                         
-                        // 🟢 UX UPGRADE: Extract raw server timestamps if passed by the payload data stream
-                        let serverTime = t.timestamp ? new Date(t.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
-
                         // 1. Check for Master "Full Order Ready" (The whole ticket)
                         if (status.includes("- READY")) {
                             activeReadyCount++;
                             if (!alertedReadyTables.has(t.token)) {
-                                showToastNotification("Order Ready", `${t.table} is completely ready to serve!`, serverTime);
+                                showToastNotification("Order Ready", `${t.table} is completely ready to serve!`);
                                 alertedReadyTables.add(t.token);
                             }
                         }
@@ -2068,11 +2057,11 @@
                             const parts = status.split("|").slice(1);
                             parts.forEach(p => {
                                 if (p.includes(":Ready")) {
-                                    activeReadyCount++; // Keeps the red Waiter Badge lit up
-                                    const stationName = p.replace(":Ready", "").trim();
-                                    const notifKey = `${t.token}_${stationName}`;
-                                    
-                                    if (!previouslyReadyStations.has(notifKey)) {
+                                    activeReadyCount++; // Keeps the red Waiter Badge lit up
+                                    const stationName = p.replace(":Ready", "").trim();
+                                    const notifKey = `${t.token}_${stationName}`;
+                                    
+                                    if (!previouslyReadyStations.has(notifKey)) {
                                         // 🟢 UX FIX: Translate "Expo" into plain, actionable English for the Waiters
                                         let alertTitle = "Station Alert";
                                         let alertMessage = `${stationName} has finished their items for ${t.table}.`;
@@ -2082,10 +2071,10 @@
                                             alertMessage = `A partial order is ready for pickup at the window for ${t.table}.`;
                                         }
 
-                                        showToastNotification(alertTitle, alertMessage, serverTime);
-                                        previouslyReadyStations.add(notifKey);
-                                    }
-                                }
+                                        showToastNotification(alertTitle, alertMessage);
+                                        previouslyReadyStations.add(notifKey);
+                                    }
+                                }
                             });
                         }
                     });
