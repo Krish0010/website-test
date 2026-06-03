@@ -771,23 +771,25 @@
                     document.getElementById('active-token-display').innerText = `#${currentInput}`;
                     activeTicket = [];
                     
-                    if (Array.isArray(data.cartData)) {
-                        data.cartData.forEach((item, index) => {
-                            let restoredCourse = "main";
-                            if (item.pacing === "Serve First") restoredCourse = "first";
-                            if (item.pacing === "Serve Last") restoredCourse = "last";
-                            
-                            // 🟢 UX FIX: If price is 0 (because the customer submitted it online), securely fetch the real price locally!
-                            let itemPrice = parseFloat(item.price) || 0;
-                            if (itemPrice === 0) {
-                                const menuItem = cachedMenu.find(m => String(m.name || '').toLowerCase() === String(item.name || '').toLowerCase());
-                                itemPrice = menuItem ? menuItem.price : 0;
-                            }
+                    // 🟢 FIX: Only lock items if the kitchen has actually received them!
+                    const isActuallyLocked = data.status.includes("LOCKED") || data.status.includes("FIRE NEXT") || data.status.includes("READY");
 
-                            // 🟢 ENTERPRISE LOCK: Tag items already sent to the kitchen as immutable
-                            activeTicket.push({ id: item.id || (Date.now() + Math.random()), name: item.name, qty: item.qty, price: itemPrice, note: item.note || "", course: restoredCourse, isLocked: true });
-                        });
-                    } else {
+                    if (Array.isArray(data.cartData)) {
+                        data.cartData.forEach((item, index) => {
+                            let restoredCourse = "main";
+                            if (item.pacing === "Serve First") restoredCourse = "first";
+                            if (item.pacing === "Serve Last") restoredCourse = "last";
+                            
+                            // 🟢 DATA FIX: Use .trim() to prevent trailing spaces from breaking the category mapping!
+                            const menuItem = cachedMenu.find(m => String(m.name || '').trim().toLowerCase() === String(item.name || '').trim().toLowerCase());
+                            
+                            let itemPrice = parseFloat(item.price) || 0;
+                            if (itemPrice === 0) itemPrice = menuItem ? menuItem.price : 0;
+
+                            // 🟢 ENTERPRISE LOCK: Apply the accurate lock state
+                            activeTicket.push({ id: item.id || (Date.now() + Math.random()), name: item.name, qty: item.qty, price: itemPrice, note: item.note || "", course: restoredCourse, isLocked: isActuallyLocked });
+                        });
+                    } else {
                         Object.entries(data.cartData).forEach(([dishName, qty], index) => {
                             const menuItem = cachedMenu.find(m => String(m.name || '').toLowerCase() === dishName.toLowerCase());
                             const price = menuItem ? menuItem.price : 0;
@@ -1688,7 +1690,8 @@
             fireBtn.disabled = true;
 
             let kdsPayload = activeTicket.map(item => {
-                const menuItem = cachedMenu.find(m => String(m.name || '').toLowerCase() === item.name.toLowerCase());
+                // 🟢 DATA FIX: Use .trim() to ensure dishes like "Watermelon cooler " map to "Beverages" correctly!
+                const menuItem = cachedMenu.find(m => String(m.name || '').trim().toLowerCase() === String(item.name || '').trim().toLowerCase());
                 const category = menuItem ? menuItem.category : "Kitchen"; 
                 const prepTime = menuItem ? (menuItem.prepTime || 0) : 0; // 🟢 FETCH PREP TIME
                 let pacingStr = "Main Course";
