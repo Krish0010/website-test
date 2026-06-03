@@ -1374,15 +1374,20 @@ async function processStrikeQueue() {
         let partialPingCooldowns = {};
         let partialPingCounts = {}; // Solves the "One Ping Only" trap
 
-        // 🟢 DECOUPLED PREP SENDER: Adds " (Partial)" to prevent the ticket from vanishing!
-        function sendPrepPartialAlert(token, tableNum, stationName) {
+        // 🟢 DECOUPLED PREP SENDER: Adds " (Partial)" to prevent the ticket from vanishing!
+        function sendPrepPartialAlert(token, tableNum, stationName) {
             const cooldownKey = `${token}_${stationName}`;
             const now = Date.now();
             
-            // 🟢 SPAM FIREWALL: Enforce a strict 2-minute cooldown between partial pings
+            // 1. 🟢 HARD SPAM BLOCK: 10-second block to prevent accidental double-taps
+            if (partialPingCooldowns[cooldownKey] && (now - partialPingCooldowns[cooldownKey]) < 10000) {
+                return; // Absolutely block network spam
+            }
+
+            // 2. 🟢 ALARM FATIGUE WARNING: Warn the chef if they ping again within 2 minutes, but STILL SEND IT
             if (partialPingCooldowns[cooldownKey] && (now - partialPingCooldowns[cooldownKey]) < 120000) {
                 showKDSToast("Please Wait", `You recently pinged Expo for Table ${tableNum}. Give them a minute to clear the window!`, "bg-amber-500 text-white");
-                return;
+                // NOTICE: We removed the "return;" here so the backend still updates!
             }
             partialPingCooldowns[cooldownKey] = now; // Instantly lock the button out
 
@@ -1488,18 +1493,23 @@ async function processStrikeQueue() {
         }
 
         // 🟢 NEW: Handles partial order alerts for Starters / Desserts
-        function sendPartialAlert(token, tableNum) {
+        function sendPartialAlert(token, tableNum) {
             const cooldownKey = `${token}_Expo`;
             const now = Date.now();
             
-            // 🟢 SPAM FIREWALL: Enforce a strict 2-minute cooldown
+            // 1. 🟢 HARD SPAM BLOCK: 10-second block to prevent accidental double-taps
+            if (partialPingCooldowns[cooldownKey] && (now - partialPingCooldowns[cooldownKey]) < 10000) {
+                return; // Absolutely block network spam
+            }
+
+            // 2. 🟢 ALARM FATIGUE WARNING: Warn the chef if they ping again within 2 minutes, but STILL SEND IT
             if (partialPingCooldowns[cooldownKey] && (now - partialPingCooldowns[cooldownKey]) < 120000) {
                 showKDSToast("Please Wait", `You recently pinged the Waiter for Table ${tableNum}. Give them a minute to arrive!`, "bg-amber-500 text-white");
-                return;
+                // NOTICE: We removed the "return;" here so the Waiter terminal still receives the update!
             }
             partialPingCooldowns[cooldownKey] = now; // Instantly lock the button out
 
-            // 🟢 ONE-PING TRAP FIX: Send "Expo" the first time (triggers custom Waiter text), then "Expo (Pick-up 2)", etc.
+            // 🟢 ONE-PING TRAP FIX: The Invisible Space Hack
             partialPingCounts[cooldownKey] = (partialPingCounts[cooldownKey] || 0) + 1;
             let pingCount = partialPingCounts[cooldownKey];
             let stationAlias = pingCount === 1 ? "Expo" : `Expo (Pick-up ${pingCount})`;
