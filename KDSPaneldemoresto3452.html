@@ -1418,27 +1418,33 @@ async function processStrikeQueue() {
         }
 
         // 🟢 NEW: Handles partial order alerts for Starters / Desserts
-        function sendPartialAlert(token, tableNum) {
-            try { 
-                fetch(SCRIPT_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ 
-                        device_token: localStorage.getItem('impact_device_token'), 
-                        action: "kds_station_ready", 
-                        token: token, 
-                        station: "Expo" // 🟢 Pseudonym: Sends a notification but bypasses the auto-bump firewall
-                    }) 
-                }); 
-                
-                showKDSToast("Waiter Alerted", `Pinged waiter to pick up ready items for Table ${tableNum}`, "bg-sky-500 text-white");
-                
-                // 🟢 Locally inject the tag to prevent spamming the waiter
-                const t = currentActiveTickets.find(ticket => ticket.token === token);
-                if (t && !t.status.includes('Expo:Ready')) {
-                    t.status += ` | Expo:Ready`;
-                }
-            } catch(e) {}
-        }
+        function sendPartialAlert(token, tableNum) {
+            // 🟢 DEMO MODE INTERCEPT: Prevent fake tickets from hitting the live server
+            if (isDemoMode) {
+                showKDSToast("Training", `Waiter pinged for Table ${tableNum}! (Demo Mode)`, "bg-purple-600 text-white");
+                return;
+            }
+
+            try { 
+                fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ 
+                        device_token: localStorage.getItem('impact_device_token'), 
+                        action: "kds_station_ready", 
+                        token: token, 
+                        station: "Expo" // 🟢 Pseudonym: Sends a notification but bypasses the auto-bump firewall
+                    }) 
+                }); 
+                
+                showKDSToast("Waiter Alerted", `Pinged waiter to pick up ready items for Table ${tableNum}`, "bg-sky-500 text-white");
+                
+                // 🟢 Locally inject the tag to prevent spamming the waiter
+                const t = currentActiveTickets.find(ticket => ticket.token === token);
+                if (t && !t.status.includes('Expo:Ready')) {
+                    t.status += ` | Expo:Ready`;
+                }
+            } catch(e) {}
+        }
 
         async function executeBump(token, tableNum, buttonElement) {
             const card = buttonElement.closest('.ticket-card');
@@ -2114,62 +2120,68 @@ async function processStrikeQueue() {
         let isTourActive = false;
 
         const tourSteps = [
-            {
-                title: "The KDS Grid",
-                text: "Welcome to your Kitchen Display System. This board sorts and prioritizes tickets automatically. Let's explore the edge cases.",
-                targetSelector: "#kds-grid > div:nth-child(1)" 
-            },
-            {
-                title: "Safety First",
-                text: "When a waiter types an allergy note, the item turns <b class='text-purple-400'>PURPLE</b>. Cross-contamination protocols must be strictly followed.",
-                targetSelector: "#kds-grid > div:nth-child(2)" 
-            },
-            {
-                title: "Overdue Tickets",
-                text: "Every dish has a Target Time. If the ticket sits longer than the target, it flashes <b class='text-red-500'>RED</b>. These are critical priority.",
-                targetSelector: "#kds-grid > div:nth-child(3)" 
-            },
-            {
-                title: "Order Updates",
-                text: "If a waiter adds an item mid-meal, the ticket flashes <b class='text-blue-400'>BLUE</b>. Go ahead, tap the 'OK' button to clear the blue alert!",
-                targetSelector: "#kds-grid > div:nth-child(4)" 
-            },
-            {
-                title: "Fire Next Course",
-                text: "When the waiter tells you the table is ready for their next course, the ticket turns <b class='text-amber-500'>AMBER</b>. Fire these items immediately.",
-                targetSelector: "#kds-grid > div:nth-child(5)" 
-            },
-            {
-                title: "Dynamic Target Times",
-                text: "Dish taking longer than expected? Tap the <b>TARGET</b> clock on the highlighted ticket, adjust the time, and hit Save. Watch the pace recalculate!",
-                targetSelector: "#kds-grid > div:nth-child(1) .flex.flex-col.items-center.cursor-pointer" 
-            },
-            {
-                title: "The Undo Button",
-                text: "Accidentally bumped a ticket? Tap the <b class='text-w-accent'>Recall</b> arrow up here in the header to bring it back instantly. Try it, then close it.",
-                targetSelector: "header button[title='Recall Bumped Tickets']" 
-            },
-            {
-                title: "Prep Sidebar",
-                text: "Need to know how many Steaks to throw on the grill? Tap the <b class='text-sky-400'>Sidebar Icon</b> to see live totals. Keep it open and hit Next!",
-                targetSelector: "button[onclick='togglePrepSidebar()']" 
-            },
-            {
-                title: "Emergency Pause",
-                text: "Kitchen overwhelmed? Tap the <b class='text-red-500'>PAUSE</b> button. This blocks waiters from sending new orders while you catch up.",
-                targetSelector: "#kds-sos-btn" 
-            },
-            {
-                title: "Marking Ready",
-                text: "Finally, tap all the dishes on a ticket to cross them off. Once they are all dark, the 'Mark Ready' button turns <b class='text-green-500'>GREEN</b>. Click it to clear the order!",
-                targetSelector: "#kds-grid > div:nth-child(2)" 
-            },
-            {
-                title: "You're Ready!",
-                text: "You now know how to handle the rush like a pro.<br><br>The system is now in <b>Free Play Mode</b>. Feel free to click around, strike items, and clear tickets to get the hang of it!",
-                targetSelector: "center" 
-            }
-        ];
+            {
+                title: "The KDS Grid",
+                text: "Welcome to your Kitchen Display System. This board sorts and prioritizes tickets automatically. Let's explore the edge cases.",
+                targetSelector: "#kds-grid > div:nth-child(1)" 
+            },
+            {
+                title: "Safety First",
+                text: "When a waiter types an allergy note, the item turns <b class='text-purple-400'>PURPLE</b>. Cross-contamination protocols must be strictly followed.",
+                targetSelector: "#kds-grid > div:nth-child(2)" 
+            },
+            {
+                title: "Overdue Tickets",
+                text: "Every dish has a Target Time. If the ticket sits longer than the target, it flashes <b class='text-red-500'>RED</b>. These are critical priority.",
+                targetSelector: "#kds-grid > div:nth-child(3)" 
+            },
+            {
+                title: "Order Updates",
+                text: "If a waiter adds an item mid-meal, the ticket flashes <b class='text-blue-400'>BLUE</b>. Go ahead, tap the 'OK' button to clear the blue alert!",
+                targetSelector: "#kds-grid > div:nth-child(4)" 
+            },
+            {
+                title: "Fire Next Course",
+                text: "When the waiter tells you the table is ready for their next course, the ticket turns <b class='text-amber-500'>AMBER</b>. Fire these items immediately.",
+                targetSelector: "#kds-grid > div:nth-child(5)" 
+            },
+            {
+                title: "Dynamic Target Times",
+                text: "Dish taking longer than expected? Tap the <b>TARGET</b> clock on the highlighted ticket, adjust the time, and hit Save. Watch the pace recalculate!",
+                targetSelector: "#kds-grid > div:nth-child(1) .flex.flex-col.items-center.cursor-pointer" 
+            },
+            {
+                title: "The Undo Button",
+                text: "Accidentally bumped a ticket? Tap the <b class='text-k-accent'>Recall</b> arrow up here in the header to bring it back instantly. Try it, then close it.",
+                targetSelector: "header button[title='Recall Bumped Tickets']" 
+            },
+            {
+                title: "Prep Sidebar",
+                text: "Need to know how many Steaks to throw on the grill? Tap the <b class='text-sky-400'>Sidebar Icon</b> to see live totals. Keep it open and hit Next!",
+                targetSelector: "button[onclick='togglePrepSidebar()']" 
+            },
+            {
+                title: "Emergency Pause",
+                text: "Kitchen overwhelmed? Tap the <b class='text-red-500'>PAUSE</b> button. This blocks waiters from sending new orders while you catch up.",
+                targetSelector: "#kds-sos-btn" 
+            },
+            // 🟢 NEW STEP ADDED: Educating the chefs on the Partial Alert feature!
+            {
+                title: "Partial Orders",
+                text: "Finished the Starters but still cooking the Mains?<br><br>Cross off the ready items and tap <b>Mark Ready</b>. The system will ask if you want to ping the Waiter to take the hot food while you finish the rest!",
+                targetSelector: "#kds-grid > div:nth-child(1)" 
+            },
+            {
+                title: "Clearing Tickets",
+                text: "Once <i>every</i> item on a ticket is crossed off, the 'Mark Ready' button turns <b class='text-green-500'>GREEN</b>. Click it to clear the order completely!",
+                targetSelector: "#kds-grid > div:nth-child(2)" 
+            },
+            {
+                title: "You're Ready!",
+                text: "You now know how to handle the rush like a pro.<br><br>The system is now in <b>Free Play Mode</b>. Feel free to click around, strike items, and clear tickets to get the hang of it!",
+                targetSelector: "center" 
+            }
+        ];
 
         function startTour() {
             if (isTourActive) return;
