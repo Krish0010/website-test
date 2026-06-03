@@ -1754,28 +1754,32 @@ async function processStrikeQueue() {
             } catch(e) {}
         }
         function playOfflineSound() {
-            if (!globalAudioCtx || isAudioMuted) return; 
-            try {
-                if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
-                const playTone = (freq, type, startTime, duration) => {
-                    const osc = globalAudioCtx.createOscillator(); 
-                    const gain = globalAudioCtx.createGain();
-                    osc.type = type; 
-                    osc.frequency.setValueAtTime(freq, startTime);
-                    gain.gain.setValueAtTime(0, startTime); 
-                    gain.gain.linearRampToValueAtTime(0.5, startTime + 0.1); 
-                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-                    osc.connect(gain); 
-                    gain.connect(globalAudioCtx.destination); 
-                    osc.start(startTime); 
-                    osc.stop(startTime + duration);
-                };
-                const now = globalAudioCtx.currentTime; 
-                // A jarring, dissonant double-buzz for critical error
-                playTone(250, 'sawtooth', now, 0.4); 
-                playTone(200, 'sawtooth', now + 0.5, 0.6); 
-            } catch(e) {}
-        }
+            if (!globalAudioCtx || isAudioMuted) return; 
+            try {
+                if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
+                const playTone = (freq, type, startTime, duration) => {
+                    const osc = globalAudioCtx.createOscillator(); 
+                    const gain = globalAudioCtx.createGain();
+                    osc.type = type; 
+                    osc.frequency.setValueAtTime(freq, startTime);
+                    gain.gain.setValueAtTime(0, startTime); 
+                    gain.gain.linearRampToValueAtTime(0.5, startTime + 0.1); 
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+                    osc.connect(gain); 
+                    gain.connect(globalAudioCtx.destination); 
+                    osc.start(startTime); 
+                    osc.stop(startTime + duration);
+                };
+                const now = globalAudioCtx.currentTime; 
+                // 🟢 EXTENDED DURATION: 5 seconds of aggressive pulsing to ensure kitchen hears the drop
+                playTone(250, 'sawtooth', now, 0.5); 
+                playTone(200, 'sawtooth', now + 0.6, 0.8);
+                playTone(250, 'sawtooth', now + 1.5, 0.5);
+                playTone(200, 'sawtooth', now + 2.1, 0.8);
+                playTone(250, 'sawtooth', now + 3.0, 0.5);
+                playTone(200, 'sawtooth', now + 3.6, 1.5); // Final long warning tone
+            } catch(e) {}
+        }
         function stopAlertSound(e) {
             // 🟢 MUTE-SLAP DEFENSE: If the alarm is actively ringing, we kill the click event.
             // This guarantees the chef can slap the screen anywhere to mute the alarm 
