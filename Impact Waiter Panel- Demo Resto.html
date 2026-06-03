@@ -2182,7 +2182,7 @@
                                             
                                             // Extract the specific Pick-up number so the Waiter knows it's a new wave of food
                                             const pickupMatch = stationName.match(/Pick-up \d+/i);
-                                            const pickupText = pickupMatch ? ` (${pickupMatch[0]})` : "";
+                                            const pickupText = pickupMatch ? ` <span class="font-black text-amber-300">(${pickupMatch[0]})</span>` : "";
                                             
                                             alertMessage = `A partial order is ready for pickup at the window for ${t.table}${pickupText}.`;
                                         }
