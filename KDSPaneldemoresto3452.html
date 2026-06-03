@@ -664,6 +664,7 @@
         }
 
         function closeKDSAlert() {
+            stopAlertSound(); // 🟢 UX FIX: Manually dismissing the alert window instantly kills all alarm loops
             const modal = document.getElementById('kds-alert-modal');
             const box = document.getElementById('kds-alert-box');
             modal.classList.add('opacity-0'); box.classList.remove('scale-100'); box.classList.add('scale-95');
@@ -791,6 +792,13 @@
                     // 🟢 OFFLINE RECOVERY: Clear the alert if we reconnected
                     if (isOfflineAlerted) {
                         isOfflineAlerted = false;
+                        
+                        // 🟢 KILL ALARM ENGINE: Instantly silence the loop once ping succeeds
+                        if (offlineAlarmInterval) {
+                            clearInterval(offlineAlarmInterval);
+                            offlineAlarmInterval = null;
+                        }
+
                         showKDSToast("Connection Restored", "The KDS is back online.", "bg-k-success text-white");
                         const alertModal = document.getElementById('kds-alert-modal');
                         if (alertModal && !alertModal.classList.contains('hidden') && document.getElementById('kds-alert-title').innerText === "System Offline") {
@@ -1753,46 +1761,58 @@ async function processStrikeQueue() {
                 const now = globalAudioCtx.currentTime; playTone(1046.50, now, 0.15, 0.4); playTone(1318.51, now + 0.15, 0.15, 0.4); playTone(1567.98, now + 0.3, 0.3, 0.4); 
             } catch(e) {}
         }
+        // 🟢 SRE ALARM ENGINE: Continuous track loop for network disconnect state
+        let offlineAlarmInterval = null;
+
         function playOfflineSound() {
-            if (!globalAudioCtx || isAudioMuted) return; 
-            try {
-                if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
-                const playTone = (freq, type, startTime, duration) => {
-                    const osc = globalAudioCtx.createOscillator(); 
-                    const gain = globalAudioCtx.createGain();
-                    osc.type = type; 
-                    osc.frequency.setValueAtTime(freq, startTime);
-                    gain.gain.setValueAtTime(0, startTime); 
-                    gain.gain.linearRampToValueAtTime(0.5, startTime + 0.1); 
-                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-                    osc.connect(gain); 
-                    gain.connect(globalAudioCtx.destination); 
-                    osc.start(startTime); 
-                    osc.stop(startTime + duration);
-                };
-                const now = globalAudioCtx.currentTime; 
-                // 🟢 EXTENDED DURATION: 5 seconds of aggressive pulsing to ensure kitchen hears the drop
-                playTone(250, 'sawtooth', now, 0.5); 
-                playTone(200, 'sawtooth', now + 0.6, 0.8);
-                playTone(250, 'sawtooth', now + 1.5, 0.5);
-                playTone(200, 'sawtooth', now + 2.1, 0.8);
-                playTone(250, 'sawtooth', now + 3.0, 0.5);
-                playTone(200, 'sawtooth', now + 3.6, 1.5); // Final long warning tone
-            } catch(e) {}
-        }
+            if (!globalAudioCtx || isAudioMuted) return; 
+            
+            // Clear any lingering instances to prevent memory stacking
+            if (offlineAlarmInterval) clearInterval(offlineAlarmInterval);
+
+            const triggerOfflineBuzz = () => {
+                try {
+                    if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
+                    const playTone = (freq, type, startTime, duration) => {
+                        const osc = globalAudioCtx.createOscillator(); 
+                        const gain = globalAudioCtx.createGain();
+                        osc.type = type; 
+                        osc.frequency.setValueAtTime(freq, startTime);
+                        gain.gain.setValueAtTime(0, startTime); 
+                        gain.gain.linearRampToValueAtTime(0.5, startTime + 0.1); 
+                        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+                        osc.connect(gain); 
+                        gain.connect(globalAudioCtx.destination); 
+                        osc.start(startTime); 
+                        osc.stop(startTime + duration);
+                    };
+                    const now = globalAudioCtx.currentTime; 
+                    playTone(250, 'sawtooth', now, 0.4); 
+                    playTone(200, 'sawtooth', now + 0.5, 0.6); 
+                } catch(e) {}
+            };
+
+            triggerOfflineBuzz();
+            offlineAlarmInterval = setInterval(triggerOfflineBuzz, 2500); // Buzzes every 2.5s
+        }
         function stopAlertSound(e) {
             // 🟢 MUTE-SLAP DEFENSE: If the alarm is actively ringing, we kill the click event.
             // This guarantees the chef can slap the screen anywhere to mute the alarm 
             // without accidentally crossing off a dish or pressing a button underneath!
-            if (activeAlarm && e && typeof e.stopPropagation === 'function') {
+            const isRinging = activeAlarm || offlineAlarmInterval;
+
+            if (isRinging && e && typeof e.stopPropagation === 'function') {
                 e.stopPropagation();
                 e.preventDefault();
             }
 
             if (activeAlarm) clearInterval(activeAlarm);
             if (alarmTimeout) clearTimeout(alarmTimeout);
+            if (offlineAlarmInterval) clearInterval(offlineAlarmInterval); // Kill offline loop
+            
             activeAlarm = null;
             alarmTimeout = null;
+            offlineAlarmInterval = null;
             
             document.body.removeEventListener('click', stopAlertSound, { capture: true });
             document.body.removeEventListener('touchstart', stopAlertSound, { capture: true });
