@@ -2176,11 +2176,11 @@
                                         let alertTitle = "Station Alert";
                                         let alertMessage = `${stationName} has finished their items for ${t.table}.`;
                                         
-                                        // 🟢 ALIAS BUG FIX: Use .includes() to catch "Expo (Pick-up 2)", "Expo (Pick-up 3)", etc.
+                                        // 🟢 ALIAS SCALING FIX: Use .includes() to dynamically catch "Expo (Pick-up 2)", "Pick-up 3", etc.
                                         if (stationName.toLowerCase().includes("expo")) {
                                             alertTitle = "Food Ready to Run";
                                             
-                                            // 🟢 UX: Extract the Pick-up number so the Waiter knows it's a new wave of food
+                                            // Extract the specific Pick-up number so the Waiter knows it's a new wave of food
                                             const pickupMatch = stationName.match(/Pick-up \d+/i);
                                             const pickupText = pickupMatch ? ` (${pickupMatch[0]})` : "";
                                             
