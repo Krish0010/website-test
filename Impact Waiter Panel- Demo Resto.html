@@ -452,11 +452,17 @@
                 playTone(880, now, 0.2);
                 playTone(880, now + 0.3, 0.2);
                 playTone(1046.50, now + 0.6, 0.4);
+
+                // 🟢 HARDWARE OVERRIDE: Vibrates device persistently even if screen is dimmed/sleeping
+                if (navigator.vibrate) {
+                    navigator.vibrate([400, 200, 400, 200, 400]);
+                }
             } catch(e) {}
         }
 
-        function logNotification(title, message) {
-            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        // 🟢 UX UPGRADE: Support optional backend timestamp injection for sleep-wake recovery
+        function logNotification(title, message, timeOverride = null) {
+            const time = timeOverride || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             notificationHistory.unshift({ title, message, time });
             if (notificationHistory.length > 10) notificationHistory.pop(); // Keep only last 10
             
@@ -485,11 +491,10 @@
         }
 
         // 🟢 FIX: We ONLY intercept the Toast Notification (which comes from the Kitchen).
-        // This stops "Order Fired!" or "Table Occupied!" alerts from clogging the history panel.
         const originalShowToastNotification = showToastNotification;
-        showToastNotification = function(title, message) {
-            logNotification(title, message);
-            playWaiterAlert(); // 🟢 Play the 3-beep kitchen chime
+        showToastNotification = function(title, message, timeOverride = null) {
+            logNotification(title, message, timeOverride);
+            playWaiterAlert(); // 🟢 Play the 3-beep kitchen chime and trigger haptics
             originalShowToastNotification(title, message);
         };
 
@@ -2046,11 +2051,14 @@
                     data.openTables.forEach(t => {
                         const status = t.fullStatus || "";
                         
+                        // 🟢 UX UPGRADE: Extract raw server timestamps if passed by the payload data stream
+                        let serverTime = t.timestamp ? new Date(t.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
+
                         // 1. Check for Master "Full Order Ready" (The whole ticket)
                         if (status.includes("- READY")) {
                             activeReadyCount++;
                             if (!alertedReadyTables.has(t.token)) {
-                                showToastNotification("Order Ready", `${t.table} is completely ready to serve!`);
+                                showToastNotification("Order Ready", `${t.table} is completely ready to serve!`, serverTime);
                                 alertedReadyTables.add(t.token);
                             }
                         }
@@ -2060,11 +2068,11 @@
                             const parts = status.split("|").slice(1);
                             parts.forEach(p => {
                                 if (p.includes(":Ready")) {
-                                    activeReadyCount++; // Keeps the red Waiter Badge lit up
-                                    const stationName = p.replace(":Ready", "").trim();
-                                    const notifKey = `${t.token}_${stationName}`;
-                                    
-                                    if (!previouslyReadyStations.has(notifKey)) {
+                                    activeReadyCount++; // Keeps the red Waiter Badge lit up
+                                    const stationName = p.replace(":Ready", "").trim();
+                                    const notifKey = `${t.token}_${stationName}`;
+                                    
+                                    if (!previouslyReadyStations.has(notifKey)) {
                                         // 🟢 UX FIX: Translate "Expo" into plain, actionable English for the Waiters
                                         let alertTitle = "Station Alert";
                                         let alertMessage = `${stationName} has finished their items for ${t.table}.`;
@@ -2074,10 +2082,10 @@
                                             alertMessage = `A partial order is ready for pickup at the window for ${t.table}.`;
                                         }
 
-                                        showToastNotification(alertTitle, alertMessage);
-                                        previouslyReadyStations.add(notifKey);
-                                    }
-                                }
+                                        showToastNotification(alertTitle, alertMessage, serverTime);
+                                        previouslyReadyStations.add(notifKey);
+                                    }
+                                }
                             });
                         }
                     });
