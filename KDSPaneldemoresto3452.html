@@ -776,13 +776,11 @@
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 12000);
                 
-                // 🟢 CACHE-BUSTER FIX: Add a live timestamp to the payload. 
-                // This prevents mobile browsers from silently caching the identical polling requests, guaranteeing instant Waiter alerts!
-                const response = await fetch(SCRIPT_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ device_token: localStorage.getItem('impact_device_token'), action: "kds_fetch", _t: Date.now() }),
-                    signal: controller.signal
-                });
+                const response = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ device_token: localStorage.getItem('impact_device_token'), action: "kds_fetch" }),
+                    signal: controller.signal
+                });
                 clearTimeout(timeoutId);
                 const data = await response.json();
 
@@ -828,15 +826,6 @@
                                     newTicketsArrived = true;
                                     let tableNum = t.status.split('-')[0].replace('Table','').trim();
                                     updateNotifications.push({ title: "FIRE NEXT", msg: `Table ${tableNum} is ready for the next course!`, color: "bg-k-warning text-black border-yellow-500" });
-                                    
-                                    // 🟢 WAKE UP FIX: Use the exact same technique as Order Updates!
-                                    // Forces the ticket to require an "OK" click and un-hides it from the Prep screen
-                                    unacknowledgedUpdates[t.token] = t.cart; 
-                                    
-                                    try { if(typeof localAmberState !== 'undefined') localAmberState.delete(String(t.token)); } catch(e) {}
-                                    let cleared = JSON.parse(localStorage.getItem(`kds_cleared_tokens_${currentStationFilter}`) || "[]");
-                                    cleared = cleared.filter(tok => String(tok) !== String(t.token));
-                                    localStorage.setItem(`kds_cleared_tokens_${currentStationFilter}`, JSON.stringify(cleared));
                                 }
                                 // 3. 🟢 THE DIFF ENGINE: Check for Order Updates
                                 else if (prevCartStr && prevCartStr !== currentCartStr && !t.status.includes("READY")) {
