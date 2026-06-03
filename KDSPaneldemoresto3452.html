@@ -1488,7 +1488,7 @@ async function processStrikeQueue() {
         }
 
         // 🟢 NEW: Handles partial order alerts for Starters / Desserts
-        function sendPartialAlert(token, tableNum) {
+        function sendPartialAlert(token, tableNum) {
             const cooldownKey = `${token}_Expo`;
             const now = Date.now();
             
@@ -1499,36 +1499,37 @@ async function processStrikeQueue() {
             }
             partialPingCooldowns[cooldownKey] = now; // Instantly lock the button out
 
-            // 🟢 ONE-PING TRAP FIX: Send "Expo" the first time (triggers custom Waiter text), then "Expo (Pick-up 2)", etc.
+            // 🟢 ONE-PING TRAP FIX: The Invisible Space Hack
+            // We append a number of trailing spaces equal to the ping count. 
+            // The backend sees it as a new event, but the Waiter UI .trim() strips the spaces and triggers the custom "Food Ready to Run" alert!
             partialPingCounts[cooldownKey] = (partialPingCounts[cooldownKey] || 0) + 1;
-            let pingCount = partialPingCounts[cooldownKey];
-            let stationAlias = pingCount === 1 ? "Expo" : `Expo (Pick-up ${pingCount})`;
+            let stationAlias = "Expo" + " ".repeat(partialPingCounts[cooldownKey]);
 
-            // 🟢 DEMO MODE INTERCEPT
-            if (isDemoMode) {
-                showKDSToast("Training", `Waiter pinged for Table ${tableNum}! (Demo Mode)`, "bg-purple-600 text-white");
-                return;
-            }
+            // 🟢 DEMO MODE INTERCEPT
+            if (isDemoMode) {
+                showKDSToast("Training", `Waiter pinged for Table ${tableNum}! (Demo Mode)`, "bg-purple-600 text-white");
+                return;
+            }
 
-            try { 
-                fetch(SCRIPT_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ 
-                        device_token: localStorage.getItem('impact_device_token'), 
-                        action: "kds_station_ready", 
-                        token: token, 
-                        station: stationAlias 
-                    }) 
-                }); 
-                
-                showKDSToast("Waiter Alerted", `Pinged waiter to pick up ready items for Table ${tableNum}`, "bg-sky-500 text-white");
-                
-                const t = currentActiveTickets.find(ticket => ticket.token === token);
-                if (t && !t.status.includes(`${stationAlias}:Ready`)) {
-                    t.status += ` | ${stationAlias}:Ready`;
-                }
-            } catch(e) {}
-        }
+            try { 
+                fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ 
+                        device_token: localStorage.getItem('impact_device_token'), 
+                        action: "kds_station_ready", 
+                        token: token, 
+                        station: stationAlias 
+                    }) 
+                }); 
+                
+                showKDSToast("Waiter Alerted", `Pinged waiter to pick up ready items for Table ${tableNum}`, "bg-sky-500 text-white");
+                
+                const t = currentActiveTickets.find(ticket => ticket.token === token);
+                if (t && !t.status.includes(`${stationAlias}:Ready`)) {
+                    t.status += ` | ${stationAlias}:Ready`;
+                }
+            } catch(e) {}
+        }
 
         async function executeBump(token, tableNum, buttonElement) {
             const card = buttonElement.closest('.ticket-card');
