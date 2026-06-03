@@ -1370,31 +1370,51 @@ async function processStrikeQueue() {
             );
         }
 
-        // 🟢 DECOUPLED PREP SENDER: Adds " (Partial)" to prevent the ticket from vanishing!
-        function sendPrepPartialAlert(token, tableNum, stationName) {
-            if (isDemoMode) {
-                showKDSToast("Training", `${stationName} partial items sent for Table ${tableNum}! (Demo Mode)`, "bg-purple-600 text-white");
+        // 🟢 GLOBAL THROTTLE: Prevents Rage-Clicking and Waiter Alarm Fatigue
+        let partialPingCooldowns = {};
+        let partialPingCounts = {}; // Solves the "One Ping Only" trap
+
+        // 🟢 DECOUPLED PREP SENDER: Adds " (Partial)" to prevent the ticket from vanishing!
+        function sendPrepPartialAlert(token, tableNum, stationName) {
+            const cooldownKey = `${token}_${stationName}`;
+            const now = Date.now();
+            
+            // 🟢 SPAM FIREWALL: Enforce a strict 2-minute cooldown between partial pings
+            if (partialPingCooldowns[cooldownKey] && (now - partialPingCooldowns[cooldownKey]) < 120000) {
+                showKDSToast("Please Wait", `You recently pinged Expo for Table ${tableNum}. Give them a minute to clear the window!`, "bg-amber-500 text-white");
                 return;
             }
-            try { 
-                fetch(SCRIPT_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ 
-                        device_token: localStorage.getItem('impact_device_token'), 
-                        action: "kds_station_ready", 
-                        token: token, 
-                        station: stationName + " (Partial)" 
-                    }) 
-                }); 
-                showKDSToast("Items Sent", `Sent partial items to Expo for Table ${tableNum}`, "bg-blue-500 text-white");
-                
-                // Locally inject to prevent double-pinging
-                const t = currentActiveTickets.find(ticket => ticket.token === token);
-                if (t && !t.status.includes(`${stationName} (Partial):Ready`)) {
-                    t.status += ` | ${stationName} (Partial):Ready`;
-                }
-            } catch(e) {}
-        }
+            partialPingCooldowns[cooldownKey] = now; // Instantly lock the button out
+
+            // 🟢 ONE-PING TRAP FIX: Increment the station name so the backend accepts the second ping
+            partialPingCounts[cooldownKey] = (partialPingCounts[cooldownKey] || 0) + 1;
+            let pingCount = partialPingCounts[cooldownKey];
+            let stationAlias = pingCount === 1 ? `${stationName} (Partial)` : `${stationName} (Partial Pick-up ${pingCount})`;
+
+            if (isDemoMode) {
+                showKDSToast("Training", `${stationAlias} sent for Table ${tableNum}! (Demo Mode)`, "bg-purple-600 text-white");
+                return;
+            }
+
+            try { 
+                fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ 
+                        device_token: localStorage.getItem('impact_device_token'), 
+                        action: "kds_station_ready", 
+                        token: token, 
+                        station: stationAlias 
+                    }) 
+                }); 
+                showKDSToast("Items Sent", `Sent partial items to Expo for Table ${tableNum}`, "bg-blue-500 text-white");
+                
+                // Locally inject to prevent UI desync
+                const t = currentActiveTickets.find(ticket => ticket.token === token);
+                if (t && !t.status.includes(`${stationAlias}:Ready`)) {
+                    t.status += ` | ${stationAlias}:Ready`;
+                }
+            } catch(e) {}
+        }
 
         // 🟢 PREP STATION EXECUTION: Sends silent ping and clears the blue "Update" flag automatically
         function strikeStationItems(token, tableNum, stationName, btnElement) {
@@ -1468,30 +1488,44 @@ async function processStrikeQueue() {
         }
 
         // 🟢 NEW: Handles partial order alerts for Starters / Desserts
-        function sendPartialAlert(token, tableNum) {
-            // 🟢 DEMO MODE INTERCEPT: Prevent fake tickets from hitting the live server
-            if (isDemoMode) {
-                showKDSToast("Training", `Waiter pinged for Table ${tableNum}! (Demo Mode)`, "bg-purple-600 text-white");
+        function sendPartialAlert(token, tableNum) {
+            const cooldownKey = `${token}_Expo`;
+            const now = Date.now();
+            
+            // 🟢 SPAM FIREWALL: Enforce a strict 2-minute cooldown
+            if (partialPingCooldowns[cooldownKey] && (now - partialPingCooldowns[cooldownKey]) < 120000) {
+                showKDSToast("Please Wait", `You recently pinged the Waiter for Table ${tableNum}. Give them a minute to arrive!`, "bg-amber-500 text-white");
                 return;
             }
+            partialPingCooldowns[cooldownKey] = now; // Instantly lock the button out
 
-            try { 
-                fetch(SCRIPT_URL, { 
-                    method: 'POST', 
+            // 🟢 ONE-PING TRAP FIX: Send "Expo" the first time (triggers custom Waiter text), then "Expo (Pick-up 2)", etc.
+            partialPingCounts[cooldownKey] = (partialPingCounts[cooldownKey] || 0) + 1;
+            let pingCount = partialPingCounts[cooldownKey];
+            let stationAlias = pingCount === 1 ? "Expo" : `Expo (Pick-up ${pingCount})`;
+
+            // 🟢 DEMO MODE INTERCEPT
+            if (isDemoMode) {
+                showKDSToast("Training", `Waiter pinged for Table ${tableNum}! (Demo Mode)`, "bg-purple-600 text-white");
+                return;
+            }
+
+            try { 
+                fetch(SCRIPT_URL, { 
+                    method: 'POST', 
                     body: JSON.stringify({ 
                         device_token: localStorage.getItem('impact_device_token'), 
                         action: "kds_station_ready", 
                         token: token, 
-                        station: "Expo" // 🟢 Pseudonym: Sends a notification but bypasses the auto-bump firewall
+                        station: stationAlias 
                     }) 
                 }); 
                 
                 showKDSToast("Waiter Alerted", `Pinged waiter to pick up ready items for Table ${tableNum}`, "bg-sky-500 text-white");
                 
-                // 🟢 Locally inject the tag to prevent spamming the waiter
                 const t = currentActiveTickets.find(ticket => ticket.token === token);
-                if (t && !t.status.includes('Expo:Ready')) {
-                    t.status += ` | Expo:Ready`;
+                if (t && !t.status.includes(`${stationAlias}:Ready`)) {
+                    t.status += ` | ${stationAlias}:Ready`;
                 }
             } catch(e) {}
         }
@@ -1505,26 +1539,6 @@ async function processStrikeQueue() {
                 showKDSAlert("Cannot Bump Ticket", "You haven't checked off any items yet.");
                 return;
             }
-
-            if (struckItems < totalItems) {
-                // 🟢 ASYNCHRONOUS COURSE FIX: Allow partial pinging for Starters/Desserts
-                const premiumMessage = `
-                    <div class="text-gray-400 text-[13px] leading-relaxed mb-4">
-                        You have finished <b>${struckItems} out of ${totalItems}</b> items.<br><br>
-                        Do you want to ping the Waiter to pick up the ready courses while you finish the rest?
-                    </div>
-                `;
-                showKDSAlert(
-                    "Partial Order Ready?", 
-                    premiumMessage, 
-                    "info", 
-                    `
-                    <button onclick="closeKDSAlert()" class="w-1/2 py-3 bg-gray-800 text-gray-400 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:text-white hover:bg-gray-700 transition-colors">Cancel</button>
-                    <button onclick="sendPartialAlert('${token}', '${tableNum}'); closeKDSAlert();" class="w-1/2 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-colors shadow-[0_0_15px_rgba(2,132,199,0.4)]">Alert Waiter</button>
-                    `
-                );
-                return;
-            }
 
             if (struckItems < totalItems) {
                 // 🟢 ASYNCHRONOUS COURSE FIX: Allow partial pinging for Starters/Desserts
