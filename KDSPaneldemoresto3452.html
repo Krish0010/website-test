@@ -664,7 +664,6 @@
         }
 
         function closeKDSAlert() {
-            stopAlertSound(); // 🟢 UX FIX: Manually dismissing the alert window instantly kills all alarm loops
             const modal = document.getElementById('kds-alert-modal');
             const box = document.getElementById('kds-alert-box');
             modal.classList.add('opacity-0'); box.classList.remove('scale-100'); box.classList.add('scale-95');
@@ -792,13 +791,6 @@
                     // 🟢 OFFLINE RECOVERY: Clear the alert if we reconnected
                     if (isOfflineAlerted) {
                         isOfflineAlerted = false;
-                        
-                        // 🟢 KILL ALARM ENGINE: Instantly silence the loop once ping succeeds
-                        if (offlineAlarmInterval) {
-                            clearInterval(offlineAlarmInterval);
-                            offlineAlarmInterval = null;
-                        }
-
                         showKDSToast("Connection Restored", "The KDS is back online.", "bg-k-success text-white");
                         const alertModal = document.getElementById('kds-alert-modal');
                         if (alertModal && !alertModal.classList.contains('hidden') && document.getElementById('kds-alert-title').innerText === "System Offline") {
@@ -1496,7 +1488,7 @@ async function processStrikeQueue() {
         }
 
         // 🟢 NEW: Handles partial order alerts for Starters / Desserts
-        function sendPartialAlert(token, tableNum) {
+        function sendPartialAlert(token, tableNum) {
             const cooldownKey = `${token}_Expo`;
             const now = Date.now();
             
@@ -1507,37 +1499,36 @@ async function processStrikeQueue() {
             }
             partialPingCooldowns[cooldownKey] = now; // Instantly lock the button out
 
-            // 🟢 ONE-PING TRAP FIX: The Invisible Space Hack
-            // We append a number of trailing spaces equal to the ping count. 
-            // The backend sees it as a new event, but the Waiter UI .trim() strips the spaces and triggers the custom "Food Ready to Run" alert!
+            // 🟢 ONE-PING TRAP FIX: Send "Expo" the first time (triggers custom Waiter text), then "Expo (Pick-up 2)", etc.
             partialPingCounts[cooldownKey] = (partialPingCounts[cooldownKey] || 0) + 1;
-            let stationAlias = "Expo" + " ".repeat(partialPingCounts[cooldownKey]);
+            let pingCount = partialPingCounts[cooldownKey];
+            let stationAlias = pingCount === 1 ? "Expo" : `Expo (Pick-up ${pingCount})`;
 
-            // 🟢 DEMO MODE INTERCEPT
-            if (isDemoMode) {
-                showKDSToast("Training", `Waiter pinged for Table ${tableNum}! (Demo Mode)`, "bg-purple-600 text-white");
-                return;
-            }
+            // 🟢 DEMO MODE INTERCEPT
+            if (isDemoMode) {
+                showKDSToast("Training", `Waiter pinged for Table ${tableNum}! (Demo Mode)`, "bg-purple-600 text-white");
+                return;
+            }
 
-            try { 
-                fetch(SCRIPT_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ 
-                        device_token: localStorage.getItem('impact_device_token'), 
-                        action: "kds_station_ready", 
-                        token: token, 
-                        station: stationAlias 
-                    }) 
-                }); 
-                
-                showKDSToast("Waiter Alerted", `Pinged waiter to pick up ready items for Table ${tableNum}`, "bg-sky-500 text-white");
-                
-                const t = currentActiveTickets.find(ticket => ticket.token === token);
-                if (t && !t.status.includes(`${stationAlias}:Ready`)) {
-                    t.status += ` | ${stationAlias}:Ready`;
-                }
-            } catch(e) {}
-        }
+            try { 
+                fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ 
+                        device_token: localStorage.getItem('impact_device_token'), 
+                        action: "kds_station_ready", 
+                        token: token, 
+                        station: stationAlias 
+                    }) 
+                }); 
+                
+                showKDSToast("Waiter Alerted", `Pinged waiter to pick up ready items for Table ${tableNum}`, "bg-sky-500 text-white");
+                
+                const t = currentActiveTickets.find(ticket => ticket.token === token);
+                if (t && !t.status.includes(`${stationAlias}:Ready`)) {
+                    t.status += ` | ${stationAlias}:Ready`;
+                }
+            } catch(e) {}
+        }
 
         async function executeBump(token, tableNum, buttonElement) {
             const card = buttonElement.closest('.ticket-card');
@@ -1548,6 +1539,26 @@ async function processStrikeQueue() {
                 showKDSAlert("Cannot Bump Ticket", "You haven't checked off any items yet.");
                 return;
             }
+
+            if (struckItems < totalItems) {
+                // 🟢 ASYNCHRONOUS COURSE FIX: Allow partial pinging for Starters/Desserts
+                const premiumMessage = `
+                    <div class="text-gray-400 text-[13px] leading-relaxed mb-4">
+                        You have finished <b>${struckItems} out of ${totalItems}</b> items.<br><br>
+                        Do you want to ping the Waiter to pick up the ready courses while you finish the rest?
+                    </div>
+                `;
+                showKDSAlert(
+                    "Partial Order Ready?", 
+                    premiumMessage, 
+                    "info", 
+                    `
+                    <button onclick="closeKDSAlert()" class="w-1/2 py-3 bg-gray-800 text-gray-400 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:text-white hover:bg-gray-700 transition-colors">Cancel</button>
+                    <button onclick="sendPartialAlert('${token}', '${tableNum}'); closeKDSAlert();" class="w-1/2 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-colors shadow-[0_0_15px_rgba(2,132,199,0.4)]">Alert Waiter</button>
+                    `
+                );
+                return;
+            }
 
             if (struckItems < totalItems) {
                 // 🟢 ASYNCHRONOUS COURSE FIX: Allow partial pinging for Starters/Desserts
@@ -1761,58 +1772,42 @@ async function processStrikeQueue() {
                 const now = globalAudioCtx.currentTime; playTone(1046.50, now, 0.15, 0.4); playTone(1318.51, now + 0.15, 0.15, 0.4); playTone(1567.98, now + 0.3, 0.3, 0.4); 
             } catch(e) {}
         }
-        // 🟢 SRE ALARM ENGINE: Continuous track loop for network disconnect state
-        let offlineAlarmInterval = null;
-
         function playOfflineSound() {
             if (!globalAudioCtx || isAudioMuted) return; 
-            
-            // Clear any lingering instances to prevent memory stacking
-            if (offlineAlarmInterval) clearInterval(offlineAlarmInterval);
-
-            const triggerOfflineBuzz = () => {
-                try {
-                    if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
-                    const playTone = (freq, type, startTime, duration) => {
-                        const osc = globalAudioCtx.createOscillator(); 
-                        const gain = globalAudioCtx.createGain();
-                        osc.type = type; 
-                        osc.frequency.setValueAtTime(freq, startTime);
-                        gain.gain.setValueAtTime(0, startTime); 
-                        gain.gain.linearRampToValueAtTime(0.5, startTime + 0.1); 
-                        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-                        osc.connect(gain); 
-                        gain.connect(globalAudioCtx.destination); 
-                        osc.start(startTime); 
-                        osc.stop(startTime + duration);
-                    };
-                    const now = globalAudioCtx.currentTime; 
-                    playTone(250, 'sawtooth', now, 0.4); 
-                    playTone(200, 'sawtooth', now + 0.5, 0.6); 
-                } catch(e) {}
-            };
-
-            triggerOfflineBuzz();
-            offlineAlarmInterval = setInterval(triggerOfflineBuzz, 2500); // Buzzes every 2.5s
+            try {
+                if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
+                const playTone = (freq, type, startTime, duration) => {
+                    const osc = globalAudioCtx.createOscillator(); 
+                    const gain = globalAudioCtx.createGain();
+                    osc.type = type; 
+                    osc.frequency.setValueAtTime(freq, startTime);
+                    gain.gain.setValueAtTime(0, startTime); 
+                    gain.gain.linearRampToValueAtTime(0.5, startTime + 0.1); 
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+                    osc.connect(gain); 
+                    gain.connect(globalAudioCtx.destination); 
+                    osc.start(startTime); 
+                    osc.stop(startTime + duration);
+                };
+                const now = globalAudioCtx.currentTime; 
+                // A jarring, dissonant double-buzz for critical error
+                playTone(250, 'sawtooth', now, 0.4); 
+                playTone(200, 'sawtooth', now + 0.5, 0.6); 
+            } catch(e) {}
         }
         function stopAlertSound(e) {
             // 🟢 MUTE-SLAP DEFENSE: If the alarm is actively ringing, we kill the click event.
             // This guarantees the chef can slap the screen anywhere to mute the alarm 
             // without accidentally crossing off a dish or pressing a button underneath!
-            const isRinging = activeAlarm || offlineAlarmInterval;
-
-            if (isRinging && e && typeof e.stopPropagation === 'function') {
+            if (activeAlarm && e && typeof e.stopPropagation === 'function') {
                 e.stopPropagation();
                 e.preventDefault();
             }
 
             if (activeAlarm) clearInterval(activeAlarm);
             if (alarmTimeout) clearTimeout(alarmTimeout);
-            if (offlineAlarmInterval) clearInterval(offlineAlarmInterval); // Kill offline loop
-            
             activeAlarm = null;
             alarmTimeout = null;
-            offlineAlarmInterval = null;
             
             document.body.removeEventListener('click', stopAlertSound, { capture: true });
             document.body.removeEventListener('touchstart', stopAlertSound, { capture: true });
