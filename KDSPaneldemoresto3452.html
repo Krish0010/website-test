@@ -753,13 +753,7 @@
                 updateTimers();
                 
                 // 🟢 LIVE COUNTDOWN FIX: Keep the Pause/Resume button ticking down accurately every second
-                if (typeof currentSOSExpiry !== 'undefined' && currentSOSExpiry) {
-                    if (parseInt(currentSOSExpiry) > Date.now()) {
-                        updateSOSUI(currentSOSExpiry);
-                    } else {
-                        updateSOSUI(null); // Time expired, reset back to Pause
-                    }
-                }
+                updateSOSUI(null); // Passing null forces it to evaluate the local storage timer
             }, 1000);
         }
 
@@ -1936,21 +1930,29 @@ async function processStrikeQueue() {
         }
 
         // --- KITCHEN SOS LOGIC ---
-        let currentSOSExpiry = null; // 🟢 FIX: Declare globally
+        function updateSOSUI(serverExpiry) {
+            // 🟢 LOCAL OVERRIDE FIX: The tablet's local memory is the ultimate source of truth
+            let localExpiry = localStorage.getItem('local_sos_expiry');
+            let activeExpiry = null;
 
-        function updateSOSUI(expiryString) {
-            // 🟢 SERVER CACHE OVERRIDE: Prevent outdated cache from wiping out the active timer
-            if (!expiryString && currentSOSExpiry && parseInt(currentSOSExpiry) > Date.now()) {
-                expiryString = currentSOSExpiry;
+            if (localExpiry === '0') {
+                activeExpiry = null; // Explicitly killed by the chef
+            } else if (localExpiry && parseInt(localExpiry) > Date.now()) {
+                activeExpiry = localExpiry; // Local timer is actively running
+            } else if (serverExpiry && parseInt(serverExpiry) > Date.now()) {
+                activeExpiry = serverExpiry; // Server says a timer is running (from another tablet)
+                localStorage.setItem('local_sos_expiry', activeExpiry); // Sync it locally
+            } else {
+                localStorage.removeItem('local_sos_expiry'); // Timer expired
             }
 
-            currentSOSExpiry = expiryString;
+            currentSOSExpiry = activeExpiry;
             const btn = document.getElementById('kds-sos-btn');
             const txt = document.getElementById('sos-btn-text');
             if (!btn || !txt) return;
 
-            if (expiryString && parseInt(expiryString) > Date.now()) {
-                const mins = Math.ceil((parseInt(expiryString) - Date.now()) / 60000);
+            if (activeExpiry) {
+                const mins = Math.ceil((parseInt(activeExpiry) - Date.now()) / 60000);
                 
                 // 🟢 UX FIX: Changed text to "RESUME" so the chef clearly understands how to undo it
                 btn.className = "hidden sm:flex bg-red-600 text-white border border-red-500 px-3 sm:px-4 py-2 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(239,68,68,0.6)] animate-pulse items-center gap-1.5";
@@ -2007,25 +2009,45 @@ async function processStrikeQueue() {
 
         async function executeSOS(minutes) {
             closeSOSModal();
+            
+            // 🟢 LOCAL STATE FIX: Instantly apply locally to survive network latency and ghost caches
+            const newExpiry = minutes > 0 ? (Date.now() + (minutes * 60000)).toString() : null;
+            if (newExpiry) localStorage.setItem('local_sos_expiry', newExpiry);
+            else localStorage.setItem('local_sos_expiry', '0'); // Explicit kill
+            
+            updateSOSUI(newExpiry);
+
             // 🟢 MOCK API: Simulate SOS in Demo Mode!
             if (isDemoMode) {
-                const expiry = Date.now() + (minutes * 60000);
-                updateSOSUI(expiry.toString());
-                showKDSToast("Training", `Kitchen paused for ${minutes} mins in Demo Mode.`, "bg-red-600 text-white");
+                showKDSToast("Training", `Kitchen ${minutes > 0 ? 'paused' : 'resumed'} in Demo Mode.`, minutes > 0 ? "bg-red-600 text-white" : "bg-green-600 text-white");
                 return;
             }
 
             try {
+                // 1. Update the Server SOS Cache
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ device_token: localStorage.getItem('impact_device_token'), action: "kds_toggle_sos", duration: minutes }) });
                 const data = await response.json();
+                
+                // 2. 🟢 FORCE KDS CACHE WIPE: If there is an active ticket, use it to trigger a silent cache clear
+                // This forces *other* tablets in the kitchen to see the Pause/Resume instantly!
+                if (currentActiveTickets.length > 0) {
+                    fetch(SCRIPT_URL, { 
+                        method: 'POST', 
+                        body: JSON.stringify({ 
+                            device_token: localStorage.getItem('impact_device_token'), 
+                            action: "kds_station_unready", 
+                            token: currentActiveTickets[0].token, 
+                            station: "CacheBypass_Ignore" 
+                        }) 
+                    });
+                }
+                
                 if (data.success) {
-                    // 🟢 BACKEND CACHE BYPASS FIX: Force Google Apps Script to wipe its KDS cache so ALL tablets instantly see the Pause!
-                    fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_toggle_stock", dishName: "CacheBypass_Ignore", newStatus: "Yes", device_token: localStorage.getItem('impact_device_token') }) });
-
-                    updateSOSUI(data.sosExpiry);
                     showKDSToast("SOS Updated", data.message, minutes > 0 ? "bg-red-600 text-white" : "bg-green-600 text-white");
                 }
-            } catch(e) { showKDSAlert("Network Error", "Unable to update SOS. Check connection.", "error"); }
+            } catch(e) { 
+                showKDSAlert("Network Error", "Unable to update SOS on other tablets. Check connection.", "error"); 
+            }
         }
 
         // --- PACE ENGINE MODAL LOGIC ---
