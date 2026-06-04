@@ -751,6 +751,15 @@
                 const now = new Date();
                 document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour12: false });
                 updateTimers();
+                
+                // 🟢 LIVE COUNTDOWN FIX: Keep the Pause/Resume button ticking down accurately every second
+                if (typeof currentSOSExpiry !== 'undefined' && currentSOSExpiry) {
+                    if (parseInt(currentSOSExpiry) > Date.now()) {
+                        updateSOSUI(currentSOSExpiry);
+                    } else {
+                        updateSOSUI(null); // Time expired, reset back to Pause
+                    }
+                }
             }, 1000);
         }
 
@@ -1927,7 +1936,14 @@ async function processStrikeQueue() {
         }
 
         // --- KITCHEN SOS LOGIC ---
+        let currentSOSExpiry = null; // 🟢 FIX: Declare globally
+
         function updateSOSUI(expiryString) {
+            // 🟢 SERVER CACHE OVERRIDE: Prevent outdated cache from wiping out the active timer
+            if (!expiryString && currentSOSExpiry && parseInt(currentSOSExpiry) > Date.now()) {
+                expiryString = currentSOSExpiry;
+            }
+
             currentSOSExpiry = expiryString;
             const btn = document.getElementById('kds-sos-btn');
             const txt = document.getElementById('sos-btn-text');
@@ -1935,9 +1951,13 @@ async function processStrikeQueue() {
 
             if (expiryString && parseInt(expiryString) > Date.now()) {
                 const mins = Math.ceil((parseInt(expiryString) - Date.now()) / 60000);
+                
+                // 🟢 UX FIX: Changed text to "RESUME" so the chef clearly understands how to undo it
                 btn.className = "hidden sm:flex bg-red-600 text-white border border-red-500 px-3 sm:px-4 py-2 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(239,68,68,0.6)] animate-pulse items-center gap-1.5";
-                txt.innerText = `PAUSED (${mins}m)`;
-                btn.onclick = () => executeSOS(0); 
+                txt.innerText = `RESUME (${mins}m)`;
+                
+                // Add a confirmation to prevent accidental resumes
+                btn.onclick = () => { if(confirm("Are you sure you want to Resume the Kitchen?")) executeSOS(0); }; 
             } else {
                 btn.className = "hidden sm:flex bg-red-900/40 text-red-500 border border-red-500/50 hover:bg-red-600 hover:text-white px-3 sm:px-4 py-2 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all shadow-sm items-center gap-1.5";
                 txt.innerText = "Pause";
@@ -1999,6 +2019,9 @@ async function processStrikeQueue() {
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ device_token: localStorage.getItem('impact_device_token'), action: "kds_toggle_sos", duration: minutes }) });
                 const data = await response.json();
                 if (data.success) {
+                    // 🟢 BACKEND CACHE BYPASS FIX: Force Google Apps Script to wipe its KDS cache so ALL tablets instantly see the Pause!
+                    fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_toggle_stock", dishName: "CacheBypass_Ignore", newStatus: "Yes", device_token: localStorage.getItem('impact_device_token') }) });
+
                     updateSOSUI(data.sosExpiry);
                     showKDSToast("SOS Updated", data.message, minutes > 0 ? "bg-red-600 text-white" : "bg-green-600 text-white");
                 }
