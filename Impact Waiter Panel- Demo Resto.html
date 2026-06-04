@@ -77,7 +77,12 @@
 </head>
 <body class="flex flex-col h-[100dvh] w-screen max-h-[100dvh]">
 
-    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[1000] flex flex-col gap-2 pointer-events-none w-[90%] max-w-sm"></div>
+   <div id="toast-wrapper" class="fixed top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-6 z-[1000] flex flex-col items-center sm:items-end gap-2 pointer-events-none w-[95%] sm:w-96 max-h-[90vh] overflow-visible">
+        <button id="clear-all-toasts-btn" onclick="clearAllToasts()" class="hidden pointer-events-auto bg-white/95 backdrop-blur-md text-gray-800 border border-gray-200 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:bg-gray-50 hover:text-red-500 transition-all active:scale-95 mb-1 z-50">
+            Clear All Alerts <span id="toast-count-badge" class="ml-1.5 bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md text-[10px]">0</span>
+        </button>
+        <div id="toast-container" class="flex flex-col gap-3 w-full items-center sm:items-end pointer-events-none pb-4"></div>
+    </div>
 
     <header class="bg-w-card border-b border-w-border px-4 py-3 sm:py-4 flex justify-between items-center shadow-sm shrink-0 z-40">
         <div class="flex items-center gap-3">
@@ -1549,37 +1554,82 @@
             }
         }
 
-        // --- 🟢 TOAST NOTIFICATION LOGIC ---
+        // --- 🟢 PREMIUM TOAST NOTIFICATION LOGIC ---
+        function clearAllToasts() {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toasts = Array.from(container.children);
+            toasts.forEach(toast => {
+                toast.classList.remove('translate-y-0', 'sm:translate-x-0', 'opacity-100', 'scale-100');
+                toast.classList.add('opacity-0', 'scale-95'); // Smooth fade out
+            });
+            setTimeout(() => { 
+                container.innerHTML = ''; 
+                updateClearAllButton(); 
+            }, 300);
+        }
+
+        function updateClearAllButton() {
+            const container = document.getElementById('toast-container');
+            const btn = document.getElementById('clear-all-toasts-btn');
+            const badge = document.getElementById('toast-count-badge');
+            if (container && btn && badge) {
+                const count = container.children.length;
+                badge.innerText = count;
+                if (count > 2) {
+                    btn.classList.remove('hidden');
+                } else {
+                    btn.classList.add('hidden');
+                }
+            }
+        }
+
         function showToastNotification(title, message) {
             const container = document.getElementById('toast-container');
+            if(!container) return;
+
+            // 🟢 PREMIUM UI: Auto-detect "Table X" and wrap it in a branded blue badge
+            const formattedMessage = message.replace(/(Table\s*)(\d+|[A-Za-z]+)/gi, 
+                '<span class="inline-flex items-center justify-center px-2 py-0.5 mx-0.5 text-[11px] font-black text-white bg-w-accent rounded border border-blue-400 shadow-sm shadow-blue-500/20 uppercase tracking-wider">$1$2</span>'
+            );
+
             const toast = document.createElement('div');
-            toast.className = "bg-gray-900 border border-gray-700 shadow-2xl rounded-2xl p-4 flex items-center gap-4 transform translate-y-[-100%] opacity-0 transition-all duration-500 ease-out pointer-events-auto";
+            // Premium Glassmorphic UI with smooth slide-in
+            toast.className = "pointer-events-auto w-full max-w-sm bg-white/95 backdrop-blur-xl border border-gray-100 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.15)] rounded-2xl p-4 flex items-start gap-3.5 transform translate-y-[-20px] sm:translate-y-0 sm:translate-x-[120%] opacity-0 scale-95 transition-all duration-500 ease-out";
             
             toast.innerHTML = `
-                <div class="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center shrink-0 border border-green-500/30">
-                    <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shrink-0 shadow-lg shadow-green-500/30 border border-green-300">
+                    <svg class="w-6 h-6 text-white drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
                 </div>
-                <div class="flex flex-col flex-1">
-                    <span class="text-white font-black text-sm uppercase tracking-widest leading-tight">${title}</span>
-                    <span class="text-gray-400 text-xs font-bold mt-0.5">${message}</span>
+                <div class="flex flex-col flex-1 min-w-0 pt-0.5">
+                    <span class="text-gray-900 font-black text-xs uppercase tracking-widest leading-tight truncate">${title}</span>
+                    <span class="text-gray-600 text-xs font-semibold mt-1.5 leading-snug">${formattedMessage}</span>
                 </div>
-                <button onclick="this.parentElement.remove()" class="text-gray-500 hover:text-white p-2">✕</button>
+                <button onclick="this.closest('.pointer-events-auto').remove(); updateClearAllButton();" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors shrink-0 -mr-2 -mt-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
             `;
             
             container.appendChild(toast);
+            updateClearAllButton();
             
-            // Animate in
-            setTimeout(() => {
-                toast.classList.remove('translate-y-[-100%]', 'opacity-0');
-                toast.classList.add('translate-y-0', 'opacity-100');
-            }, 10);
+            // Animate in (Desktop slides from right, Mobile slides down from top)
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-[-20px]', 'sm:translate-x-[120%]', 'opacity-0', 'scale-95');
+                toast.classList.add('translate-y-0', 'sm:translate-x-0', 'opacity-100', 'scale-100');
+            });
 
-            // Auto-remove after 6 seconds
+            // Auto-remove after 8 seconds (slightly longer to allow reading)
             setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-[-100%]', 'opacity-0');
-                setTimeout(() => { if (toast.parentNode) toast.remove(); }, 500);
-            }, 6000);
+                if (toast.parentNode) {
+                    toast.classList.remove('translate-y-0', 'sm:translate-x-0', 'opacity-100', 'scale-100');
+                    toast.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => { 
+                        if (toast.parentNode) toast.remove(); 
+                        updateClearAllButton();
+                    }, 500);
+                }
+            }, 8000);
         }
 
         // --- 🟢 MENU & STOCK FILTERS ---
@@ -2294,7 +2344,8 @@
                                             
                                             // Extract the specific Pick-up number so the Waiter knows it's a new wave of food
                                             const pickupMatch = stationName.match(/Pick-up \d+/i);
-                                            const pickupText = pickupMatch ? ` <span class="font-black text-amber-300">(${pickupMatch[0]})</span>` : "";
+                                            // 🟢 UX FIX: Removed the yellow text. Now matching the professional brand accent!
+                                            const pickupText = pickupMatch ? ` <span class="text-w-accent font-black">(${pickupMatch[0]})</span>` : "";
                                             
                                             alertMessage = `A partial order is ready for pickup at the window for ${t.table}${pickupText}.`;
                                         }
