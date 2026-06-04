@@ -101,14 +101,19 @@
         </div>
     </header>
     
-    <div id="notif-history-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[700] hidden flex-col justify-end">
-        <div class="bg-white w-full md:w-96 md:absolute md:right-4 md:top-20 h-[70vh] md:h-[60vh] rounded-t-[32px] md:rounded-[24px] shadow-2xl flex flex-col animate-[slideUp_0.3s_ease-out]">
-            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 rounded-t-[32px] shrink-0">
-                <h3 class="font-black text-lg tracking-tight text-gray-900">Alert History</h3>
-                <button onclick="toggleNotificationHistory()" class="w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-500 font-bold hover:bg-gray-100 shadow-sm">✕</button>
+    <div id="notif-history-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[700] hidden flex-col justify-end md:justify-start">
+        <!-- 🟢 ELITE UI: Dark Glass styling and 'overflow-hidden' applied to permanently fix the corner bleed bug -->
+        <div class="bg-gray-900/80 backdrop-blur-3xl border border-white/10 w-full md:w-96 md:absolute md:right-6 md:top-24 h-[75vh] md:h-[65vh] rounded-t-[32px] md:rounded-[24px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col animate-[slideUp_0.3s_ease-out] overflow-hidden">
+            <div class="p-5 border-b border-white/10 flex justify-between items-center bg-white/5 shrink-0">
+                <h3 class="font-black text-lg tracking-tight text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"></path></svg>
+                    Alert History
+                </h3>
+                <button onclick="toggleNotificationHistory()" class="w-8 h-8 bg-white/10 border border-white/10 rounded-full flex items-center justify-center text-gray-300 font-bold hover:bg-white/20 hover:text-white shadow-sm transition-colors active:scale-95">✕</button>
             </div>
-            <div id="notif-history-list" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/30">
-                <p class="text-center text-gray-400 font-bold text-sm py-8">No recent alerts.</p>
+            <!-- Custom transparent scrollbar injected for elegance -->
+            <div id="notif-history-list" class="flex-1 overflow-y-auto p-4 space-y-3 bg-transparent" style="scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent;">
+                <p class="text-center text-gray-500 font-bold text-sm py-8">No recent alerts.</p>
             </div>
         </div>
     </div>
@@ -554,23 +559,37 @@
         }
 
         function logNotification(title, message, customTime = null) {
-            // 🟢 UX FIX: Uses the exact kitchen alert timestamp if provided by the backend!
             const time = customTime ? customTime : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            notificationHistory.unshift({ title, message, time });
-            if (notificationHistory.length > 10) notificationHistory.pop(); // Keep only last 10
+            
+            // 🟢 ELITE UI: Apply the exact same dynamic table color hashing used in live toasts
+            const formattedMessage = message.replace(/(Table\s*)(\d+|[A-Za-z]+)/gi, (match, p1, p2) => {
+                const colorClass = typeof getTableColorClass === 'function' ? getTableColorClass(p2) : 'bg-w-accent border-blue-400';
+                return `<span class="inline-flex items-center justify-center px-1.5 py-0.5 mx-0.5 text-[10px] sm:text-[11px] font-black text-white ${colorClass} rounded-md border uppercase tracking-wider">${p1}${p2}</span>`;
+            });
+
+            // Prevent UI duplication by safely logging the raw text, but rendering the formatted text
+            notificationHistory.unshift({ title, rawMessage: message, displayMessage: formattedMessage, time });
+            
+            // Increased history log to 20 to account for higher volume
+            if (notificationHistory.length > 20) notificationHistory.pop(); 
             
             document.getElementById('notif-badge').classList.remove('hidden'); // Show red dot
             
             const list = document.getElementById('notif-history-list');
-            list.innerHTML = notificationHistory.map(n => `
-                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-                    <div class="flex justify-between items-start mb-1">
-                        <span class="font-black text-[11px] uppercase tracking-widest text-w-accent">${n.title}</span>
-                        <span class="text-[9px] text-gray-400 font-bold">${n.time}</span>
+            if (list) {
+                list.innerHTML = notificationHistory.map(n => `
+                    <div class="bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl p-4 shadow-sm transition-colors">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="font-black text-[10.5px] uppercase tracking-widest text-gray-100 flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-emerald-400 drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                                ${n.title}
+                            </span>
+                            <span class="text-[9px] text-gray-300 font-bold bg-black/30 px-2 py-0.5 rounded-md border border-white/10 shadow-inner">${n.time}</span>
+                        </div>
+                        <p class="text-xs text-gray-300 font-medium leading-relaxed">${n.displayMessage}</p>
                     </div>
-                    <p class="text-xs text-gray-600 font-medium">${n.message}</p>
-                </div>
-            `).join('');
+                `).join('');
+            }
         }
 
         function toggleNotificationHistory() {
