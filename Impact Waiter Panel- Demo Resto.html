@@ -948,7 +948,15 @@
 
                     currentOrderStatus = data.status || "Pending";
                     originalTicketState = JSON.stringify(activeTicket);
-                    currentTicketTimestamp = data.timestamp || null; 
+                    
+                    // 🟢 NaN BUG FIX: Translate the Google Sheets text string into strict mathematical milliseconds
+                    if (data.timestamp) {
+                        currentTicketTimestamp = new Date(data.timestamp).getTime();
+                        // Fallback just in case the date string is entirely broken
+                        if (isNaN(currentTicketTimestamp)) currentTicketTimestamp = Date.now(); 
+                    } else {
+                        currentTicketTimestamp = null;
+                    }
 
                     let assignedTable = "";
                     const fireNextBtn = document.getElementById('fire-next-btn');
