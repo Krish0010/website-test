@@ -177,12 +177,22 @@
         <div class="bg-w-card p-4 sm:p-5 border-b border-w-border shadow-sm shrink-0 flex flex-col gap-4 z-10 relative">
             <div class="flex items-center justify-between">
                 <div class="flex flex-col">
-                    <p class="text-[10px] uppercase font-bold tracking-widest text-gray-400 mb-0.5">Active Token</p>
+                    <div class="flex items-center gap-2 mb-0.5">
+                        <p class="text-[10px] uppercase font-bold tracking-widest text-gray-400">Active Token</p>
+                        <!-- 🟢 UX FIX: Live Elapsed Timer -->
+                        <span id="ticket-elapsed-timer" class="hidden bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-[9px] font-black tracking-widest shadow-inner"></span>
+                    </div>
                     <span id="active-token-display" class="font-mono font-black text-2xl sm:text-3xl text-w-accent leading-none">#----</span>
                 </div>
-                <button onclick="requestCloseTicket()" class="w-10 h-10 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors shrink-0 shadow-inner">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
+                <div class="flex items-center gap-2">
+                    <!-- 🟢 UX FIX: Manual Refresh Button -->
+                    <button id="refresh-ticket-btn" onclick="refreshCurrentTicket()" class="w-10 h-10 bg-sky-50 text-w-accent rounded-full flex items-center justify-center hover:bg-sky-100 transition-colors shrink-0 shadow-sm border border-sky-100" title="Refresh Ticket">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"></path></svg>
+                    </button>
+                    <button onclick="requestCloseTicket()" class="w-10 h-10 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors shrink-0 shadow-inner">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
             </div>
             
             <div class="w-full bg-gray-50 rounded-2xl p-1.5 flex items-center border border-gray-200 shadow-inner transition-all">
@@ -743,6 +753,21 @@
             setInterval(() => {
                 const now = new Date();
                 document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                // 🟢 UX FIX: Live Ticket Timer
+                const timerSpan = document.getElementById('ticket-elapsed-timer');
+                if (timerSpan && currentTicketTimestamp && (currentOrderStatus.includes("LOCKED") || currentOrderStatus.includes("FIRE NEXT") || currentOrderStatus.includes("READY"))) {
+                    const diffSecs = Math.floor((Date.now() - currentTicketTimestamp) / 1000);
+                    const mins = Math.floor(diffSecs / 60);
+                    timerSpan.innerText = `${mins}m ago`;
+                    timerSpan.classList.remove('hidden');
+                    
+                    if (mins > 15) timerSpan.className = "bg-red-100 text-red-600 px-2 py-0.5 rounded text-[9px] font-black tracking-widest shadow-inner border border-red-200";
+                    else if (mins > 10) timerSpan.className = "bg-amber-100 text-amber-600 px-2 py-0.5 rounded text-[9px] font-black tracking-widest shadow-inner border border-amber-200";
+                    else timerSpan.className = "bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-[9px] font-black tracking-widest shadow-inner border border-gray-200";
+                } else if (timerSpan) {
+                    timerSpan.classList.add('hidden');
+                }
             }, 1000);
 
             
@@ -811,6 +836,7 @@
             activeTicket = [];
             currentOrderStatus = "Pending";
             originalTicketState = "[]";
+            currentTicketTimestamp = null;
             
             // Clear table selection to prompt the waiter
             document.getElementById('table-select').value = ""; 
@@ -839,7 +865,26 @@
             }
         }
 
-        async function fetchOrder() {
+        let currentTicketTimestamp = null; // 🟢 UX: Tracks order age
+        
+        // 🟢 MANUAL REFRESH LOGIC
+        async function refreshCurrentTicket() {
+            const btn = document.getElementById('refresh-ticket-btn');
+            if (btn) {
+                btn.innerHTML = `<div class="w-5 h-5 border-[3px] border-w-accent border-t-transparent rounded-full animate-spin"></div>`;
+                btn.disabled = true;
+            }
+            
+            // Re-fetch the order using the existing token quietly
+            await fetchOrder(true);
+            
+            if (btn) {
+                btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"></path></svg>`;
+                btn.disabled = false;
+            }
+        }
+
+        async function fetchOrder(isSilentRefresh = false) {
             syncMenuBackground(); 
             
             // 🟢 UX FIX: Allow 4-digit Smart Orders OR 6-character Walk-In tokens (W-XXXX)
@@ -847,20 +892,21 @@
             const isValidWalkIn = currentInput.startsWith('W-') && currentInput.length === 6;
             
             if (!isValidSmartOrder && !isValidWalkIn) { 
-                showPosAlert("Invalid Token", "Please enter a complete 4-digit code or a valid Walk-In token.", "warning"); 
+                if(!isSilentRefresh) showPosAlert("Invalid Token", "Please enter a complete 4-digit code or a valid Walk-In token.", "warning"); 
                 return; 
             }
             
             const fetchBtn = document.getElementById('fetch-btn');
-            fetchBtn.innerHTML = `<div class="w-7 h-7 border-4 border-white border-t-transparent rounded-full animate-spin"></div>`;
+            if (!isSilentRefresh && fetchBtn) fetchBtn.innerHTML = `<div class="w-7 h-7 border-4 border-white border-t-transparent rounded-full animate-spin"></div>`;
 
             try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_fetch", token: currentInput, device_token: localStorage.getItem('impact_device_token') }) });
+                // 🟢 CACHE-BUSTER FIX: Force live data when fetching an individual ticket
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_fetch", token: currentInput, device_token: localStorage.getItem('impact_device_token'), _t: Date.now() }) });
                 const data = await response.json();
-                fetchBtn.innerHTML = `<svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg>`;
+                if (!isSilentRefresh && fetchBtn) fetchBtn.innerHTML = `<svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg>`;
 
                 if(data.success) {
-                    if(data.status && !data.status.includes("Pending")) {
+                    if(!isSilentRefresh && data.status && !data.status.includes("Pending")) {
                         showPosAlert("Order Already Fired", "This order was already locked and sent to the kitchen.", "warning");
                     }
                     
@@ -895,6 +941,7 @@
                     // 🟢 Save snapshots to detect mid-meal edits
                     currentOrderStatus = data.status || "Pending";
                     originalTicketState = JSON.stringify(activeTicket);
+                    currentTicketTimestamp = data.timestamp || null; // Capture creation time for Live Timer
 
                     let assignedTable = "";
                     const fireNextBtn = document.getElementById('fire-next-btn');
@@ -1082,6 +1129,7 @@
             document.getElementById('view-numpad').classList.add('flex');
             clearNumpad();
             activeTicket = [];
+            currentTicketTimestamp = null;
             localStorage.removeItem('waiter_draft'); // 🟢 Ticket closed manually, clear draft
         }
 
@@ -1139,11 +1187,47 @@
         function renderTicket() {
             const container = document.getElementById('order-items-container');
             container.innerHTML = "";
-            let subtotalCents = 0; // 🟢 FIX: FLOATING-POINT CORRUPTION
+            let subtotalCents = 0; 
             let totalItemsCount = 0;
 
             if (activeTicket.length === 0) {
-                container.innerHTML = `<div class="flex-1 flex flex-col items-center justify-center text-gray-400 mt-10"><svg class="w-16 h-16 mb-3 text-gray-200" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"></path></svg><p class="font-bold text-sm tracking-wide">Ticket is empty</p></div>`;
+                container.innerHTML = `<div class="flex-1 flex flex-col items-center justify-center text-gray-400 mt-10"><svg class="w-16 h-16 mb-3 text-gray-200" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"></path></svg><p class="font-bold text-sm tracking-wide">Ticket is empty</p></div>`;
+            } else {
+                // 🟢 UX FIX: Inject Dynamic Station-Level Status Board
+                const isOrderLocked = currentOrderStatus.includes("LOCKED") || currentOrderStatus.includes("FIRE NEXT") || currentOrderStatus.includes("READY");
+                
+                if (isOrderLocked) {
+                    // Extract exactly which stations are cooking this specific order
+                    const uniqueCategories = [...new Set(activeTicket.map(i => {
+                        const menuMatch = cachedMenu.find(m => String(m.name || '').toLowerCase() === String(i.name || '').toLowerCase());
+                        return menuMatch ? menuMatch.category : "Kitchen";
+                    }))];
+
+                    if (uniqueCategories.length > 0) {
+                        let stationStatusHTML = `<div class="w-full flex flex-wrap gap-2 pb-2 mb-1 border-b border-gray-200 shrink-0">`;
+                        
+                        uniqueCategories.forEach(cat => {
+                            const isCatReady = currentOrderStatus.toLowerCase().includes(`${cat.toLowerCase()}:ready`) || currentOrderStatus.includes("- READY");
+                            if (isCatReady) {
+                                stationStatusHTML += `<span class="bg-green-50 text-green-700 border border-green-200 text-[9px] font-black px-2 py-1 rounded-md uppercase tracking-widest flex items-center gap-1 shadow-sm"><svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg> ${cat} Ready</span>`;
+                            } else {
+                                stationStatusHTML += `<span class="bg-amber-50 text-amber-600 border border-amber-200 text-[9px] font-black px-2 py-1 rounded-md uppercase tracking-widest flex items-center gap-1 shadow-sm"><svg class="w-3 h-3 animate-spin" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> ${cat} Cooking</span>`;
+                            }
+                        });
+                        
+                        // 🟢 EXPO PARSER: Extract and display dynamic Expo pickups
+                        const expoMatches = currentOrderStatus.match(/Expo[^:]*:Ready/gi);
+                        if (expoMatches) {
+                            expoMatches.forEach(match => {
+                                const cleanMatch = match.replace(/:Ready/gi, '').trim();
+                                stationStatusHTML += `<span class="bg-sky-50 text-w-accent border border-sky-200 text-[9px] font-black px-2 py-1 rounded-md uppercase tracking-widest flex items-center gap-1 shadow-sm"><svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg> ${cleanMatch}</span>`;
+                            });
+                        }
+                        
+                        stationStatusHTML += `</div>`;
+                        container.innerHTML += stationStatusHTML;
+                    }
+                }
             }
 
             activeTicket.forEach((item) => {
@@ -1168,11 +1252,18 @@
                 const hasNote = item.note && item.note.trim() !== "";
                 const isLocked = item.isLocked === true;
                 
-                // 🟢 UX: If the item is locked, remove edit controls and gray it out slightly
+                let lockedPacingBadge = "";
+                if (item.course === 'first') lockedPacingBadge = `<span class="bg-amber-100 text-amber-700 border border-amber-200 text-[9px] font-black px-2 py-1 rounded-md uppercase tracking-widest shadow-sm ml-2">1st / ASAP</span>`;
+                if (item.course === 'last') lockedPacingBadge = `<span class="bg-purple-100 text-purple-700 border border-purple-200 text-[9px] font-black px-2 py-1 rounded-md uppercase tracking-widest shadow-sm ml-2">Last</span>`;
+
+                // 🟢 UX: If the item is locked, remove edit controls, gray it out slightly, but KEEP the pacing badge!
                 const controlsHTML = isLocked ? `
-                    <div class="bg-gray-100 border border-gray-200 text-gray-500 px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-inner">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
-                        <span class="text-[9px] font-black uppercase tracking-widest">In Kitchen</span>
+                    <div class="flex items-center">
+                        <div class="bg-gray-100 border border-gray-200 text-gray-500 px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-inner">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
+                            <span class="text-[9px] font-black uppercase tracking-widest">In Kitchen</span>
+                        </div>
+                        ${lockedPacingBadge}
                     </div>
                     <div class="flex items-center gap-1 px-2">
                         <span class="text-gray-400 font-bold text-xs">₹</span>
