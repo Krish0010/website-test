@@ -489,9 +489,9 @@
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwM0oCE5vtZokjRaPfIYnfvv7Qz094kELZe3UO32VUYuTsZ_7hKzIEw-lNch6yUURDO/exec"; 
 
         // 🟢 PERSISTENCE FIX: Load strike memory from the tablet's hard drive so it survives refreshes
-        let strikeMemory = new Set(JSON.parse(localStorage.getItem('kds_strike_memory') || "[]"));
-        let strikeSyncQueue = []; // 🟢 RESILIENCE FIX: Local queue for robust network strikes
-        let bumpedMemory = new Set(); 
+        let strikeMemory = new Set(JSON.parse(localStorage.getItem('kds_strike_memory') || "[]"));
+        let strikeSyncQueue = []; // 🟢 RESILIENCE FIX: Local queue for robust network strikes
+        let bumpedMemory = new Set(JSON.parse(localStorage.getItem('kds_bumped_memory') || "[]")); // 🟢 ACCIDENTAL TOUCH FIX: Persist locked items 
         let previousTicketStates = {}; 
         let currentActiveTickets = []; 
         let previousCarts = {}; 
@@ -1423,24 +1423,33 @@ async function processStrikeQueue() {
                 return;
             }
 
-            try { 
-                fetch(SCRIPT_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ 
-                        device_token: localStorage.getItem('impact_device_token'), 
-                        action: "kds_station_ready", 
-                        token: token, 
-                        station: stationAlias 
-                    }) 
-                }); 
-                showKDSToast("Items Sent", `Sent partial items to Expo for Table ${tableNum}`, "bg-blue-500 text-white");
-                
-                // Locally inject to prevent UI desync
-                const t = currentActiveTickets.find(ticket => ticket.token === token);
-                if (t && !t.status.includes(`${stationAlias}:Ready`)) {
-                    t.status += ` | ${stationAlias}:Ready`;
-                }
-            } catch(e) {}
+            try { 
+                fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ 
+                        device_token: localStorage.getItem('impact_device_token'), 
+                        action: "kds_station_ready", 
+                        token: token, 
+                        station: stationAlias 
+                    }) 
+                }); 
+                showKDSToast("Items Sent", `Sent partial items to Expo for Table ${tableNum}`, "bg-blue-500 text-white");
+                
+                // 🟢 ACCIDENTAL TOUCH FIX: Lock the struck items permanently!
+                const keysToLock = Array.from(strikeMemory).filter(key => key.startsWith(`${token}_`));
+                keysToLock.forEach(key => bumpedMemory.add(key));
+                localStorage.setItem('kds_bumped_memory', JSON.stringify(Array.from(bumpedMemory)));
+
+                // Locally inject to prevent UI desync
+                const t = currentActiveTickets.find(ticket => ticket.token === token);
+                if (t && !t.status.includes(`${stationAlias}:Ready`)) {
+                    t.status += ` | ${stationAlias}:Ready`;
+                }
+                
+                // 🟢 UI REFRESH: Instantly render the new locks
+                lastGeneratedGridHTML = ""; 
+                renderKDSGrid(currentActiveTickets); 
+            } catch(e) {}
         }
 
         // 🟢 PREP STATION EXECUTION: Sends silent ping and clears the blue "Update" flag automatically
@@ -1548,24 +1557,33 @@ async function processStrikeQueue() {
                 return;
             }
 
-            try { 
-                fetch(SCRIPT_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ 
-                        device_token: localStorage.getItem('impact_device_token'), 
-                        action: "kds_station_ready", 
-                        token: token, 
-                        station: stationAlias 
-                    }) 
-                }); 
-                
-                showKDSToast("Waiter Alerted", `Pinged waiter to pick up ready items for Table ${tableNum}`, "bg-sky-500 text-white");
-                
-                const t = currentActiveTickets.find(ticket => ticket.token === token);
-                if (t && !t.status.includes(`${stationAlias}:Ready`)) {
-                    t.status += ` | ${stationAlias}:Ready`;
-                }
-            } catch(e) {}
+            try { 
+                fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ 
+                        device_token: localStorage.getItem('impact_device_token'), 
+                        action: "kds_station_ready", 
+                        token: token, 
+                        station: stationAlias 
+                    }) 
+                }); 
+                
+                showKDSToast("Waiter Alerted", `Pinged waiter to pick up ready items for Table ${tableNum}`, "bg-sky-500 text-white");
+                
+                // 🟢 ACCIDENTAL TOUCH FIX: Lock the struck items permanently!
+                const keysToLock = Array.from(strikeMemory).filter(key => key.startsWith(`${token}_`));
+                keysToLock.forEach(key => bumpedMemory.add(key));
+                localStorage.setItem('kds_bumped_memory', JSON.stringify(Array.from(bumpedMemory)));
+
+                const t = currentActiveTickets.find(ticket => ticket.token === token);
+                if (t && !t.status.includes(`${stationAlias}:Ready`)) {
+                    t.status += ` | ${stationAlias}:Ready`;
+                }
+                
+                // 🟢 UI REFRESH: Instantly render the new locks
+                lastGeneratedGridHTML = ""; 
+                renderKDSGrid(currentActiveTickets); 
+            } catch(e) {}
         }
 
         async function executeBump(token, tableNum, buttonElement) {
@@ -1664,6 +1682,7 @@ async function processStrikeQueue() {
                 if (data.success) {
                     const keysToLock = Array.from(strikeMemory).filter(key => key.startsWith(`${token}_`));
                     keysToLock.forEach(key => bumpedMemory.add(key));
+                    localStorage.setItem('kds_bumped_memory', JSON.stringify(Array.from(bumpedMemory))); // 🟢 Persist lock
                     delete unacknowledgedUpdates[token]; 
                     fetchKDS(); 
                 } else { showKDSAlert("Error", data.message, "error"); }
@@ -2186,6 +2205,7 @@ async function processStrikeQueue() {
                 strikeMemory.clear();
                 localStorage.removeItem('kds_strike_memory'); // 🟢 Clear persistent strikes
                 bumpedMemory.clear();
+                localStorage.removeItem('kds_bumped_memory'); // 🟢 Clear persistent locks
                 unacknowledgedUpdates = {};
                 localStorage.removeItem(`kds_cleared_tokens_${currentStationFilter}`); // 🟢 Clear local lock memory
                 showKDSToast("EOD Reset", "Tablet memory wiped successfully.", "bg-green-600 text-white");
