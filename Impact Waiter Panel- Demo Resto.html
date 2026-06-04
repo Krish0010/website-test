@@ -1955,6 +1955,11 @@
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_fire_next", token: currentInput, table: table, device_token: localStorage.getItem('impact_device_token') }) });
                 const data = await response.json();
                 if (data.success) { 
+                    
+                    // 🟢 BACKEND CACHE BYPASS FIX: Force the Google Apps Script to wipe its KDS cache 
+                    // by sending a harmless silent background ping so the KDS gets the alert instantly!
+                    fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_toggle_stock", dishName: "CacheBypass_Ignore", newStatus: "Yes", device_token: localStorage.getItem('impact_device_token') }) });
+
                     closePosAlert();
                     closeTicket(); // 🟢 SECURITY FIX: Kick to home screen
                     setTimeout(() => {
