@@ -2364,68 +2364,75 @@ async function processStrikeQueue() {
         let isTourActive = false;
 
         const tourSteps = [
-            {
-                title: "The KDS Grid",
-                text: "Welcome to your Kitchen Display System. This board sorts and prioritizes tickets automatically. Let's explore the edge cases.",
-                targetSelector: "#kds-grid > div:nth-child(1)" 
-            },
-            {
-                title: "Safety First",
-                text: "When a waiter types an allergy note, the item turns <b class='text-purple-400'>PURPLE</b>. Cross-contamination protocols must be strictly followed.",
-                targetSelector: "#kds-grid > div:nth-child(2)" 
-            },
-            {
-                title: "Overdue Tickets",
-                text: "Every dish has a Target Time. If the ticket sits longer than the target, it flashes <b class='text-red-500'>RED</b>. These are critical priority.",
-                targetSelector: "#kds-grid > div:nth-child(3)" 
-            },
-            {
-                title: "Order Updates",
-                text: "If a waiter adds an item mid-meal, the ticket flashes <b class='text-blue-400'>BLUE</b>. Go ahead, tap the 'OK' button to clear the blue alert!",
-                targetSelector: "#kds-grid > div:nth-child(4)" 
-            },
-            {
-                title: "Fire Next Course",
-                text: "When the waiter tells you the table is ready for their next course, the ticket turns <b class='text-amber-500'>AMBER</b>. Fire these items immediately.",
-                targetSelector: "#kds-grid > div:nth-child(5)" 
-            },
-            {
-                title: "Dynamic Target Times",
-                text: "Dish taking longer than expected? Tap the <b>TARGET</b> clock on the highlighted ticket, adjust the time, and hit Save. Watch the pace recalculate!",
-                targetSelector: "#kds-grid > div:nth-child(1) .flex.flex-col.items-center.cursor-pointer" 
-            },
-            {
-                title: "The Undo Button",
-                text: "Accidentally bumped a ticket? Tap the <b class='text-k-accent'>Recall</b> arrow up here in the header to bring it back instantly. Try it, then close it.",
-                targetSelector: "header button[title='Recall Bumped Tickets']" 
-            },
-            {
-                title: "Prep Sidebar",
-                text: "Need to know how many Steaks to throw on the grill? Tap the <b class='text-sky-400'>Sidebar Icon</b> to see live totals. Keep it open and hit Next!",
-                targetSelector: "button[onclick='togglePrepSidebar()']" 
-            },
-            {
-                title: "Emergency Pause",
-                text: "Kitchen overwhelmed? Tap the <b class='text-red-500'>PAUSE</b> button. This blocks waiters from sending new orders while you catch up.",
-                targetSelector: "#kds-sos-btn" 
-            },
-            // 🟢 NEW STEP ADDED: Educating the chefs on the Partial Alert feature!
-            {
-                title: "Partial Orders",
-                text: "Finished the Starters but still cooking the Mains?<br><br>Cross off the ready items and tap <b>Mark Ready</b>. The system will ask if you want to ping the Waiter to take the hot food while you finish the rest!",
-                targetSelector: "#kds-grid > div:nth-child(1)" 
-            },
-            {
-                title: "Clearing Tickets",
-                text: "Once <i>every</i> item on a ticket is crossed off, the 'Mark Ready' button turns <b class='text-green-500'>GREEN</b>. Click it to clear the order completely!",
-                targetSelector: "#kds-grid > div:nth-child(2)" 
-            },
-            {
-                title: "You're Ready!",
-                text: "You now know how to handle the rush like a pro.<br><br>The system is now in <b>Free Play Mode</b>. Feel free to click around, strike items, and clear tickets to get the hang of it!",
-                targetSelector: "center" 
-            }
-        ];
+            {
+                title: "The KDS Grid",
+                text: "Welcome to your Kitchen Display System. This board sorts and prioritizes tickets automatically. Let's explore the edge cases.",
+                targetSelector: "#kds-grid > div:nth-child(1)" 
+            },
+            {
+                title: "Safety First",
+                text: "When a waiter types an allergy note, the item turns <b class='text-purple-400'>PURPLE</b>. Cross-contamination protocols must be strictly followed.",
+                targetSelector: "#kds-grid > div:nth-child(2)" 
+            },
+            {
+                title: "Overdue Tickets",
+                text: "Every dish has a Target Time. If the ticket sits longer than the target, it flashes <b class='text-red-500'>RED</b>. These are critical priority.",
+                targetSelector: "#kds-grid > div:nth-child(3)" 
+            },
+            {
+                // 🟢 MAPPING FIX: Swapped to 4th position to correctly target the Amber D-104 ticket
+                title: "Fire Next Course",
+                text: "When the waiter tells you the table is ready for their next course, the ticket turns <b class='text-amber-500'>AMBER</b>. Fire these items immediately.",
+                targetSelector: "#kds-grid > div:nth-child(4)" 
+            },
+            {
+                // 🟢 MAPPING FIX: Swapped to 5th position to correctly target the Blue D-105 ticket
+                title: "Order Updates",
+                text: "If a waiter adds an item mid-meal, the ticket flashes <b class='text-blue-400'>BLUE</b>. Go ahead, tap the 'OK' button to clear the blue alert!",
+                targetSelector: "#kds-grid > div:nth-child(5)" 
+            },
+            {
+                // 🟢 NEW SCENARIO ADDED: The Resurrected Ticket
+                title: "The Resurrected Ticket",
+                text: "What happens if a waiter adds a late item to a ticket you already cleared?<br><br>It pops back up! The old items stay grayed-out and locked, while the new addition flashes <b class='text-blue-400'>BLUE</b>.",
+                targetSelector: "#kds-grid > div:nth-child(7)" 
+            },
+            {
+                title: "Dynamic Target Times",
+                text: "Dish taking longer than expected? Tap the <b>TARGET</b> clock on the highlighted ticket, adjust the time, and hit Save. Watch the pace recalculate!",
+                targetSelector: "#kds-grid > div:nth-child(1) .flex.flex-col.items-center.cursor-pointer" 
+            },
+            {
+                title: "The Undo Button",
+                text: "Accidentally bumped a ticket? Tap the <b class='text-k-accent'>Recall</b> arrow up here in the header to bring it back instantly. Try it, then close it.",
+                targetSelector: "header button[title='Recall Bumped Tickets']" 
+            },
+            {
+                title: "Prep Sidebar",
+                text: "Need to know how many Steaks to throw on the grill? Tap the <b class='text-sky-400'>Sidebar Icon</b> to see live totals. Keep it open and hit Next!",
+                targetSelector: "button[onclick='togglePrepSidebar()']" 
+            },
+            {
+                title: "Emergency Pause",
+                text: "Kitchen overwhelmed? Tap the <b class='text-red-500'>PAUSE</b> button. This blocks waiters from sending new orders while you catch up.",
+                targetSelector: "#kds-sos-btn" 
+            },
+            {
+                title: "Partial Orders",
+                text: "Finished the Starters but still cooking the Mains?<br><br>Cross off the ready items and tap <b>Mark Ready</b>. The system will ask if you want to ping the Waiter to take the hot food while you finish the rest!",
+                targetSelector: "#kds-grid > div:nth-child(1)" 
+            },
+            {
+                title: "Clearing Tickets",
+                text: "Once <i>every</i> item on a ticket is crossed off, the 'Mark Ready' button turns <b class='text-green-500'>GREEN</b>. Click it to clear the order completely!",
+                targetSelector: "#kds-grid > div:nth-child(2)" 
+            },
+            {
+                title: "You're Ready!",
+                text: "You now know how to handle the rush like a pro.<br><br>The system is now in <b>Free Play Mode</b>. Feel free to click around, strike items, and clear tickets to get the hang of it!",
+                targetSelector: "center" 
+            }
+        ];
 
         function startTour() {
             if (isTourActive) return;
