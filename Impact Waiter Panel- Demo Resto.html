@@ -79,10 +79,10 @@
 
    <!-- 🟢 ELITE UI: Dynamic Notification Wrapper -->
     <div id="toast-wrapper" class="fixed top-2 left-0 right-0 sm:left-auto sm:right-4 z-[1000] flex flex-col items-center sm:items-end pointer-events-none w-full sm:w-auto px-3 sm:px-0">
-        <button id="clear-all-toasts-btn" onclick="clearAllToasts()" class="pointer-events-none opacity-0 translate-y-[-10px] transition-all duration-400 ease-out bg-slate-900/80 backdrop-blur-xl text-slate-200 border border-slate-700/50 px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:bg-slate-800 hover:text-white active:scale-95 mb-3 z-50 flex items-center gap-2.5">
-            Clear Alerts <span id="toast-count-badge" class="bg-sky-500/20 text-sky-400 border border-sky-500/30 px-1.5 py-0.5 rounded-md text-[10px]">0</span>
+        <button id="clear-all-toasts-btn" onclick="clearAllToasts()" class="pointer-events-none opacity-0 translate-y-[-10px] transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] bg-gray-900/80 backdrop-blur-2xl text-gray-200 border border-white/10 px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-[0_16px_30px_rgba(0,0,0,0.3)] hover:bg-gray-800 hover:text-white hover:border-white/20 active:scale-95 mb-3 z-50 flex items-center gap-2">
+            Clear Alerts <span id="toast-count-badge" class="bg-gray-700/50 text-white px-2 py-0.5 rounded-md text-[9px] shadow-inner">0</span>
         </button>
-        <div id="toast-container" class="flex flex-col gap-3 w-full sm:w-80 items-center sm:items-end pointer-events-none pb-4"></div>
+        <div id="toast-container" class="flex flex-col gap-3 w-full sm:w-[22rem] items-center sm:items-end pointer-events-none pb-4"></div>
     </div>
 
     <header class="bg-w-card border-b border-w-border px-4 py-3 sm:py-4 flex justify-between items-center shadow-sm shrink-0 z-40">
@@ -1624,18 +1624,17 @@
         }
 
         function getTableColorClass(tableString) {
-            // 🟢 LUXURY UI FIX: Monochromatic cool-toned metallic/glass shades 
-            // instead of a chaotic rainbow. Fits the "Impact" blue accent theme perfectly.
-            const shades = [
-                'bg-sky-500/15 text-sky-400 border-sky-500/30',
-                'bg-blue-500/15 text-blue-400 border-blue-500/30',
-                'bg-indigo-500/15 text-indigo-400 border-indigo-500/30',
-                'bg-slate-400/15 text-slate-300 border-slate-400/30',
-                'bg-cyan-500/15 text-cyan-400 border-cyan-500/30'
+            // 🟢 PREMIUM UX: Monochromatic luxury shades (Slate, Sky, Indigo, Zinc) to complement the dark glass
+            const colors = [
+                'bg-sky-900/80 text-sky-100 border-sky-500/40 shadow-[0_0_10px_rgba(14,165,233,0.2)]',
+                'bg-slate-800/80 text-slate-100 border-slate-500/40 shadow-[0_0_10px_rgba(100,116,139,0.2)]',
+                'bg-indigo-900/80 text-indigo-100 border-indigo-500/40 shadow-[0_0_10px_rgba(99,102,241,0.2)]',
+                'bg-zinc-800/80 text-zinc-100 border-zinc-500/40 shadow-[0_0_10px_rgba(113,113,122,0.2)]',
+                'bg-blue-900/80 text-blue-100 border-blue-500/40 shadow-[0_0_10px_rgba(59,130,246,0.2)]'
             ];
             const numMatch = tableString.match(/\d+/);
             const num = numMatch ? parseInt(numMatch[0]) : tableString.charCodeAt(0);
-            return shades[num % shades.length];
+            return colors[num % colors.length];
         }
 
         function showToastNotification(title, message) {
@@ -1643,7 +1642,7 @@
             if(!container) return;
 
             // 1. Enforce Maximum Toast Limit (Cognitive Load Reduction)
-            const MAX_TOASTS = window.innerWidth < 640 ? 3 : 5; // Strict cap of 3 on Mobile, 5 on iPad
+            const MAX_TOASTS = 5; // 🟢 FIX: Strictly capped at 5 across all devices
             if (container.children.length >= MAX_TOASTS) {
                 const oldest = container.firstElementChild;
                 if (oldest) {
@@ -1653,31 +1652,28 @@
                 }
             }
 
-            // 2. Dynamic Table Badging (Using the luxury shades)
+            // 2. Dynamic Table Badging
             const formattedMessage = message.replace(/(Table\s*)(\d+|[A-Za-z]+)/gi, (match, p1, p2) => {
                 const colorClass = getTableColorClass(p2);
-                return `<span class="inline-flex items-center justify-center px-1.5 py-0.5 mx-0.5 text-[10px] sm:text-[11px] font-black ${colorClass} rounded border backdrop-blur-sm shadow-[0_0_10px_rgba(0,0,0,0.1)] uppercase tracking-wider">${p1}${p2}</span>`;
+                return `<span class="inline-flex items-center justify-center px-1.5 py-0.5 mx-0.5 text-[10px] sm:text-[11px] font-black text-white ${colorClass} rounded-md border uppercase tracking-wider">${p1}${p2}</span>`;
             });
 
             // 3. Create the Premium Toast Element
             const toast = document.createElement('div');
             
-            // 🟢 LUXURY UI FIX: Dark Frosted Glass (Apple Vision Pro / High-End POS aesthetic)
-            toast.className = "cursor-pointer pointer-events-auto w-full bg-slate-900/80 backdrop-blur-2xl border border-slate-700/50 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.5)] rounded-2xl p-4 flex items-start gap-3.5 transform translate-y-[-20px] sm:translate-y-0 sm:translate-x-[120%] opacity-0 scale-95 transition-all duration-400 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:bg-slate-900/95 active:scale-95 relative overflow-hidden";
+            // 🟢 PREMIUM UI: Deep Frosted Glassmorphism (Dark Mode over Light UI creates high-end contrast)
+            toast.className = "cursor-pointer pointer-events-auto w-full max-w-sm bg-gray-900/80 backdrop-blur-2xl border border-white/10 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.5)] rounded-[20px] p-4 flex items-start gap-4 transform translate-y-[-20px] sm:translate-y-0 sm:translate-x-[120%] opacity-0 scale-95 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:bg-gray-900 hover:border-white/20 active:scale-95";
             
-            // A subtle highlight line at the top to simulate glass refraction
-            const glassHighlight = `<div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-t-2xl pointer-events-none"></div>`;
-
             toast.innerHTML = `
-                ${glassHighlight}
-                <div class="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0 border border-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.15)] mt-0.5 z-10 relative">
-                    <svg class="w-5 h-5 text-green-400 drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                <div class="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shrink-0 shadow-[inset_0_0_15px_rgba(16,185,129,0.2)] mt-0.5">
+                    <svg class="w-5 h-5 text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
                 </div>
-                <div class="flex flex-col flex-1 min-w-0 pr-1 z-10 relative">
-                    <span class="text-slate-100 font-black text-[11px] uppercase tracking-widest leading-tight mb-1 drop-shadow-sm">${title}</span>
-                    <span class="text-slate-300 text-[11.5px] sm:text-xs font-medium leading-relaxed">${formattedMessage}</span>
+                <div class="flex flex-col flex-1 min-w-0 pr-1">
+                    <span class="text-gray-100 font-black text-[11px] uppercase tracking-widest leading-tight mb-1.5">${title}</span>
+                    <span class="text-gray-400 text-[11.5px] sm:text-xs font-medium leading-relaxed">${formattedMessage}</span>
                 </div>
             `;
+            // Notice: The "X" button is entirely removed for minimalist elegance.
             
             toast.onclick = function() {
                 this.classList.remove('translate-y-0', 'sm:translate-x-0', 'opacity-100', 'scale-100');
