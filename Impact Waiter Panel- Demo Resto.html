@@ -431,7 +431,7 @@
 
     <script>
         // REPLACE WITH YOUR ACTUAL SCRIPT URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwM0oCE5vtZokjRaPfIYnfvv7Qz094kELZe3UO32VUYuTsZ_7hKzIEw-lNch6yUURDO/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybLhYZJuvD5YJgegHpIqGaH5fiNtnPYyW5Z3N5lfpqKBGuSJHoHC9SGQr4sgxxTxcm/exec"; 
 
         let currentInput = "";
         let activeTicket = []; 
@@ -884,10 +884,9 @@
             }
         }
 
-        async function fetchOrder(isSilentRefresh = false) {
+           async function fetchOrder(isSilentRefresh = false) {
             syncMenuBackground(); 
             
-            // 🟢 UX FIX: Allow 4-digit Smart Orders OR 6-character Walk-In tokens (W-XXXX)
             const isValidSmartOrder = currentInput.length === 4;
             const isValidWalkIn = currentInput.startsWith('W-') && currentInput.length === 6;
             
@@ -900,8 +899,11 @@
             if (!isSilentRefresh && fetchBtn) fetchBtn.innerHTML = `<div class="w-7 h-7 border-4 border-white border-t-transparent rounded-full animate-spin"></div>`;
 
             try {
-                // 🟢 CACHE-BUSTER FIX: Force live data when fetching an individual ticket
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_fetch", token: currentInput, device_token: localStorage.getItem('impact_device_token'), _t: Date.now() }) });
+                
+                // 🟢 SRE FIX: Detect HTTP 500 crashes before they trigger confusing JSON Syntax Errors
+                if (!response.ok) throw new Error(`Server returned HTTP ${response.status}`);
+                
                 const data = await response.json();
                 if (!isSilentRefresh && fetchBtn) fetchBtn.innerHTML = `<svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg>`;
 
@@ -915,58 +917,61 @@
                     activeTicket = [];
                     
                     if (Array.isArray(data.cartData)) {
-                        data.cartData.forEach((item, index) => {
-                            let restoredCourse = "main";
-                            if (item.pacing === "Serve First") restoredCourse = "first";
-                            if (item.pacing === "Serve Last") restoredCourse = "last";
-                            
-                            // 🟢 UX FIX: If price is 0 (because the customer submitted it online), securely fetch the real price locally!
-                            let itemPrice = parseFloat(item.price) || 0;
-                            if (itemPrice === 0) {
-                                const menuItem = cachedMenu.find(m => String(m.name || '').toLowerCase() === String(item.name || '').toLowerCase());
-                                itemPrice = menuItem ? menuItem.price : 0;
-                            }
+                        data.cartData.forEach((item, index) => {
+                            if (!item) return; // 🟢 CORRUPTION SHIELD: Safely skip null/deleted items to prevent fatal JS crashes!
+                            
+                            let restoredCourse = "main";
+                            if (item.pacing === "Serve First") restoredCourse = "first";
+                            if (item.pacing === "Serve Last") restoredCourse = "last";
+                            
+                            let itemPrice = parseFloat(item.price) || 0;
+                            if (itemPrice === 0) {
+                                const menuItem = cachedMenu.find(m => String(m.name || '').toLowerCase() === String(item.name || '').toLowerCase());
+                                itemPrice = menuItem ? menuItem.price : 0;
+                            }
 
-                            // 🟢 ENTERPRISE LOCK: Tag items already sent to the kitchen as immutable
-                            activeTicket.push({ id: item.id || (Date.now() + Math.random()), name: item.name, qty: item.qty, price: itemPrice, note: item.note || "", course: restoredCourse, isLocked: true });
-                        });
-                    } else {
+                            activeTicket.push({ id: item.id || (Date.now() + Math.random()), name: item.name || "Unknown", qty: parseInt(item.qty) || 1, price: itemPrice, note: item.note || "", course: restoredCourse, isLocked: true });
+                        });
+                    } else if (data.cartData && typeof data.cartData === 'object') {
                         Object.entries(data.cartData).forEach(([dishName, qty], index) => {
-                            const menuItem = cachedMenu.find(m => String(m.name || '').toLowerCase() === dishName.toLowerCase());
+                            if (!dishName) return; // 🟢 CORRUPTION SHIELD
+                            const menuItem = cachedMenu.find(m => String(m.name || '').toLowerCase() === String(dishName).toLowerCase());
                             const price = menuItem ? menuItem.price : 0;
-                            activeTicket.push({ id: Date.now() + Math.random(), name: dishName, qty: qty, price: price, note: "", course: "main" });
+                            activeTicket.push({ id: Date.now() + Math.random(), name: dishName, qty: parseInt(qty) || 1, price: price, note: "", course: "main" });
                         });
                     }
 
-                    // 🟢 Save snapshots to detect mid-meal edits
                     currentOrderStatus = data.status || "Pending";
                     originalTicketState = JSON.stringify(activeTicket);
-                    currentTicketTimestamp = data.timestamp || null; // Capture creation time for Live Timer
+                    currentTicketTimestamp = data.timestamp || null; 
 
                     let assignedTable = "";
                     const fireNextBtn = document.getElementById('fire-next-btn');
                     if (data.status && (data.status.includes("- LOCKED") || data.status.includes("- FIRE NEXT") || data.status.includes("- READY"))) {
                         assignedTable = data.status.split("-")[0].replace("Table", "").trim();
-                        if (!data.status.includes("- READY")) { fireNextBtn.classList.remove('hidden'); fireNextBtn.classList.add('flex'); }
+                        if (!data.status.includes("- READY") && fireNextBtn) { fireNextBtn.classList.remove('hidden'); fireNextBtn.classList.add('flex'); }
                     } else {
-                        fireNextBtn.classList.add('hidden'); fireNextBtn.classList.remove('flex');
+                        if (fireNextBtn) { fireNextBtn.classList.add('hidden'); fireNextBtn.classList.remove('flex'); }
                     }
+                    
                     const tableDropdown = document.getElementById('table-select');
-                    tableDropdown.value = assignedTable;
+                    if (tableDropdown) tableDropdown.value = assignedTable;
+                    
                     if (typeof updateTableDisplayUI === "function") { updateTableDisplayUI(assignedTable); }
                     renderTicket();
+                    
                     document.getElementById('view-numpad').classList.add('hidden');
                     document.getElementById('view-numpad').classList.remove('flex');
                     document.getElementById('view-ticket').classList.remove('hidden');
                     document.getElementById('view-ticket').classList.add('flex');
                 } else {
-                    // 🟢 UX FIX: Display the real server message so security blocks aren't hidden
                     showPosAlert("Error", data.message || "The token does not exist.", "error");
                     clearNumpad();
                 }
             } catch (err) {
-                fetchBtn.innerHTML = `<svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg>`;
-                showPosAlert("Network Error", "Unable to reach the server.", "error");
+                if (fetchBtn) fetchBtn.innerHTML = `<svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg>`;
+                // 🟢 DIAGNOSTIC REVEAL: Print the exact JS or Network error so it's not hidden behind a generic message
+                showPosAlert("System Error", err.message || "Unable to process ticket data.", "error");
             }
         }
 
