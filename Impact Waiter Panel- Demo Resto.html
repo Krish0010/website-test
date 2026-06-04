@@ -77,11 +77,12 @@
 </head>
 <body class="flex flex-col h-[100dvh] w-screen max-h-[100dvh]">
 
-   <div id="toast-wrapper" class="fixed top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-6 z-[1000] flex flex-col items-center sm:items-end gap-2 pointer-events-none w-[95%] sm:w-96 max-h-[90vh] overflow-visible">
-        <button id="clear-all-toasts-btn" onclick="clearAllToasts()" class="hidden pointer-events-auto bg-white/95 backdrop-blur-md text-gray-800 border border-gray-200 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:bg-gray-50 hover:text-red-500 transition-all active:scale-95 mb-1 z-50">
-            Clear All Alerts <span id="toast-count-badge" class="ml-1.5 bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md text-[10px]">0</span>
+   <!-- 🟢 ELITE UI: Dynamic Notification Wrapper -->
+    <div id="toast-wrapper" class="fixed top-2 left-0 right-0 sm:left-auto sm:right-4 z-[1000] flex flex-col items-center sm:items-end pointer-events-none w-full sm:w-auto px-3 sm:px-0">
+        <button id="clear-all-toasts-btn" onclick="clearAllToasts()" class="pointer-events-none opacity-0 translate-y-[-10px] transition-all duration-400 ease-out bg-white/90 backdrop-blur-xl text-gray-800 border border-gray-200 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:bg-gray-50 hover:text-red-500 active:scale-95 mb-2 z-50 flex items-center gap-2">
+            Clear Alerts <span id="toast-count-badge" class="bg-gray-200 text-gray-700 px-1.5 py-0.5 rounded-md text-[9px]">0</span>
         </button>
-        <div id="toast-container" class="flex flex-col gap-3 w-full items-center sm:items-end pointer-events-none pb-4"></div>
+        <div id="toast-container" class="flex flex-col gap-2.5 w-full sm:w-80 items-center sm:items-end pointer-events-none pb-4"></div>
     </div>
 
     <header class="bg-w-card border-b border-w-border px-4 py-3 sm:py-4 flex justify-between items-center shadow-sm shrink-0 z-40">
@@ -1584,52 +1585,127 @@
             }
         }
 
+        // --- 🟢 ELITE UI/UX: TOAST NOTIFICATION ENGINE ---
+        function clearAllToasts() {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toasts = Array.from(container.children);
+            
+            // Staggered Cascade Animation
+            toasts.forEach((toast, index) => {
+                setTimeout(() => {
+                    toast.classList.remove('translate-y-0', 'sm:translate-x-0', 'opacity-100', 'scale-100');
+                    toast.classList.add('opacity-0', 'scale-90', 'translate-y-[-10px]'); 
+                }, index * 40); 
+            });
+            
+            setTimeout(() => { 
+                container.innerHTML = ''; 
+                updateClearAllButton(); 
+            }, 300 + (toasts.length * 40));
+        }
+
+        function updateClearAllButton() {
+            const container = document.getElementById('toast-container');
+            const btn = document.getElementById('clear-all-toasts-btn');
+            const badge = document.getElementById('toast-count-badge');
+            if (container && btn && badge) {
+                const count = container.children.length;
+                badge.innerText = count;
+                // Only show "Clear All" if there are 3 or more toasts
+                if (count >= 3) {
+                    btn.classList.remove('opacity-0', 'translate-y-[-10px]', 'pointer-events-none');
+                    btn.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                } else {
+                    btn.classList.add('opacity-0', 'translate-y-[-10px]', 'pointer-events-none');
+                    btn.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                }
+            }
+        }
+
+        function getTableColorClass(tableString) {
+            // Dynamic Color Hashing for instantaneous visual recognition
+            const colors = [
+                'bg-w-accent border-blue-400 shadow-blue-500/30',
+                'bg-purple-500 border-purple-400 shadow-purple-500/30',
+                'bg-rose-500 border-rose-400 shadow-rose-500/30',
+                'bg-emerald-500 border-emerald-400 shadow-emerald-500/30',
+                'bg-amber-500 border-amber-400 shadow-amber-500/30',
+                'bg-indigo-500 border-indigo-400 shadow-indigo-500/30'
+            ];
+            const numMatch = tableString.match(/\d+/);
+            const num = numMatch ? parseInt(numMatch[0]) : tableString.charCodeAt(0);
+            return colors[num % colors.length];
+        }
+
         function showToastNotification(title, message) {
             const container = document.getElementById('toast-container');
             if(!container) return;
 
-            // 🟢 PREMIUM UI: Auto-detect "Table X" and wrap it in a branded blue badge
-            const formattedMessage = message.replace(/(Table\s*)(\d+|[A-Za-z]+)/gi, 
-                '<span class="inline-flex items-center justify-center px-2 py-0.5 mx-0.5 text-[11px] font-black text-white bg-w-accent rounded border border-blue-400 shadow-sm shadow-blue-500/20 uppercase tracking-wider">$1$2</span>'
-            );
+            // 1. Enforce Maximum Toast Limit (Cognitive Load Reduction)
+            const MAX_TOASTS = window.innerWidth < 640 ? 3 : 5; // 3 on Mobile, 5 on iPad
+            if (container.children.length >= MAX_TOASTS) {
+                const oldest = container.firstElementChild;
+                if (oldest) {
+                    oldest.classList.remove('translate-y-0', 'sm:translate-x-0', 'opacity-100', 'scale-100');
+                    oldest.classList.add('opacity-0', 'scale-90');
+                    setTimeout(() => { if (oldest.parentNode) oldest.remove(); }, 300);
+                }
+            }
 
+            // 2. Dynamic Table Badging
+            const formattedMessage = message.replace(/(Table\s*)(\d+|[A-Za-z]+)/gi, (match, p1, p2) => {
+                const colorClass = getTableColorClass(p2);
+                return `<span class="inline-flex items-center justify-center px-1.5 py-0.5 mx-0.5 text-[10px] sm:text-[11px] font-black text-white ${colorClass} rounded-md border shadow-sm uppercase tracking-wider">${p1}${p2}</span>`;
+            });
+
+            // 3. Create the Premium Toast Element
             const toast = document.createElement('div');
-            // Premium Glassmorphic UI with smooth slide-in
-            toast.className = "pointer-events-auto w-full max-w-sm bg-white/95 backdrop-blur-xl border border-gray-100 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.15)] rounded-2xl p-4 flex items-start gap-3.5 transform translate-y-[-20px] sm:translate-y-0 sm:translate-x-[120%] opacity-0 scale-95 transition-all duration-500 ease-out";
+            
+            // Allow tap-to-dismiss anywhere on the toast for better mobile UX
+            toast.className = "cursor-pointer pointer-events-auto w-full bg-white/90 backdrop-blur-xl border border-white/50 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.15)] rounded-2xl p-3.5 flex items-start gap-3 transform translate-y-[-20px] sm:translate-y-0 sm:translate-x-[120%] opacity-0 scale-95 transition-all duration-400 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:bg-white active:scale-95";
             
             toast.innerHTML = `
-                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shrink-0 shadow-lg shadow-green-500/30 border border-green-300">
-                    <svg class="w-6 h-6 text-white drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-w-success to-emerald-400 flex items-center justify-center shrink-0 shadow-md shadow-green-500/20 mt-0.5">
+                    <svg class="w-5 h-5 text-white drop-shadow-sm" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
                 </div>
-                <div class="flex flex-col flex-1 min-w-0 pt-0.5">
-                    <span class="text-gray-900 font-black text-xs uppercase tracking-widest leading-tight truncate">${title}</span>
-                    <span class="text-gray-600 text-xs font-semibold mt-1.5 leading-snug">${formattedMessage}</span>
+                <div class="flex flex-col flex-1 min-w-0 pr-1">
+                    <span class="text-gray-900 font-black text-[11px] uppercase tracking-widest leading-tight mb-1">${title}</span>
+                    <span class="text-gray-600 text-[11.5px] sm:text-xs font-semibold leading-relaxed">${formattedMessage}</span>
                 </div>
-                <button onclick="this.closest('.pointer-events-auto').remove(); updateClearAllButton();" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors shrink-0 -mr-2 -mt-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
             `;
             
+            toast.onclick = function() {
+                this.classList.remove('translate-y-0', 'sm:translate-x-0', 'opacity-100', 'scale-100');
+                this.classList.add('opacity-0', 'scale-90');
+                setTimeout(() => { 
+                    if (this.parentNode) this.remove(); 
+                    updateClearAllButton();
+                }, 300);
+            };
+
             container.appendChild(toast);
             updateClearAllButton();
             
-            // Animate in (Desktop slides from right, Mobile slides down from top)
+            // Hardware-Accelerated Animation Flow
             requestAnimationFrame(() => {
-                toast.classList.remove('translate-y-[-20px]', 'sm:translate-x-[120%]', 'opacity-0', 'scale-95');
-                toast.classList.add('translate-y-0', 'sm:translate-x-0', 'opacity-100', 'scale-100');
+                requestAnimationFrame(() => {
+                    toast.classList.remove('translate-y-[-20px]', 'sm:translate-x-[120%]', 'opacity-0', 'scale-95');
+                    toast.classList.add('translate-y-0', 'sm:translate-x-0', 'opacity-100', 'scale-100');
+                });
             });
 
-            // Auto-remove after 8 seconds (slightly longer to allow reading)
+            // Auto-remove after 7 seconds
             setTimeout(() => {
                 if (toast.parentNode) {
                     toast.classList.remove('translate-y-0', 'sm:translate-x-0', 'opacity-100', 'scale-100');
-                    toast.classList.add('opacity-0', 'scale-95');
+                    toast.classList.add('opacity-0', 'scale-90');
                     setTimeout(() => { 
                         if (toast.parentNode) toast.remove(); 
                         updateClearAllButton();
-                    }, 500);
+                    }, 400);
                 }
-            }, 8000);
+            }, 7000);
         }
 
         // --- 🟢 MENU & STOCK FILTERS ---
