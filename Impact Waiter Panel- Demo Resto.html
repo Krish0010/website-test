@@ -430,8 +430,13 @@
     </div>
 
     <script>
+        // 🟢 GLOBAL UTILITIES: These must be defined before ANY other function runs
+        function escapeHTML(str) { return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+        function sanitizeHTML(str) { return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+        function escapeJS(str) { return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
+
         // REPLACE WITH YOUR ACTUAL SCRIPT URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybLhYZJuvD5YJgegHpIqGaH5fiNtnPYyW5Z3N5lfpqKBGuSJHoHC9SGQr4sgxxTxcm/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwM0oCE5vtZokjRaPfIYnfvv7Qz094kELZe3UO32VUYuTsZ_7hKzIEw-lNch6yUURDO/exec"; 
 
         let currentInput = "";
         let activeTicket = []; 
@@ -970,8 +975,14 @@
                 }
             } catch (err) {
                 if (fetchBtn) fetchBtn.innerHTML = `<svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg>`;
-                // 🟢 DIAGNOSTIC REVEAL: Print the exact JS or Network error so it's not hidden behind a generic message
-                showPosAlert("System Error", err.message || "Unable to process ticket data.", "error");
+                
+                // 🟢 SRE FIX: Split network errors from actual Javascript execution crashes!
+                if (err.message && err.message.includes("fetch")) {
+                    showPosAlert("Network Offline", "Unable to reach the server. Check Wi-Fi.", "error");
+                } else {
+                    console.error("FATAL PARSE ERROR:", err);
+                    showPosAlert("Application Crash", `Failed to render ticket.<br><br><span class="text-xs text-red-400 font-mono">${err.toString()}</span>`, "error");
+                }
             }
         }
 
@@ -1178,9 +1189,6 @@
             const container = document.getElementById('order-items-container');
             setTimeout(() => { container.scrollTop = container.scrollHeight; }, 100);
         }
-
-        function sanitizeHTML(str) { return String(str||'').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
-        function escapeJS(str) { return String(str||'').replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
 
         // 🟢 FIX: String conversion prevents fatal TypeError if Google Sheets returns boolean/number
         function isDishOut(m) {
