@@ -508,7 +508,7 @@
         let isAudioMuted = localStorage.getItem(`kds_audio_${currentStationFilter}`) === 'true';
         let isSOSDisabled = localStorage.getItem(`kds_sos_${currentStationFilter}`) === 'true';
         let isPrepMode = localStorage.getItem(`kds_prep_${currentStationFilter}`) === 'true'; 
-        let isDemoMode = false;
+        let isDemoMode = localStorage.getItem('kds_demo_mode') === 'true'; // 🟢 SECURITY FIX: Persistent Sandbox Jail
 
         let allowExit = false; // 🟢 Controls our custom back-button trap
 
@@ -546,6 +546,15 @@
                 document.getElementById('view-auth').classList.add('hidden');
                 startClock();
                 fetchKDS();
+                
+                // 🟢 UI FIX: Ensure the Training UI persists through browser refreshes
+                if (isDemoMode) {
+                    const restartBtn = document.getElementById('restart-tour-btn');
+                    if (restartBtn) {
+                        restartBtn.classList.remove('hidden');
+                        restartBtn.classList.add('flex');
+                    }
+                }
             } else {
                 // Lock the screen, do not fetch data!
                 document.getElementById('view-auth').classList.remove('hidden');
@@ -2194,12 +2203,13 @@ async function processStrikeQueue() {
                 fetchKDS(); 
             } else if (setting === 'demo') {
                 isDemoMode = !isDemoMode;
+                localStorage.setItem('kds_demo_mode', isDemoMode); // 🟢 SECURITY FIX: Lock tablet into Demo Mode
                 updateToggleUI('demo', isDemoMode);
                 const restartBtn = document.getElementById('restart-tour-btn');
                 
                 if (isDemoMode) {
                     closeManagerHub(); 
-                    injectDemoTickets();
+                    restartDemoTour(false); // 🟢 INITIALIZATION FIX: Sets up the complex update scenarios properly
                     
                     if (restartBtn) {
                         restartBtn.classList.remove('hidden');
@@ -2230,21 +2240,32 @@ async function processStrikeQueue() {
         }
 
         // 🟢 INSTANT RESTART: Wipes all free-play strikes and resets the demo tickets to perfect condition
-        function restartDemoTour() {
+        function restartDemoTour(startInteractiveTour = true) {
             hiddenDemoTokens.clear(); // Un-hide any bumped tickets
             
             // Wipe only the strikes associated with Demo tickets
             const keysToClear = Array.from(strikeMemory).filter(key => key.startsWith(`D-`));
             keysToClear.forEach(key => strikeMemory.delete(key)); 
+            
+            const locksToClear = Array.from(bumpedMemory).filter(key => key.startsWith(`D-`));
+            locksToClear.forEach(key => bumpedMemory.delete(key));
+
+            // 🟢 RESURRECTED TICKET SCENARIO: Pre-strike the old items so the Chef sees what a resurrected ticket looks like!
+            strikeMemory.add("D-107_Steak_MediumRare_idx1");
+            bumpedMemory.add("D-107_Steak_MediumRare_idx1");
+
             localStorage.setItem('kds_strike_memory', JSON.stringify(Array.from(strikeMemory))); 
+            localStorage.setItem('kds_bumped_memory', JSON.stringify(Array.from(bumpedMemory))); 
             
-            // Revert ghost updates
-            unacknowledgedUpdates["D-104"] = [
-                { id: "x1", name: "Classic Mojito", qty: 2, note: "", category: "Beverages", pacing: "Serve First" }
-            ];
+            // Setup the Update Diffs
+            const activeCat = currentStationFilter !== "All" ? currentStationFilter : "Kitchen";
+            unacknowledgedUpdates["D-105"] = [{ id: "x1", name: "Malabar Chicken", qty: 1, note: "", category: activeCat, pacing: "Main Course" }];
+            unacknowledgedUpdates["D-106"] = [{ id: "x2", name: "Rib Mandi", qty: 2, note: "", category: activeCat, pacing: "Main Course" }];
+            unacknowledgedUpdates["D-107"] = [{ id: "x3", name: "Steak", qty: 1, note: "Medium Rare", category: activeCat, pacing: "Main Course" }];
             
+            lastGeneratedGridHTML = ""; 
             injectDemoTickets(); // Refresh tickets to original state
-            setTimeout(startTour, 300); // Start the tour smoothly
+            if (startInteractiveTour) setTimeout(startTour, 300); // Start the tour smoothly
         }
         
 
@@ -2278,34 +2299,54 @@ async function processStrikeQueue() {
 
         let hiddenDemoTokens = new Set(); // 🟢 Tracks cleared demo tickets
 
-        // 🟢 THE CHEF'S MASTERCLASS: 5 Realistic Kitchen Scenarios
+        // 🟢 THE CHEF'S MASTERCLASS: 7 Realistic Kitchen Scenarios
         function injectDemoTickets() {
             if (!isDemoMode) return;
             const now = Date.now();
             
-            unacknowledgedUpdates["D-104"] = [
-                { id: "x1", name: "Classic Mojito", qty: 2, note: "", category: "Beverages", pacing: "Serve First" }
-            ];
+            // 🟢 ADAPTIVE STATION FIX: Dynamically map demo items
+            const activeCat = currentStationFilter !== "All" ? currentStationFilter : "Kitchen";
+            const altCat = currentStationFilter !== "All" ? "Kitchen" : "Grill";
 
             const allFakeTickets = [
-                { token: "D-101", timestamp: now - (5 * 60000), status: "Table 12 - LOCKED", cart: [
-                    { id: "d1", name: "Truffle Mushroom Pasta", qty: 1, note: "Extra parmesan", category: "Kitchen", pacing: "Main Course", prepTime: 15 },
-                    { id: "d2", name: "Garlic Bread", qty: 2, note: "", category: "Kitchen", pacing: "Serve First", prepTime: 5 }
+                // Scenario 1: Standard Rush
+                { token: "D-101", timestamp: now - (4 * 60000), status: "Table 12 - LOCKED", cart: [
+                    { id: "d1", name: "White Sauce Pasta", qty: 2, note: "", category: activeCat, pacing: "Main Course", prepTime: 12 },
+                    { id: "d2", name: "Watermelon cooler", qty: 2, note: "", category: altCat, pacing: "Serve First", prepTime: 5 }
                 ]},
-                { token: "D-102", timestamp: now - (8 * 60000), status: "Table 4 - LOCKED", cart: [
-                    { id: "d3", name: "Peanut Butter Brownie", qty: 1, note: "SEVERE NUT ALLERGY", category: "Dessert", pacing: "Serve Last", prepTime: 10 },
-                    { id: "d4", name: "Grilled Salmon", qty: 1, note: "Sauce on side", category: "Grill", pacing: "Main Course", prepTime: 20 }
+                
+                // Scenario 2: Severe Allergy Alert
+                { token: "D-102", timestamp: now - (7 * 60000), status: "Table 4 - LOCKED", cart: [
+                    { id: "d3", name: "Plate Shawarma", qty: 1, note: "MAYO ALLERGY DO NOT PUT MAYONNAISE", category: activeCat, pacing: "Main Course", prepTime: 10 }
                 ]},
-                { token: "D-103", timestamp: now - (35 * 60000), status: "Table 8 - LOCKED", cart: [
-                    { id: "d5", name: "Ribeye Steak", qty: 2, note: "Medium Rare", category: "Grill", pacing: "Main Course", prepTime: 25 },
-                    { id: "d6", name: "Mashed Potatoes", qty: 2, note: "", category: "Kitchen", pacing: "Main Course", prepTime: 10 }
+                
+                // Scenario 3: Overdue Ticket (In the Weeds)
+                { token: "D-103", timestamp: now - (38 * 60000), status: "Table 8 - LOCKED", cart: [
+                    { id: "d5", name: "Rib Mandi", qty: 2, note: "Extra spicy", category: activeCat, pacing: "Main Course", prepTime: 25 },
+                    { id: "d6", name: "Kung Pao Chicken", qty: 1, note: "", category: altCat, pacing: "Main Course", prepTime: 15 }
                 ]},
-                { token: "D-104", timestamp: now - (12 * 60000), status: "Table 6 - LOCKED", cart: [
-                    { id: "d7", name: "Classic Mojito", qty: 5, note: "", category: "Beverages", pacing: "Serve First", prepTime: 5 }, 
-                    { id: "d8", name: "Chicken Tikka", qty: 1, note: "Extra spicy", category: "Grill", pacing: "Serve First", prepTime: 15 }
+                
+                // Scenario 4: Fire Next Course
+                { token: "D-104", timestamp: now - (25 * 60000), status: "Table 6 - FIRE NEXT", cart: [
+                    { id: "d7", name: "Coffee", qty: 3, note: "No sugar", category: activeCat, pacing: "Serve Last", prepTime: 5 }
                 ]},
-                { token: "D-105", timestamp: now - (22 * 60000), status: "Table 2 - FIRE NEXT", cart: [
-                    { id: "d9", name: "Molten Lava Cake", qty: 1, note: "Birthday sparkler", category: "Dessert", pacing: "Serve Last", prepTime: 12 }
+                
+                // Scenario 5: Mid-Cook Quantity Update
+                { token: "D-105", timestamp: now - (12 * 60000), status: "Table 5 - LOCKED", cart: [
+                    { id: "x1", name: "Malabar Chicken", qty: 3, note: "", category: activeCat, pacing: "Main Course", prepTime: 15 } // Increased from 1 to 3
+                ]},
+                
+                // Scenario 6: New Item Added to Existing Ticket
+                { token: "D-106", timestamp: now - (15 * 60000), status: "Table 9 - LOCKED", cart: [
+                    { id: "x2", name: "Rib Mandi", qty: 2, note: "", category: activeCat, pacing: "Main Course", prepTime: 20 },
+                    { id: "d8", name: "Pan Fried Momos", qty: 1, note: "Extra dip", category: activeCat, pacing: "Main Course", prepTime: 10 } // Brand new addition
+                ]},
+                
+                // Scenario 7: The "Resurrected" Ticket (Requested Scenario)
+                // Status shows altCat is already Ready. Waiter added new item to activeCat.
+                { token: "D-107", timestamp: now - (45 * 60000), status: `Table 2 - LOCKED | ${altCat}:Ready`, cart: [
+                    { id: "x3", name: "Steak", qty: 1, note: "Medium Rare", category: activeCat, pacing: "Main Course", prepTime: 20 }, // Old item (Pre-struck by restartDemoTour)
+                    { id: "d9", name: "Lemon Chicken", qty: 1, note: "RUSH - Waiter forgot to punch", category: activeCat, pacing: "Main Course", prepTime: 15 } // Late addition!
                 ]}
             ];
             
