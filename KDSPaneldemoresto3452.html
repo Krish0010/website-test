@@ -776,9 +776,11 @@
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 12000);
                 
-                const response = await fetch(SCRIPT_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ device_token: localStorage.getItem('impact_device_token'), action: "kds_fetch" }),
+                // 🟢 CACHE-BUSTER FIX: Add a live timestamp so the browser never caches the polling loop!
+                // This guarantees the KDS pulls live data instantly without needing a physical screen tap.
+                const response = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ device_token: localStorage.getItem('impact_device_token'), action: "kds_fetch", _t: Date.now() }),
                     signal: controller.signal
                 });
                 clearTimeout(timeoutId);
@@ -822,11 +824,21 @@
                                     newTicketsArrived = true;
                                 } 
                                 // 2. Check for FIRE NEXT upgrade
-                                else if (prevStatus !== t.status && t.status.includes("FIRE NEXT")) {
-                                    newTicketsArrived = true;
-                                    let tableNum = t.status.split('-')[0].replace('Table','').trim();
-                                    updateNotifications.push({ title: "FIRE NEXT", msg: `Table ${tableNum} is ready for the next course!`, color: "bg-k-warning text-black border-yellow-500" });
-                                }
+                                else if (prevStatus !== t.status && t.status.includes("FIRE NEXT")) {
+                                    newTicketsArrived = true;
+                                    let tableNum = t.status.split('-')[0].replace('Table','').trim();
+                                    updateNotifications.push({ title: "FIRE NEXT", msg: `Table ${tableNum} is ready for the next course!`, color: "bg-k-warning text-black border-yellow-500" });
+                                    
+                                    // 🟢 WAKE-UP TECHNIQUE FIX: Use the exact same logic as Order Updates!
+                                    // This forces the ticket back onto the screen, overriding Prep Mode filters, 
+                                    // and requires the Chef to hit "OK" to acknowledge the change.
+                                    unacknowledgedUpdates[t.token] = t.cart; 
+                                    
+                                    try { if(typeof localAmberState !== 'undefined') localAmberState.delete(String(t.token)); } catch(e) {}
+                                    let cleared = JSON.parse(localStorage.getItem(`kds_cleared_tokens_${currentStationFilter}`) || "[]");
+                                    cleared = cleared.filter(tok => String(tok) !== String(t.token));
+                                    localStorage.setItem(`kds_cleared_tokens_${currentStationFilter}`, JSON.stringify(cleared));
+                                }
                                 // 3. 🟢 THE DIFF ENGINE: Check for Order Updates
                                 else if (prevCartStr && prevCartStr !== currentCartStr && !t.status.includes("READY")) {
                                     let oldC = JSON.parse(prevCartStr);
