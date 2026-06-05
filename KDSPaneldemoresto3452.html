@@ -316,18 +316,6 @@
 
                 <div class="flex items-center justify-between bg-gray-800 p-4 rounded-xl border border-gray-700">
                     <div>
-                        <h4 class="text-sky-400 font-bold text-sm uppercase tracking-wider flex items-center gap-2">
-                            Prep Station Mode
-                            <svg class="w-3.5 h-3.5 text-gray-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H9V7a3 3 0 016 0v2h2V7a5 5 0 00-5-5z"></path></svg>
-                        </h4>
-                        <p class="text-gray-400 text-[10px] mt-0.5">Auto-locked based on Device Role.</p>
-                    </div>
-                    <!-- 🟢 AUTO-LOCK PREP MODE FIX: Visual styling indicates it is locked -->
-                    <button id="toggle-prep-btn" onclick="toggleKDSSetting('prep')" class="w-14 h-8 rounded-full bg-gray-600 relative transition-colors duration-300 opacity-50 cursor-not-allowed"><div id="toggle-prep-knob" class="w-6 h-6 bg-gray-200 rounded-full absolute top-1 left-1 transition-transform duration-300 shadow-inner"></div></button>
-                </div>
-
-                <div class="flex items-center justify-between bg-gray-800 p-4 rounded-xl border border-gray-700">
-                    <div>
                         <h4 class="text-white font-bold text-sm uppercase tracking-wider text-purple-400">Training / Demo Mode</h4>
                         <p class="text-gray-400 text-[10px] mt-0.5">Inject fake tickets for staff practice</p>
                     </div>
@@ -1032,7 +1020,13 @@
             // 🟢 BUG FIX: Force the visual UI toggles to snap to the correct state for this specific station!
             updateToggleUI('audio', isAudioMuted);
             updateToggleUI('sos', isSOSDisabled);
-            updateToggleUI('prep', isPrepMode);
+            
+            // 🟢 ELITE UI: Trigger dynamic context toasts based on the selected role!
+            if (isPrepMode) {
+                showKDSToast("Prep Station Active", "Tablet restricted to checking off individual items.", "bg-gray-800 text-white border-gray-600");
+            } else {
+                showKDSToast("Expo Master Active", "Full order bumping enabled for all stations.", "bg-indigo-900/90 text-indigo-100 border-indigo-500/40");
+            }
             
             // 🟢 UI FIX: Instantly clear the screen so old station tickets don't ghost while loading
             document.getElementById('kds-grid').innerHTML = "";
@@ -1475,29 +1469,6 @@ async function processStrikeQueue() {
             } catch(e) {}
         }
 
-        // 🟢 PREP STATION EXECUTION: Sends silent ping and clears the blue "Update" flag automatically
-        function strikeStationItems(token, tableNum, stationName, btnElement) {
-            const card = btnElement.closest('.ticket-card');
-            const totalItems = card.querySelectorAll('.item-row').length;
-            const struckItems = card.querySelectorAll('.is-struck').length;
-            
-            // 🟢 SAFETY NET 2: Block the click if they haven't manually checked off every item!
-            if (struckItems < totalItems) {
-                showKDSAlert("Cannot Send to Expo", "You still have <b>un-checked items</b>.<br><br>Please tap and check off every item on your station before sending.");
-                return;
-            }
-
-            // Auto-acknowledge update if present so the blue border goes away!
-            delete unacknowledgedUpdates[token];
-
-            // Send silent ping to backend so Expo tablet gets the green badge
-            try { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ device_token: localStorage.getItem('impact_device_token'), action: "kds_station_ready", token: token, station: stationName }) }); } catch(e) {}
-            
-            // Force an immediate Virtual DOM refresh to apply the dimmed state and Amber button
-            lastGeneratedGridHTML = ""; 
-            fetchKDS(); 
-        }
-
         // 🟢 STATION ALERT MODAL LOGIC (Replaces the ugly browser confirm popup)
         let pendingAlertToken = "";
         let pendingAlertTable = "";
@@ -1534,6 +1505,11 @@ async function processStrikeQueue() {
                 // Send silent ping to backend 
                 try { fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ device_token: localStorage.getItem('impact_device_token'), action: "kds_station_ready", token: pendingAlertToken, station: pendingAlertStation }) }); } catch(e) {}
                 
+                // 🟢 ACCIDENTAL TOUCH FIX: Lock the struck items permanently for full station clears!
+                const keysToLock = Array.from(strikeMemory).filter(key => key.startsWith(`${pendingAlertToken}_`));
+                keysToLock.forEach(key => bumpedMemory.add(key));
+                localStorage.setItem('kds_bumped_memory', JSON.stringify(Array.from(bumpedMemory)));
+
                 // 🟢 INSTANT CLEAR FIX: Locally inject the ready tag into the DOM memory so the ticket vanishes immediately!
                 const t = currentActiveTickets.find(ticket => ticket.token === pendingAlertToken);
                 if (t && !t.status.includes(`${pendingAlertStation}:Ready`)) {
@@ -1636,30 +1612,10 @@ async function processStrikeQueue() {
                     <button onclick="sendPartialAlert('${token}', '${tableNum}'); closeKDSAlert();" class="w-1/2 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-colors shadow-[0_0_15px_rgba(2,132,199,0.4)]">Alert Waiter</button>
                     `
                 );
-                return;
-            }
+                return;
+            }
 
-            if (struckItems < totalItems) {
-                // 🟢 ASYNCHRONOUS COURSE FIX: Allow partial pinging for Starters/Desserts
-                const premiumMessage = `
-                    <div class="text-gray-400 text-[13px] leading-relaxed mb-4">
-                        You have finished <b>${struckItems} out of ${totalItems}</b> items.<br><br>
-                        Do you want to ping the Waiter to pick up the ready courses while you finish the rest?
-                    </div>
-                `;
-                showKDSAlert(
-                    "Partial Order Ready?", 
-                    premiumMessage, 
-                    "info", 
-                    `
-                    <button onclick="closeKDSAlert()" class="w-1/2 py-3 bg-gray-800 text-gray-400 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:text-white hover:bg-gray-700 transition-colors">Cancel</button>
-                    <button onclick="sendPartialAlert('${token}', '${tableNum}'); closeKDSAlert();" class="w-1/2 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-colors shadow-[0_0_15px_rgba(2,132,199,0.4)]">Alert Waiter</button>
-                    `
-                );
-                return;
-            }
-
-            const overlay = document.getElementById('bump-overlay');
+            const overlay = document.getElementById('bump-overlay');
             overlay.classList.remove('hidden'); overlay.classList.add('flex');
 
             // 🟢 MOCK API: Simulate success in Demo Mode with a 10s Respawn!
@@ -2178,7 +2134,6 @@ async function processStrikeQueue() {
             // Render current toggle states
             updateToggleUI('audio', isAudioMuted);
             updateToggleUI('sos', isSOSDisabled);
-            updateToggleUI('prep', isPrepMode); // 🟢 Load Prep UI
             updateToggleUI('demo', isDemoMode);
 
             const modal = document.getElementById('mgr-hub-modal'); const box = document.getElementById('mgr-hub-box');
@@ -2206,10 +2161,6 @@ async function processStrikeQueue() {
                 isSOSDisabled = !isSOSDisabled;
                 localStorage.setItem(`kds_sos_${currentStationFilter}`, isSOSDisabled);
                 updateToggleUI('sos', isSOSDisabled);
-            } else if (setting === 'prep') {
-                // 🟢 AUTO-LOCK PREP MODE FIX: Prevent manual toggling
-                showKDSToast("Setting Locked", "Prep Mode is automatically managed based on the Device Role.", "bg-gray-700 text-white");
-                return;
             } else if (setting === 'demo') {
                 isDemoMode = !isDemoMode;
                 localStorage.setItem('kds_demo_mode', isDemoMode); // 🟢 SECURITY FIX: Lock tablet into Demo Mode
