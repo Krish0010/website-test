@@ -205,8 +205,8 @@
     </div>
 
     <header class="bg-gray-900 border-b border-gray-800 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center sticky top-0 z-50 shadow-md">
-        <div class="flex items-center gap-3 sm:gap-6">
-            <div class="flex items-center gap-3 cursor-pointer" onclick="location.reload()" title="Refresh KDS">
+       <div class="flex items-center gap-3 sm:gap-6">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="attemptSafeRefresh()" title="Refresh KDS">
                 <div class="w-9 h-9 sm:w-10 sm:h-10 bg-k-accent text-gray-900 rounded-xl flex items-center justify-center font-black text-[10px] sm:text-xs tracking-widest shadow-[0_0_15px_rgba(56,189,248,0.3)]">KDS</div>
             </div>
             
@@ -595,14 +595,44 @@
                 }
             });
 
-            // 🟢 TAB CLOSE TRAP (Triggers the ugly native browser warning only if they close the tab or swipe app away)
+            // 🟢 TAB CLOSE & REFRESH TRAP
             window.addEventListener('beforeunload', function (e) {
+                // ULTIMATE OFFLINE SHIELD: If they try to close/refresh while offline, browser throws maximum warning
+                if (!navigator.onLine) {
+                    e.preventDefault();
+                    e.returnValue = 'You are currently OFFLINE! Reloading or leaving this page will break the terminal. Please stay on this page.'; 
+                    return e.returnValue;
+                }
+
                 if (!isIntentionalNavigation && !allowExit) {
                     e.preventDefault();
                     e.returnValue = ''; 
                 }
             });
+
+            // 🟢 PWA SERVICE WORKER INSTALLATION
+            if ('serviceWorker' in navigator) {
+                // Register the worker to cache the site for offline reloads
+                navigator.serviceWorker.register('/impact-service-worker.js').catch(err => {
+                    console.log("Service Worker Registration Failed:", err);
+                });
+            }
         });
+
+        // 🟢 OFFLINE SHIELD: Custom Refresh Button Logic
+        function attemptSafeRefresh() {
+            if (!navigator.onLine) {
+                const premiumMessage = `
+                    <div class="text-gray-400 text-[13px] leading-relaxed mb-4">
+                        You cannot refresh the KDS while the Wi-Fi is down. Refreshing now will cause you to lose sight of the current tickets!
+                    </div>
+                `;
+                showKDSAlert("Action Blocked", premiumMessage, "error");
+                return;
+            }
+            // If online, refresh normally
+            location.reload();
+        }
 
 // 🟢 KDS DEVICE AUTHORIZATION LOGIC
         async function authorizeDevice() {
