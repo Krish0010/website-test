@@ -102,8 +102,10 @@
 
     <header class="bg-w-card border-b border-w-border px-4 py-3 sm:py-4 flex justify-between items-center shadow-sm shrink-0 z-40">
         <div class="flex items-center gap-3">
-            <div class="w-8 h-8 sm:w-9 sm:h-9 bg-w-accent text-white rounded-lg flex items-center justify-center font-black text-[10px] sm:text-xs tracking-widest shadow-md shadow-blue-500/20">POS</div>
-            <h1 class="font-black text-w-text tracking-tight text-lg sm:text-xl">Staff Terminal</h1>
+            <div class="flex items-center gap-3 cursor-pointer" onclick="attemptSafeRefresh()" title="Refresh POS">
+                <div class="w-8 h-8 sm:w-9 sm:h-9 bg-w-accent text-white rounded-lg flex items-center justify-center font-black text-[10px] sm:text-xs tracking-widest shadow-md shadow-blue-500/20">POS</div>
+                <h1 class="font-black text-w-text tracking-tight text-lg sm:text-xl">Staff Terminal</h1>
+            </div>
         </div>
         <div class="flex items-center gap-3 sm:gap-4">
             <span id="sync-status" class="text-[8px] sm:text-[9px] uppercase font-bold tracking-widest text-amber-500 animate-pulse">Syncing...</span>
@@ -846,7 +848,46 @@
                     if (e.key === 'Enter') fetchOrder();
                 }
             });
+
+            // 🟢 TAB CLOSE & REFRESH TRAP
+            window.addEventListener('beforeunload', function (e) {
+                // ULTIMATE OFFLINE SHIELD: If they try to close/refresh while offline, browser throws maximum warning
+                if (!navigator.onLine) {
+                    e.preventDefault();
+                    e.returnValue = 'You are currently OFFLINE! Reloading or leaving this page will break the terminal. Please stay on this page.'; 
+                    return e.returnValue;
+                }
+            });
+
+            // 🟢 PWA SERVICE WORKER INSTALLATION
+            if ('serviceWorker' in navigator) {
+                // Register the worker to cache the site for offline reloads
+                navigator.serviceWorker.register('/impact-service-worker.js').catch(err => {
+                    console.log("Service Worker Registration Failed:", err);
+                });
+            }
         });
+
+        // 🟢 OFFLINE SHIELD: Custom Refresh Button Logic
+        function attemptSafeRefresh() {
+            if (!navigator.onLine) {
+                const premiumMessage = `
+                    <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">
+                        You cannot refresh the terminal while the Wi-Fi is down.
+                    </div>
+                    <div class="bg-red-50 border border-red-100 rounded-xl py-3 px-4 mx-2 mb-4 shadow-inner flex flex-col items-center justify-center">
+                        <span class="font-black text-red-900 text-sm tracking-tight text-center">Refreshing now will lock you out of the Offline Terminal!</span>
+                    </div>
+                    <div class="text-[11px] sm:text-xs text-gray-500 leading-relaxed px-4">
+                        Please continue taking Walk-in orders on this screen. You may refresh once the system restores connection.
+                    </div>
+                `;
+                showPosAlert("Action Blocked", premiumMessage, "error");
+                return;
+            }
+            // If online, refresh normally
+            location.reload();
+        }
 
         window.addEventListener('popstate', function(event) {
             if (!document.getElementById('pos-alert-modal').classList.contains('hidden')) { closePosAlert(true); return; }
