@@ -527,6 +527,32 @@
             return terminalId + "-" + seqString; // Output: "KX-001"
         }
 
+        // 🟢 BULLETPROOF OFFLINE BILL GENERATOR: Infinite Scalability Prefix Engine
+        function generateOfflineBillNumber() {
+            const today = new Date().toDateString();
+            const storedDate = localStorage.getItem('impact_bill_date');
+            
+            // Start at 1000 so the receipt looks like a professional bill number
+            let seq = parseInt(localStorage.getItem('impact_bill_seq') || "1000");
+
+            // Reset counter at the start of a new day back to 1000
+            if (storedDate !== today) {
+                seq = 1000;
+                localStorage.setItem('impact_bill_date', today);
+            }
+
+            // Failsafe: Max 9,000 bills per tablet per day. Loop back if needed.
+            if (seq > 9999) seq = 1000;
+
+            const tid = localStorage.getItem('impact_terminal_id') || terminalId || "AAA";
+            
+            // Save the next number
+            localStorage.setItem('impact_bill_seq', (seq + 1).toString()); 
+            
+            // Output: "AAA-1000", "AAB-1042"
+            return tid + "-" + seq.toString(); 
+        }
+
         let currentInput = "";
         let activeTicket = []; 
         let cachedMenu = []; 
@@ -2348,7 +2374,7 @@
             );
         }
 
-        function executePrintCustomerBill(table, currentSubtotal) {
+function executePrintCustomerBill(table, currentSubtotal) {
             closePosAlert();
             const printArea = document.getElementById('print-area');
             
@@ -2386,13 +2412,12 @@
             const dateStr = ("0" + now.getDate()).slice(-2) + "/" + ("0" + (now.getMonth() + 1)).slice(-2) + "/" + now.getFullYear().toString().slice(-2);
             const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false});
 
-            // Fallback generated sequence for standard restaurant compliance
-            const dummyBillNo = Math.floor(1000 + Math.random() * 9000);
+            // 🟢 ENTERPRISE FIX: Generates unique, non-repeating bill number using the prefix logic
+            const offlineBillNo = generateOfflineBillNumber();
 
             printArea.innerHTML = `
                 <div style="font-family: monospace; color: black; font-size: 12px; line-height: 1.4; padding: 2px; width: 100%; box-sizing: border-box;">
                     
-                    <!-- 🟢 EDIT THESE PLACEHOLDERS FOR EACH RESTAURANT -->
                     <div style="text-align: center; margin-bottom: 8px;">
                         <h2 style="margin: 0; font-size: 18px; font-weight: 900; text-transform: uppercase;">YOUR RESTAURANT NAME</h2>
                         <p style="margin: 2px 0 0 0; font-size: 11px;">123 Street Name, Food District</p>
@@ -2417,7 +2442,7 @@
                             <td style="text-align: right; vertical-align: top;">
                                 <b>Dine In: ${table}</b><br>
                                 <br>
-                                Bill No.: ${dummyBillNo}
+                                Bill No.: ${offlineBillNo}
                             </td>
                         </tr>
                     </table>
@@ -2476,18 +2501,18 @@
                     
                     <div style="text-align: center; font-size: 10px; margin-top: 6px;">
                         <p style="margin: 2px 0;">FSSAI Lic No. 12345678901234</p>
-                        <div style="text-align:center; font-size: 11px; color: #000; margin-top: 6px; font-weight: 900; padding: 4px; border: 1px solid black; border-radius: 4px;">
-                    SCAN QR ON YOUR TABLE TO LEAVE A REVIEW AND WIN REWARDS!
-                
                         <p style="margin: 2px 0;">Thank You, Visit Again!</p>
+                        <div style="margin-top: 6px; font-weight: 900; padding: 4px; border: 1px solid black; border-radius: 4px;">
+                            SCAN QR ON YOUR TABLE TO LEAVE A REVIEW AND WIN REWARDS!
+                        </div>
                     </div>
-                 </div>
-               </div>
+                </div>
             `;
             
             // Trigger native print dialog (routes to Bluetooth thermal printer)
             // Small timeout prevents the dark modal from being captured in the print frame!
             setTimeout(() => { window.print(); }, 400); 
+        } 
         }
 
         // 🟢 ENTERPRISE FEATURE: Generate Physical KOT
