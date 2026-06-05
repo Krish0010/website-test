@@ -2513,7 +2513,6 @@ function executePrintCustomerBill(table, currentSubtotal) {
             // Small timeout prevents the dark modal from being captured in the print frame!
             setTimeout(() => { window.print(); }, 400); 
         } 
-        }
 
         // 🟢 ENTERPRISE FEATURE: Generate Physical KOT
         function printOfflineKOT(table, token, cart) {
