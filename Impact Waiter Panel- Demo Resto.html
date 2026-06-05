@@ -73,9 +73,24 @@
         .action-btn:active { transform: scale(0.95); }
         
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        /* 🟢 ENTERPRISE OFFLINE KOT PRINT STYLES */
+        @media print {
+            body > *:not(#print-area) { display: none !important; }
+            #print-area { 
+                display: block !important; 
+                width: 80mm; /* Standard Thermal Printer Width */
+                margin: 0; padding: 10px; 
+                font-family: monospace; color: black; background: white;
+            }
+            @page { margin: 0; }
+            body { background-color: #ffffff; }
+        }
     </style>
 </head>
 <body class="flex flex-col h-[100dvh] w-screen max-h-[100dvh]">
+
+   <div id="print-area" class="hidden"></div>
 
    <!-- 🟢 ELITE UI: Dynamic Notification Wrapper -->
     <div id="toast-wrapper" class="fixed top-2 left-0 right-0 sm:left-auto sm:right-4 z-[1000] flex flex-col items-center sm:items-end pointer-events-none w-full sm:w-auto px-3 sm:px-0">
@@ -2035,6 +2050,76 @@
             executeFire(table);
         }
 
+        // 🟢 ENTERPRISE FEATURE: Auto-Sync Engine
+        let isSyncingQueue = false;
+        
+        // Listen for internet returning to auto-flush the vault
+        window.addEventListener('online', async () => {
+            if (isSyncingQueue) return;
+            const vaultStr = localStorage.getItem('impact_offline_vault');
+            if (vaultStr) {
+                let vault = [];
+                try { vault = JSON.parse(vaultStr); } catch(e) {}
+                if (vault.length > 0) {
+                    showToastNotification("Network Restored", `Auto-syncing ${vault.length} offline orders...`);
+                    isSyncingQueue = true;
+                    
+                    let remainingVault = [];
+                    for (let order of vault) {
+                        try {
+                            const res = await fetch(SCRIPT_URL, { 
+                                method: 'POST', 
+                                body: JSON.stringify(order.payload)
+                            });
+                            const data = await res.json();
+                            if (!data.success && data.errorCode !== "TABLE_COLLISION") {
+                                remainingVault.push(order); // Kefunction printOfflineKOT(table, token, cart)ep if server error
+                            }
+                        } catch(e) {
+                            remainingVault.push(order); // Keep if network drops again
+                        }
+                    }
+                    
+                    if (remainingVault.length === 0) {
+                        localStorage.removeItem('impact_offline_vault');
+                        showToastNotification("Sync Complete", "All offline orders sent to KDS and Sales Log.", "bg-w-success text-white");
+                    } else {
+                        localStorage.setItem('impact_offline_vault', JSON.stringify(remainingVault));
+                    }
+                    isSyncingQueue = false;
+                }
+            }
+        });
+
+        // 🟢 ENTERPRISE FEATURE: Generate Physical KOT
+        function printOfflineKOT(table, token, cart) {
+            const printArea = document.getElementById('print-area');
+            
+            let itemsHtml = cart.map(i => `
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-weight:900; font-size:16px;">
+                    <span>${i.qty}x ${i.name.toUpperCase()}</span>
+                </div>
+                ${i.note ? `<div style="font-size:13px; font-weight:bold; margin-left:15px; margin-bottom:8px; border: 1px solid black; padding: 2px;">*** ${i.note.toUpperCase()}</div>` : ''}
+            `).join('');
+
+            printArea.innerHTML = `
+                <div style="border: 2px solid black; padding: 10px; margin-bottom: 15px; text-align: center;">
+                    <h1 style="margin:0; font-size: 24px; font-weight:900;">** OFFLINE KOT **</h1>
+                    <p style="margin:5px 0 0 0; font-size: 12px; font-weight:bold;">NETWORK DOWN - ENTERED MANUALLY</p>
+                </div>
+                <div style="text-align:center; font-size: 28px; font-weight:900; margin-bottom: 10px; border-bottom: 2px dashed black; padding-bottom: 10px;">TABLE ${table}</div>
+                <div style="font-size: 16px; font-weight: bold; margin-bottom: 15px;">Token: #${token}</div>
+                <div style="border-bottom: 2px dashed black; margin-bottom: 15px;"></div>
+                ${itemsHtml}
+                <div style="border-bottom: 2px dashed black; margin-top: 15px; margin-bottom: 10px;"></div>
+                <div style="text-align:center; font-size: 12px; font-weight:bold;">Printed: ${new Date().toLocaleTimeString()}</div>
+                <div style="text-align:center; font-size: 12px; font-weight:bold; margin-top:5px;">Please cross off manually.</div>
+            `;
+            
+            // Trigger native print dialog (routes to Bluetooth thermal printer)
+            window.print();
+        }
+
         async function executeFire(table) {
             const fireBtn = document.getElementById('fire-btn');
             const originalText = fireBtn.innerHTML;
@@ -2044,7 +2129,7 @@
             let kdsPayload = activeTicket.map(item => {
                 const menuItem = cachedMenu.find(m => String(m.name || '').toLowerCase() === item.name.toLowerCase());
                 const category = menuItem ? menuItem.category : "Kitchen"; 
-                const prepTime = menuItem ? (menuItem.prepTime || 0) : 0; // 🟢 FETCH PREP TIME
+                const prepTime = menuItem ? (menuItem.prepTime || 0) : 0; 
                 let pacingStr = "Main Course";
                 if (item.course === "first") pacingStr = "Serve First";
                 if (item.course === "last") pacingStr = "Serve Last";
@@ -2052,16 +2137,25 @@
                 return { id: item.id, name: item.name.trim() || "Custom Dish", qty: item.qty, note: item.note ? item.note.trim() : "", category: category, pacing: pacingStr, price: item.price, isLocked: !!item.isLocked, prepTime: prepTime };
             });
 
+            // The payload we send to Google
+            const postData = { 
+                action: "waiter_fire", 
+                token: currentInput, 
+                table: table, 
+                finalCart: kdsPayload, 
+                device_token: localStorage.getItem('impact_device_token') || "" 
+            };
+
            try {
-                const devToken = localStorage.getItem('impact_device_token') || ""; 
-                
-                // 🟢 FIX: INFINITE HANG ON NETWORK DROP
+                // 🟢 OFFLINE CHECK: If browser knows we are offline, throw instantly
+                if (!navigator.onLine) throw new Error("Offline");
+
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 second strict timeout
+                const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second strict timeout to catch dead Wi-Fi fast
 
                 const response = await fetch(SCRIPT_URL, { 
                     method: 'POST', 
-                    body: JSON.stringify({ action: "waiter_fire", token: currentInput, table: table, finalCart: kdsPayload, device_token: devToken }),
+                    body: JSON.stringify(postData),
                     signal: controller.signal 
                 });
                 clearTimeout(timeoutId);
@@ -2069,40 +2163,61 @@
                 
                 if (data.success) {
                     localStorage.removeItem('waiter_draft'); 
-                    closePosAlert(); // Close the processing spinner
-                    closeTicket();   // 🟢 SECURITY FIX: Kick waiter to home screen to prevent ghost-editing!
+                    closePosAlert(); 
+                    closeTicket();   
                     
                     setTimeout(() => {
                         showPosAlert("Order Fired!", `Success! The ticket for Table ${table} has been locked and sent to the kitchen.`, "success");
                     }, 300);
                 
-                // 🟢 UX FIX: Premium "Hard Stop" Alert for Table Collisions
                 } else if (data.errorCode === "TABLE_COLLISION") {
                     const premiumMessage = `
-                        <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">
-                            You cannot fire this order because the table is currently in use.
-                        </div>
-                        
+                        <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">You cannot fire this order because the table is currently in use.</div>
                         <div class="bg-red-50 border border-red-100 rounded-xl py-3.5 px-4 mx-2 mb-4 shadow-inner flex flex-col items-center justify-center">
                             <span class="text-[9px] uppercase font-bold tracking-widest text-red-400 mb-1">Occupied By</span>
                             <span class="font-black text-red-900 text-xl tracking-tight">Token #${sanitizeHTML(data.occupyingToken)}</span>
                         </div>
-
-                        <div class="text-[11px] sm:text-xs text-gray-500 leading-relaxed px-4">
-                            Please select a different table from the dropdown, or settle the existing table before sending a new order.
-                        </div>
+                        <div class="text-[11px] sm:text-xs text-gray-500 leading-relaxed px-4">Please select a different table from the dropdown, or settle the existing table before sending a new order.</div>
                     `;
                     showPosAlert(`Table ${table} Occupied!`, premiumMessage, "error");
-                
                 } else {
                     showPosAlert("Error", data.message, "error");
                 }
             } catch (err) {
-                showPosAlert(
-                    "You Are Offline", 
-                    "Unable to reach the kitchen system. <br><br><b>Don't Panic!</b> Your order is safely auto-saved on this device. Reconnect to Wi-Fi and tap Fire Order again.", 
-                    "error"
-                );
+                // 🟢 OFFLINE VAULT FALLBACK LOGIC
+                let vaultStr = localStorage.getItem('impact_offline_vault');
+                let vault = [];
+                try { if (vaultStr) vault = JSON.parse(vaultStr); } catch(e) {}
+                
+                // Modify payload to tag it with "PAPER KOT" so the kitchen knows it was handled physically when it finally syncs
+                postData.action = "waiter_fire_offline"; 
+                
+                vault.push({ token: currentInput, table: table, payload: postData, timestamp: Date.now() });
+                localStorage.setItem('impact_offline_vault', JSON.stringify(vault));
+
+                // Generate Physical Receipt
+                printOfflineKOT(table, currentInput, kdsPayload);
+
+                localStorage.removeItem('waiter_draft');
+                closePosAlert();
+                closeTicket();
+
+                setTimeout(() => {
+                    const premiumMessage = `
+                        <div class="text-gray-600 text-[13px] leading-relaxed mb-4 font-medium">
+                            The server is unreachable. Your order has been securely saved to this tablet's offline vault.
+                        </div>
+                        <div class="bg-amber-50 border border-amber-200 rounded-xl py-3 px-4 mx-2 mb-4 shadow-inner flex flex-col items-center text-center">
+                            <svg class="w-6 h-6 text-amber-500 mb-1" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0v2.625c0 .621.504 1.125 1.125 1.125h8.25c.621 0 1.125-.504 1.125-1.125V9.214z"></path></svg>
+                            <span class="font-black text-amber-900 text-sm tracking-tight">KOT Sent to Printer</span>
+                        </div>
+                        <div class="text-[11px] sm:text-xs text-gray-500 leading-relaxed px-4">
+                            Please hand the physical ticket to the kitchen. The system will automatically upload the data to the Sales Log when Wi-Fi returns.
+                        </div>
+                    `;
+                    showPosAlert(`System Offline`, premiumMessage, "warning");
+                }, 300);
+
             } finally {
                 fireBtn.innerHTML = originalText;
                 fireBtn.disabled = false;
