@@ -793,11 +793,16 @@
                 const data = await response.json();
                 if(data.success) {
                     cachedMenu = data.menu || [];
+                    localStorage.setItem('impact_cached_menu', JSON.stringify(cachedMenu)); // 🟢 OFFLINE FIX: Save backup menu to hard drive
                     document.getElementById('sync-status').innerText = "System Ready";
                     document.getElementById('sync-status').className = "text-[8px] sm:text-[9px] uppercase font-bold tracking-widest text-w-success";
                     fetchOpenTablesSilently(); // 🟢 PRE-FETCH OPEN TABLES
                 }
             } catch (err) {
+                // 🟢 OFFLINE FIX: Load backup menu from hard drive if server is dead!
+                const savedMenu = localStorage.getItem('impact_cached_menu');
+                if (savedMenu) { cachedMenu = JSON.parse(savedMenu); }
+
                 document.getElementById('sync-status').innerText = "Offline Mode";
                 document.getElementById('sync-status').className = "text-[8px] sm:text-[9px] uppercase font-bold tracking-widest text-w-danger animate-pulse";
             }
@@ -862,7 +867,15 @@
             // 🟢 PWA SERVICE WORKER INSTALLATION
             if ('serviceWorker' in navigator) {
                 // Register the worker to cache the site for offline reloads
-                navigator.serviceWorker.register('/impact-service-worker.js').catch(err => {
+                navigator.serviceWorker.register('/impact-service-worker.js').then(registration => {
+                    // 🟢 UX FIX: Notify waiter that the terminal is protected (Only shows once per device setup)
+                    if (!localStorage.getItem('impact_sw_notified')) {
+                        setTimeout(() => {
+                            showToastNotification("Terminal Secured", "Offline Mode active. You can safely take orders if Wi-Fi drops.", "bg-purple-900/90 text-purple-100 border-purple-500/40");
+                            localStorage.setItem('impact_sw_notified', 'true');
+                        }, 2000);
+                    }
+                }).catch(err => {
                     console.log("Service Worker Registration Failed:", err);
                 });
             }
@@ -958,12 +971,20 @@
                 const data = await response.json();
                 if(data.success) {
                     cachedMenu = data.menu || [];
+                    localStorage.setItem('impact_cached_menu', JSON.stringify(cachedMenu)); // 🟢 OFFLINE FIX: Save backup menu
                     document.getElementById('sync-status').innerText = "System Ready";
                     document.getElementById('sync-status').className = "text-[8px] sm:text-[9px] uppercase font-bold tracking-widest text-w-success";
                     if (!document.getElementById('menu-modal').classList.contains('hidden')) renderMenuSearch();
                     if (!document.getElementById('stock-modal').classList.contains('hidden')) renderStockSearch();
                 }
             } catch (err) { 
+                // 🟢 OFFLINE FIX: Load backup menu and allow rendering
+                const savedMenu = localStorage.getItem('impact_cached_menu');
+                if (savedMenu) {
+                    cachedMenu = JSON.parse(savedMenu);
+                    if (!document.getElementById('menu-modal').classList.contains('hidden')) renderMenuSearch();
+                    if (!document.getElementById('stock-modal').classList.contains('hidden')) renderStockSearch();
+                }
                 document.getElementById('sync-status').innerText = "Offline Mode";
                 document.getElementById('sync-status').className = "text-[8px] sm:text-[9px] uppercase font-bold tracking-widest text-w-danger animate-pulse";
             }
