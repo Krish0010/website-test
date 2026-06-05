@@ -1577,7 +1577,8 @@
                 // Regardless of table state, if there is a new item, they MUST be able to fire/update.
                 fireBtn.className = isLocked || isFireNext 
                     ? "w-2/4 bg-amber-500 text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm shadow-xl shadow-amber-500/30 hover:bg-amber-600 transition-colors flex items-center justify-center gap-2"
-                    : "w-3/4 bg-w-success text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm shadow-xl shadow-green-600/30 hover:bg-green-700 transition-colors flex items-center justify-center gap-2";
+                    // 🟢 CSS MATH FIX: Must be w-2/4 so the 3 buttons equal 100% width!
+                    : "w-2/4 bg-w-success text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm shadow-xl shadow-green-600/30 hover:bg-green-700 transition-colors flex items-center justify-center gap-2";
                 
                 fireBtn.innerHTML = (isLocked || isFireNext) 
                     ? `<svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"></path></svg> Update Order`
@@ -2061,6 +2062,29 @@
             setTimeout(() => { container.scrollTop = container.scrollHeight; }, 100);
         } 
 
+        // 🟢 JAVASCRIPT SCOPE FIX: Extracted so it can be called safely
+        function executeOfflineSettle(table, currentSubtotal) {
+            let vaultStr = localStorage.getItem('impact_offline_vault');
+            let vault = [];
+            try { if (vaultStr) vault = JSON.parse(vaultStr); } catch(e) {}
+            
+            // Push the settlement command to the vault
+            const payload = { action: "waiter_settle", token: currentInput, table: table, totalAmount: currentSubtotal, device_token: localStorage.getItem('impact_device_token') };
+            vault.push({ token: currentInput, table: table, payload: payload, timestamp: Date.now() });
+            localStorage.setItem('impact_offline_vault', JSON.stringify(vault));
+
+            // Instantly clear the table from the local memory so it looks available!
+            currentOpenTables = currentOpenTables.filter(t => t.token !== currentInput);
+
+            localStorage.removeItem('waiter_draft');
+            closePosAlert();
+            closeTicket();
+
+            setTimeout(() => {
+                showPosAlert("Offline Table Cleared", `Table ${table} is now free. The sale will sync to the database automatically later.`, "success");
+            }, 300);
+        }
+
         // --- FINAL ACTIONS ---
         function clearTable() {
             const table = document.getElementById('table-select').value || "Unassigned";
@@ -2075,6 +2099,24 @@
             const hasUnlockedItems = activeTicket.some(item => !item.isLocked);
             if (hasUnlockedItems) {
                 showPosAlert("Unsaved Changes", "You have added items to this order but haven't fired them to the kitchen yet.<br><br>Please tap <b>Update Order</b> to send them, or delete the unsent items before settling.", "error");
+                return;
+            }
+
+            // 🟢 OFFLINE SETTLEMENT VAULT
+            if (!navigator.onLine) {
+                const offlineMessage = `
+                    <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">
+                        The system is offline. Do you want to clear this table locally?
+                    </div>
+                    <div class="bg-red-50 border border-red-100 rounded-xl py-4 px-4 mx-2 mb-4 shadow-inner flex flex-col items-center justify-center">
+                        <span class="text-[9px] uppercase font-bold tracking-widest text-red-400 mb-1">Total Amount</span>
+                        <span class="font-black text-red-900 text-2xl tracking-tight">₹${currentSubtotal}</span>
+                    </div>
+                    <div class="text-[11px] sm:text-xs text-gray-500 leading-relaxed px-4">
+                        The table will be freed up immediately for new customers. The sales data will automatically log to the cloud when Wi-Fi returns.
+                    </div>
+                `;
+                showPosAlert("Offline Settlement", offlineMessage, "warning", () => executeOfflineSettle(table, currentSubtotal), "Clear Table");
                 return;
             }
 
@@ -2247,6 +2289,34 @@
 
             const table = document.getElementById('table-select').value || "Unassigned";
             const currentSubtotal = document.getElementById('ticket-subtotal').innerText;
+
+            // 🟢 PREMIUM UI: Print Confirmation Modal
+            const premiumMessage = `
+                <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">
+                    Generate a physical invoice for this table?
+                </div>
+                
+                <div class="bg-indigo-50 border border-indigo-100 rounded-xl py-4 px-4 mx-2 mb-4 shadow-inner flex flex-col items-center justify-center">
+                    <span class="text-[9px] uppercase font-bold tracking-widest text-indigo-400 mb-1">Total Amount</span>
+                    <span class="font-black text-indigo-900 text-2xl tracking-tight">₹${currentSubtotal}</span>
+                </div>
+
+                <div class="text-[11px] sm:text-xs text-gray-500 leading-relaxed px-4">
+                    This will spool the bill to your local printer. You must still tap <b>Settle</b> after the customer pays to clear the table.
+                </div>
+            `;
+
+            showPosAlert(
+                "Print Customer Bill", 
+                premiumMessage, 
+                "info", 
+                () => { executePrintCustomerBill(table, currentSubtotal); }, 
+                "Print Invoice"
+            );
+        }
+
+        function executePrintCustomerBill(table, currentSubtotal) {
+            closePosAlert();
             const printArea = document.getElementById('print-area');
             
             let itemsHtml = activeTicket.map(i => {
@@ -2297,7 +2367,8 @@
             `;
             
             // Trigger native print dialog (routes to Bluetooth thermal printer)
-            window.print();
+            // Small timeout prevents the dark modal from being captured in the print frame!
+            setTimeout(() => { window.print(); }, 400); 
         }
 
         // 🟢 ENTERPRISE FEATURE: Generate Physical KOT
