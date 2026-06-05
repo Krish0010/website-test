@@ -2095,12 +2095,26 @@
         function printOfflineKOT(table, token, cart) {
             const printArea = document.getElementById('print-area');
             
-            let itemsHtml = cart.map(i => `
-                <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-weight:900; font-size:16px;">
-                    <span>${i.qty}x ${i.name.toUpperCase()}</span>
+            // 🟢 PACING FIX: Sort cart so 'Serve First' is at the top, just like the real KDS
+            const sortedCart = [...cart].sort((a, b) => {
+                const rank = { "Serve First": 1, "Main Course": 2, "Serve Last": 3 };
+                return (rank[a.pacing] || 2) - (rank[b.pacing] || 2);
+            });
+
+            let itemsHtml = sortedCart.map(i => {
+                // 🟢 UX FIX: Clean, right-aligned badges to prevent vertical clutter
+                let pacingBadge = "";
+                if (i.pacing === "Serve First") pacingBadge = `<span style="border: 2px solid black; border-radius: 4px; padding: 2px 6px; font-size: 12px; margin-left: 8px;">1ST</span>`;
+                if (i.pacing === "Serve Last") pacingBadge = `<span style="border: 2px solid black; border-radius: 4px; padding: 2px 6px; font-size: 12px; margin-left: 8px;">LAST</span>`;
+
+                return `
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; font-weight:900; font-size:16px;">
+                    <span style="flex: 1; padding-right: 10px;">${i.qty}x ${i.name.toUpperCase()}</span>
+                    ${pacingBadge}
                 </div>
                 ${i.note ? `<div style="font-size:13px; font-weight:bold; margin-left:15px; margin-bottom:8px; border: 1px solid black; padding: 2px;">*** ${i.note.toUpperCase()}</div>` : ''}
-            `).join('');
+                `;
+            }).join('');
 
             printArea.innerHTML = `
                 <div style="border: 2px solid black; padding: 10px; margin-bottom: 15px; text-align: center;">
