@@ -464,6 +464,14 @@
         // REPLACE WITH YOUR ACTUAL SCRIPT URL
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbym2SJDwgobdl0MIzjUHg_5TLpbrjhdjLMVomrHAfUhsZ8EzT5oQM1KsRsevdr5JzA/exec"; 
 
+        // 🟢 ENTERPRISE ARCHITECTURE: Unique Terminal ID Generator
+        let terminalId = localStorage.getItem('impact_terminal_id');
+        if (!terminalId) {
+            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            terminalId = letters[Math.floor(Math.random() * 26)] + letters[Math.floor(Math.random() * 26)];
+            localStorage.setItem('impact_terminal_id', terminalId);
+        }
+
         let currentInput = "";
         let activeTicket = []; 
         let cachedMenu = []; 
@@ -872,8 +880,18 @@
         // 🟢 UX FIX: Instant generation of a "Walk-In" ticket
         function startNewOrder() {
             syncMenuBackground();
-            // Generate a random 4 digit token with the "W-" prefix
-            currentInput = "W-" + Math.floor(1000 + Math.random() * 9000);
+            
+            // 🟢 OFFLINE ALERT: Let them know they are entering offline mode
+            if (!navigator.onLine) {
+                showPosAlert(
+                    "Offline Mode", 
+                    "The server is down. You are opening an Offline Walk-In Ticket. <br><br>You can add items and Fire the order to the local KOT printer.", 
+                    "warning"
+                );
+            }
+
+            // 🟢 COLLISION SHIELD: Use the tablet's unique Terminal ID instead of "W-"
+            currentInput = terminalId + "-" + Math.floor(100 + Math.random() * 900); // e.g., "KX-492"
             
             safePushState('ticket');
             document.getElementById('active-token-display').innerText = `#${currentInput}`;
@@ -933,11 +951,45 @@
             syncMenuBackground(); 
             
             const isValidSmartOrder = currentInput.length === 4;
-            const isValidWalkIn = currentInput.startsWith('W-') && currentInput.length === 6;
+            // 🟢 VALIDATION FIX: Allow 6-character tokens starting with ANY 2-letter terminal prefix (e.g., KX-492)
+            const isValidTerminalOrder = /^[A-Z]{2}-\d{3}$/.test(currentInput); 
             
-            if (!isValidSmartOrder && !isValidWalkIn) { 
-                if(!isSilentRefresh) showPosAlert("Invalid Token", "Please enter a complete 4-digit code or a valid Walk-In token.", "warning"); 
+            if (!isValidSmartOrder && !isValidTerminalOrder) { 
+                if(!isSilentRefresh) showPosAlert("Invalid Token", "Please enter a 4-digit token or use the 'New Walk-In' button.", "warning"); 
                 return; 
+            }
+
+            // 🟢 OFFLINE BYPASS: Allow Waiters to open a ticket even when the server is dead!
+            if (!navigator.onLine) {
+                
+                // 🟢 COLLISION SHIELD: If they didn't type a number, auto-generate a unique Terminal token
+                if (!currentInput || currentInput === "") {
+                    currentInput = terminalId + "-" + Math.floor(100 + Math.random() * 900);
+                }
+
+                safePushState('ticket');
+                document.getElementById('active-token-display').innerText = `#${currentInput}`;
+                activeTicket = [];
+                currentOrderStatus = "Pending";
+                originalTicketState = "[]";
+                currentTicketTimestamp = null;
+                
+                document.getElementById('table-select').value = ""; 
+                renderTicket();
+                
+                document.getElementById('view-numpad').classList.add('hidden');
+                document.getElementById('view-numpad').classList.remove('flex');
+                document.getElementById('view-ticket').classList.remove('hidden');
+                document.getElementById('view-ticket').classList.add('flex');
+                
+                if (!isSilentRefresh) {
+                    showPosAlert(
+                        "Offline Mode", 
+                        "The server is down. You have opened an Offline Ticket. <br><br>You can add items and Fire the order to the local KOT printer.", 
+                        "warning"
+                    );
+                }
+                return; // Stop the function so it doesn't try to fetch from Google
             }
             
             const fetchBtn = document.getElementById('fetch-btn');
@@ -1805,6 +1857,12 @@
         }
 
         function openStockModal() {
+            // 🟢 OFFLINE BLOCKER
+            if (!navigator.onLine) {
+                showPosAlert("Feature Unavailable", "You cannot view live kitchen stock while the system is offline. <br><br>Please use the 'New Walk-in' button or enter a token to take emergency orders.", "error");
+                return;
+            }
+
             syncMenuBackground(); 
             setStockFilter('all'); 
             document.getElementById('stock-search').value = ""; 
@@ -2275,6 +2333,12 @@
         }
 
         async function openTablesModal() {
+            // 🟢 OFFLINE BLOCKER
+            if (!navigator.onLine) {
+                showPosAlert("Feature Unavailable", "You cannot view live tables while the system is offline. <br><br>Please use the 'New Walk-in' button or enter a token to take emergency orders.", "error");
+                return;
+            }
+            
             const modal = document.getElementById('open-tables-modal');
             const list = document.getElementById('open-tables-list');
             safePushState('tables');
@@ -2359,6 +2423,12 @@
         }
 
         function openManagerModal() {
+            // 🟢 OFFLINE BLOCKER
+            if (!navigator.onLine) {
+                showPosAlert("Feature Unavailable", "Manager controls and menu edits are disabled while the system is offline.", "error");
+                return;
+            }
+
             syncMenuBackground(); 
             updateVibrateUI(); // 🟢 Sync the vibration toggle UI
             document.getElementById('mgr-action-type').value = 'add';
