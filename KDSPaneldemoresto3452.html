@@ -469,6 +469,12 @@
         <p class="text-k-success font-black uppercase tracking-widest">Clearing Ticket...</p>
     </div>
 
+    <!-- 🟢 PERSISTENT OFFLINE BANNER -->
+    <div id="persistent-offline-banner" class="fixed bottom-0 left-0 right-0 bg-red-600 border-t border-red-400 text-white py-2 z-[9000] hidden items-center justify-center gap-2.5 shadow-[0_-10px_30px_rgba(239,68,68,0.4)] transition-all">
+        <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0"></div>
+        <span class="font-black text-[10px] sm:text-xs uppercase tracking-widest">System Offline — Attempting to Reconnect...</span>
+    </div>
+
     <div class="flex-1 flex relative w-full h-full"> 
         <main id="main-content" class="flex-1 min-w-0 p-2 sm:p-3 overflow-y-auto bg-k-bg transition-all duration-500 ease-in-out mr-0" style="scrollbar-width: thin;">
             <div id="kds-grid" class="grid gap-2 sm:gap-2.5 items-start transition-all duration-500" style="grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));">
@@ -819,6 +825,14 @@
                     // 🟢 OFFLINE RECOVERY: Clear the alert if we reconnected
                     if (isOfflineAlerted) {
                         isOfflineAlerted = false;
+                        
+                        // Hide the persistent banner
+                        const banner = document.getElementById('persistent-offline-banner');
+                        if (banner) { banner.classList.add('hidden'); banner.classList.remove('flex'); }
+
+                        // Play the new positive sound!
+                        playRestoredSound();
+
                         showKDSToast("Connection Restored", "The KDS is back online.", "bg-k-success text-white");
                         const alertModal = document.getElementById('kds-alert-modal');
                         if (alertModal && !alertModal.classList.contains('hidden') && document.getElementById('kds-alert-title').innerText === "System Offline") {
@@ -965,12 +979,18 @@
                 // 🟢 OFFLINE ALERT TRIGGER
                 if (!isOfflineAlerted && !isDemoMode) {
                     isOfflineAlerted = true;
-                    playOfflineSound();
+                    
+                    // Show the persistent banner
+                    const banner = document.getElementById('persistent-offline-banner');
+                    if (banner) { banner.classList.remove('hidden'); banner.classList.add('flex'); }
+
+                    playOfflineSound(); // Now triggers a looping sound
                     showKDSAlert(
                         "System Offline", 
                         "The KDS has lost connection to the server. Please check your Wi-Fi or internet connection.<br><br>The system will automatically reconnect when the signal is restored.",
                         "error",
-                        `<button onclick="closeKDSAlert()" class="w-full py-4 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black uppercase tracking-widest text-sm transition-colors shadow-[0_0_15px_rgba(239,68,68,0.4)] active:scale-95">Dismiss</button>`
+                        // 🟢 UX FIX: Changed "Dismiss" to "Silence Alarm" to remove the false sense of resolution
+                        `<button onclick="closeKDSAlert()" class="w-full py-4 bg-red-600 hover:bg-red-500 text-white rounded-xl font-black uppercase tracking-widest text-sm transition-colors shadow-[0_0_15px_rgba(239,68,68,0.4)] active:scale-95">Silence Alarm</button>`
                     );
                 }
             // FIX: Slow down polling to 20s if the network is failing
@@ -1827,6 +1847,17 @@ async function processStrikeQueue() {
             } catch(e) {}
         }
         function playOfflineSound() {
+            stopAlertSound(); 
+            triggerOfflineChime();
+            // 🟢 LOOPING ALARM: Buzzes every 3 seconds until silenced
+            activeAlarm = setInterval(triggerOfflineChime, 3000); 
+            
+            // Waiters/Chefs MUST tap the screen to silence the alarm.
+            document.body.addEventListener('click', stopAlertSound, { once: true, capture: true });
+            document.body.addEventListener('touchstart', stopAlertSound, { once: true, capture: true });
+        }
+
+        function triggerOfflineChime() {
             if (!globalAudioCtx || isAudioMuted) return; 
             try {
                 if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
@@ -1849,6 +1880,26 @@ async function processStrikeQueue() {
                 playTone(200, 'sawtooth', now + 0.5, 0.6); 
             } catch(e) {}
         }
+
+        function playRestoredSound() {
+            if (!globalAudioCtx || isAudioMuted) return; 
+            try {
+                if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
+                const playTone = (freq, startTime, duration) => {
+                    const osc = globalAudioCtx.createOscillator(); const gain = globalAudioCtx.createGain();
+                    osc.type = 'triangle'; osc.frequency.setValueAtTime(freq, startTime);
+                    gain.gain.setValueAtTime(0, startTime); gain.gain.linearRampToValueAtTime(0.3, startTime + 0.05); gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+                    osc.connect(gain); gain.connect(globalAudioCtx.destination); osc.start(startTime); osc.stop(startTime + duration);
+                };
+                const now = globalAudioCtx.currentTime; 
+                // 🟢 NEW SOUND: Uplifting ascending major arpeggio
+                playTone(523.25, now, 0.15);        // C5
+                playTone(659.25, now + 0.15, 0.15); // E5
+                playTone(783.99, now + 0.3, 0.15);  // G5
+                playTone(1046.50, now + 0.45, 0.5); // C6 (High C)
+            } catch(e) {}
+        }
+
         function stopAlertSound(e) {
             // 🟢 MUTE-SLAP DEFENSE: If the alarm is actively ringing, we kill the click event.
             // This guarantees the chef can slap the screen anywhere to mute the alarm 
