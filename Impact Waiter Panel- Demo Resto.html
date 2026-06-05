@@ -2352,50 +2352,132 @@
             closePosAlert();
             const printArea = document.getElementById('print-area');
             
+            let totalQty = 0;
             let itemsHtml = activeTicket.map(i => {
+                totalQty += parseInt(i.qty);
                 const itemTotal = (i.qty * i.price).toFixed(2);
+                const price = i.price.toFixed(2);
+                
+                // Keep kitchen notes tiny and indented if they exist
+                let noteHtml = i.note ? `<br><span style="font-size: 10px; margin-left: 5px;">- ${sanitizeHTML(i.note)}</span>` : "";
+                
                 return `
-                <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:14px; font-weight: 500;">
-                    <span style="flex: 1; padding-right: 10px;">${i.qty}x ${sanitizeHTML(i.name)}</span>
-                    <span>₹${itemTotal}</span>
-                </div>
+                <tr style="border-bottom: 1px dashed #ccc;">
+                    <td style="padding: 4px 0; text-align: left; max-width: 110px; word-wrap: break-word;">
+                        ${sanitizeHTML(i.name)}${noteHtml}
+                    </td>
+                    <td style="padding: 4px 0; text-align: center; vertical-align: top;">${i.qty}</td>
+                    <td style="padding: 4px 0; text-align: right; vertical-align: top;">${price}</td>
+                    <td style="padding: 4px 0; text-align: right; vertical-align: top;">${itemTotal}</td>
+                </tr>
                 `;
             }).join('');
 
+            // 🟢 THERMAL MATH ENGINE: Reverse calculates GST assuming prices are 5% inclusive
+            const grandTotalNum = parseFloat(currentSubtotal);
+            const baseAmount = grandTotalNum / 1.05;
+            const taxVal = (baseAmount * 0.025).toFixed(2);
+            const subTotalVal = baseAmount.toFixed(2);
+            const calcTotal = parseFloat(subTotalVal) + (parseFloat(taxVal) * 2);
+            const roundOffVal = (grandTotalNum - calcTotal).toFixed(2);
+
+            const now = new Date();
+            // Formats to DD/MM/YYYY
+            const dateStr = ("0" + now.getDate()).slice(-2) + "/" + ("0" + (now.getMonth() + 1)).slice(-2) + "/" + now.getFullYear().toString().slice(-2);
+            const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false});
+
+            // Fallback generated sequence for standard restaurant compliance
+            const dummyBillNo = Math.floor(1000 + Math.random() * 9000);
+
             printArea.innerHTML = `
-                <div style="text-align: center; margin-bottom: 15px;">
-                    <h1 style="margin:0; font-size: 22px; font-weight:900; letter-spacing: 1px;">IMPACT KITCHEN</h1>
-                    <p style="margin:2px 0 0 0; font-size: 11px; color: #555;">Taste beyond the guesswork</p>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; margin-bottom: 5px;">
-                    <span>Table: ${table}</span>
-                    <span>Token: #${currentInput}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 10px; color: #555;">
-                    <span>Date: ${new Date().toLocaleDateString()}</span>
-                    <span>Time: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                </div>
-                <div style="border-bottom: 1px dashed black; margin-bottom: 10px;"></div>
-                
-                <div style="margin-bottom: 10px;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:11px; font-weight: bold; color: #555; text-transform: uppercase;">
-                        <span style="flex: 1;">Item</span>
-                        <span>Amount</span>
+                <div style="font-family: monospace; color: black; font-size: 12px; line-height: 1.4; padding: 2px; width: 100%; box-sizing: border-box;">
+                    
+                    <!-- 🟢 EDIT THESE PLACEHOLDERS FOR EACH RESTAURANT -->
+                    <div style="text-align: center; margin-bottom: 8px;">
+                        <h2 style="margin: 0; font-size: 18px; font-weight: 900; text-transform: uppercase;">YOUR RESTAURANT NAME</h2>
+                        <p style="margin: 2px 0 0 0; font-size: 11px;">123 Street Name, Food District</p>
+                        <p style="margin: 0; font-size: 11px;">City Name, State - 123456</p>
+                        <p style="margin: 0; font-size: 11px;">GST NUMBER : 32AAAAA0000A1Z5</p>
+                        <p style="margin: 0; font-size: 11px;">Ph: 9876543210</p>
                     </div>
-                    ${itemsHtml}
-                </div>
-                
-                <div style="border-bottom: 1px dashed black; margin-bottom: 10px;"></div>
-                <div style="display:flex; justify-content:space-between; font-size:18px; font-weight:900; margin-bottom: 15px;">
-                    <span>TOTAL</span>
-                    <span>₹${currentSubtotal}</span>
-                </div>
-                
-                <div style="text-align:center; font-size: 12px; font-weight:bold; margin-top: 20px;">
-                    Thank you for dining with us!
-                </div>
-                <div style="text-align:center; font-size: 10px; color: #555; margin-top: 4px;">
-                    Scan QR on your table to leave a review.
+                    
+                    <div style="text-align: left; font-size: 11px; margin-bottom: 5px;">
+                        Name: _______________________
+                    </div>
+                    
+                    <hr style="border-top: 1px solid black; border-bottom: none; margin: 4px 0;">
+                    
+                    <table style="width: 100%; font-size: 11px; font-family: monospace; border: none;">
+                        <tr>
+                            <td style="text-align: left; vertical-align: top;">
+                                Date: ${dateStr}<br>
+                                ${timeStr}<br>
+                                Cashier: Biller
+                            </td>
+                            <td style="text-align: right; vertical-align: top;">
+                                <b>Dine In: ${table}</b><br>
+                                <br>
+                                Bill No.: ${dummyBillNo}
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <div style="font-weight: 900; font-size: 12px; margin-top: 4px; margin-bottom: 4px;">
+                        Token No.: ${currentInput}
+                    </div>
+                    
+                    <hr style="border-top: 1px solid black; border-bottom: none; margin: 4px 0;">
+                    
+                    <table style="width: 100%; font-size: 11px; font-family: monospace; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid black;">
+                                <th style="text-align: left; padding-bottom: 3px; font-weight: normal;">Item</th>
+                                <th style="text-align: center; padding-bottom: 3px; font-weight: normal;">Qty.</th>
+                                <th style="text-align: right; padding-bottom: 3px; font-weight: normal;">Price</th>
+                                <th style="text-align: right; padding-bottom: 3px; font-weight: normal;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsHtml}
+                        </tbody>
+                    </table>
+                    
+                    <table style="width: 100%; font-size: 11px; font-family: monospace; border: none; margin-top: 4px;">
+                        <tr>
+                            <td style="text-align: left; width: 40%;">Total Qty: ${totalQty}</td>
+                            <td style="text-align: right; width: 35%;">Sub Total</td>
+                            <td style="text-align: right; width: 25%;">${subTotalVal}</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td style="text-align: right;">CGST 2.5%</td>
+                            <td style="text-align: right;">${taxVal}</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td style="text-align: right;">SGST 2.5%</td>
+                            <td style="text-align: right;">${taxVal}</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td style="text-align: right; font-size: 9px;">Round off</td>
+                            <td style="text-align: right; font-size: 9px;">${roundOffVal}</td>
+                        </tr>
+                    </table>
+                    
+                    <hr style="border-top: 1px solid black; border-bottom: none; margin: 4px 0;">
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 900; margin: 4px 0;">
+                        <span>Grand Total</span>
+                        <span>₹ ${currentSubtotal}</span>
+                    </div>
+                    
+                    <hr style="border-top: 1px solid black; border-bottom: none; margin: 4px 0;">
+                    
+                    <div style="text-align: center; font-size: 10px; margin-top: 6px;">
+                        <p style="margin: 2px 0;">FSSAI Lic No. 12345678901234</p>
+                        <p style="margin: 2px 0;">Thank You, Visit Again!</p>
+                    </div>
                 </div>
             `;
             
