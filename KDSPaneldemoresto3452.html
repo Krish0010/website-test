@@ -147,7 +147,21 @@
             </div>
             <h2 class="font-black text-2xl text-white tracking-tight mb-2">Device Locked</h2>
             <p class="text-xs text-gray-400 font-medium mb-6 leading-relaxed">This screen is not authorized to connect to the KDS Network. Please enter the Manager PIN.</p>
-            <input type="text" id="device-auth-pin" style="-webkit-text-security: disc;" autocomplete="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" class="w-full bg-gray-800 border-2 border-gray-700 rounded-xl px-4 py-4 font-black text-center tracking-[0.3em] text-white outline-none focus:border-k-accent transition-colors mb-4" placeholder="Manager PIN">
+            <!-- 🟢 ULTIMATE ANTI-AUTOFILL SHIELD -->
+            <input 
+                type="text" 
+                id="device-auth-pin" 
+                style="-webkit-text-security: disc;" 
+                autocomplete="one-time-code" 
+                spellcheck="false" 
+                data-lpignore="true" 
+                data-1p-ignore="true" 
+                readonly 
+                onfocus="this.removeAttribute('readonly');"
+                onblur="this.setAttribute('readonly', 'readonly');"
+                class="w-full bg-gray-800 border-2 border-gray-700 rounded-xl px-4 py-4 font-black text-center tracking-[0.3em] text-white outline-none focus:border-k-accent transition-colors mb-4" 
+                placeholder="Manager PIN"
+            >
             <button id="auth-btn" onclick="authorizeDevice()" class="w-full py-4 bg-k-accent text-gray-900 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-sky-400 transition-colors shadow-lg active:scale-95 flex items-center justify-center">
                 Authorize Device
             </button>
@@ -249,21 +263,25 @@
         <div id="mgr-auth-box" class="bg-gray-900 border border-gray-700 rounded-3xl shadow-2xl max-w-sm w-full p-8 text-center transform scale-95 transition-transform duration-300">
             <h2 class="text-xl font-black tracking-widest uppercase text-white mb-2">Manager Access</h2>
             <p class="text-gray-400 text-xs font-bold mb-6">Enter alphanumeric passcode</p>
-            <!-- 🟢 FULLY ARMORED ANTI-AUTOFILL FIX -->
+            <!-- 🟢 ULTIMATE ANTI-AUTOFILL SHIELD -->
             <input 
                 type="text" 
                 id="mgr-kds-pin" 
                 style="-webkit-text-security: disc;" 
-                autocomplete="new-password" 
+                autocomplete="one-time-code" 
                 autocorrect="off" 
                 autocapitalize="none" 
                 spellcheck="false" 
                 data-lpignore="true" 
                 data-1p-ignore="true" 
+                readonly 
+                onfocus="this.removeAttribute('readonly');"
+                onblur="this.setAttribute('readonly', 'readonly');"
                 oncopy="return false;" 
                 oncut="return false;" 
                 onpaste="return false;"
                 class="w-full bg-gray-800 border-2 border-gray-700 rounded-xl px-4 py-4 font-black text-center tracking-[0.3em] text-white outline-none focus:border-k-accent transition-colors mb-4"
+                placeholder="Manager PIN"
             >
             <div class="flex gap-3">
                 <button onclick="closeManagerAuth()" class="w-1/3 py-3 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:text-white transition-colors">Cancel</button>
