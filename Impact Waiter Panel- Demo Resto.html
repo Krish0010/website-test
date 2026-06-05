@@ -92,23 +92,27 @@
 
    <div id="print-area" class="hidden"></div>
 
-   <!-- 🟢 ELITE UI: Slide-to-Unlock Screen Vault -->
-   <div id="screen-lock-overlay" class="fixed inset-0 bg-black/95 backdrop-blur-md z-[99999] hidden flex-col items-center justify-center transition-opacity duration-300 opacity-0">
-       <div class="mb-12 text-center">
-           <div class="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-gray-700 shadow-inner">
-               <svg class="w-10 h-10 text-w-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
-           </div>
-           <h2 class="text-2xl font-black text-white tracking-widest uppercase">Screen Locked</h2>
-           <p class="text-gray-400 mt-2 text-sm font-medium">Slide to unlock terminal</p>
-       </div>
+   <!-- 🟢 ELITE UI: Slide-to-Unlock Screen Vault (Frosted Glassmorphism) -->
+   <div id="screen-lock-overlay" class="fixed inset-0 bg-gray-900/20 backdrop-blur-md z-[99999] hidden flex-col items-center justify-center transition-opacity duration-300 opacity-0">
        
-       <div class="w-64 h-[72px] bg-gray-900 rounded-full p-1.5 relative overflow-hidden flex items-center border-2 border-gray-800 shadow-inner">
-           <div id="unlock-track" class="absolute left-0 top-0 bottom-0 bg-w-accent/20 w-0 rounded-l-full"></div>
-           <p class="text-center w-full absolute text-gray-600 font-black uppercase tracking-[0.2em] text-[10px] pointer-events-none z-0 select-none">Slide &gt;&gt;&gt;</p>
-           <div id="unlock-slider" class="w-[60px] h-[60px] bg-w-accent rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(2,132,199,0.5)] relative z-10 touch-none cursor-grab active:cursor-grabbing border-2 border-sky-300">
-               <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"></path></svg>
+       <div class="bg-gray-900/80 backdrop-blur-2xl border border-white/10 p-8 sm:p-10 rounded-[2.5rem] shadow-[0_30px_60px_rgba(0,0,0,0.6)] flex flex-col items-center transform scale-105">
+           <div class="mb-10 text-center">
+               <div class="w-20 h-20 bg-gray-800/80 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-gray-700 shadow-inner">
+                   <svg class="w-10 h-10 text-w-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
+               </div>
+               <h2 class="text-2xl font-black text-white tracking-widest uppercase shadow-black drop-shadow-md">Screen Locked</h2>
+               <p class="text-gray-300 mt-2 text-sm font-medium drop-shadow-md">Slide to unlock terminal</p>
+           </div>
+           
+           <div class="w-64 h-[72px] bg-gray-950/80 rounded-full p-1.5 relative overflow-hidden flex items-center border border-gray-700 shadow-inner">
+               <div id="unlock-track" class="absolute left-0 top-0 bottom-0 bg-w-accent/30 w-0 rounded-l-full"></div>
+               <p class="text-center w-full absolute text-gray-400 font-black uppercase tracking-[0.2em] text-[10px] pointer-events-none z-0 select-none drop-shadow-md">Slide &gt;&gt;&gt;</p>
+               <div id="unlock-slider" class="w-[60px] h-[60px] bg-w-accent rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(2,132,199,0.5)] relative z-10 touch-none cursor-grab active:cursor-grabbing border-2 border-sky-300">
+                   <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"></path></svg>
+               </div>
            </div>
        </div>
+
    </div>
 
    <!-- 🟢 ELITE UI: Dynamic Notification Wrapper -->
@@ -2917,26 +2921,33 @@
                     });
 
                     // Update Waiter Red Notification Dot
-                    if (activeReadyCount > 0) {
-                        badge.classList.remove('hidden');
-                    } else {
-                        badge.classList.add('hidden');
-                    }
-                } // Closes the 'if' block
-            } // Closes the 'try' block
-            catch (err) {
-                // 🟢 OFFLINE ALERT TRIGGER FOR WAITER
-                if (!isOfflineAlerted) {
-                    isOfflineAlerted = true;
-                    playOfflineSound();
-                    showPosAlert(
-                        "System Offline", 
-                        "The Waiter Terminal has lost connection to the server. Please check your Wi-Fi.<br><br>The system will automatically reconnect when the signal is restored.", 
-                        "error"
-                    );
+                if (activeReadyCount > 0) {
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
                 }
+            } // Closes the 'if' block
+        } // Closes the 'try' block
+        catch (err) {
+            // 🟢 SLEEP/THROTTLE FIX: Mobile browsers kill fetches when the device screen locks.
+            // We must ignore these false-positive 'AbortErrors' so the Waiter isn't blasted with alarms.
+            if (navigator.onLine && err.name === 'AbortError') {
+                return; 
+            }
+
+            // 🟢 TRUE OFFLINE ALERT TRIGGER
+            // Only fires if the Wi-Fi actually drops.
+            if (!isOfflineAlerted && !navigator.onLine) {
+                isOfflineAlerted = true;
+                playOfflineSound();
+                showPosAlert(
+                    "System Offline", 
+                    "The Waiter Terminal has lost connection to the server. Please check your Wi-Fi.<br><br>The system will automatically reconnect when the signal is restored.", 
+                    "error"
+                );
             }
         }
+    }
 
 // 🟢 ELITE UX: Fullscreen and Slide-to-Unlock Engine
         function toggleWaiterFullscreen() {
