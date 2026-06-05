@@ -1,24 +1,11 @@
-const CACHE_NAME = 'impact-pos-cache-v2';
+const CACHE_NAME = 'impact-pos-cache-v3';
 
-// 🟢 Cache both the Waiter and KDS files exactly as they are named in your GitHub folder
-const URLS_TO_CACHE = [
-    './Impact%20Waiter%20Panel-%20Demo%20Resto.html',
-    './KDSpaneldemoresto3452.html'
-];
-
-// 1. INSTALL: Download the critical POS files to the tablet's hard drive
+// 1. INSTALL: Activate instantly without relying on hardcoded file names
 self.addEventListener('install', event => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => {
-                console.log('Opened cache, saving POS structure');
-                return cache.addAll(URLS_TO_CACHE);
-            })
-    );
     self.skipWaiting(); 
 });
 
-// 2. ACTIVATE: Clean up old caches if we update the version
+// 2. ACTIVATE: Clean up the old, broken caches
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(cacheNames => {
@@ -34,16 +21,18 @@ self.addEventListener('activate', event => {
     self.clients.claim();
 });
 
-// 3. FETCH: The Intelligent Offline Router
+// 3. FETCH: Dynamic Caching & Intelligent Offline Routing
 self.addEventListener('fetch', event => {
     // DO NOT intercept Google Apps Script backend calls
     if (event.request.url.includes('script.google.com')) return;
 
+    // Only cache GET requests
+    if (event.request.method !== 'GET') return;
+
     event.respondWith(
-        // Network-First Strategy
         fetch(event.request)
             .then(response => {
-                // If online, constantly update the cache with the newest version of the site
+                // 🟢 DYNAMIC CACHE: Save a copy of the site as they use it online!
                 if (response && response.status === 200 && response.type === 'basic') {
                     const responseToCache = response.clone();
                     caches.open(CACHE_NAME).then(cache => {
@@ -52,27 +41,29 @@ self.addEventListener('fetch', event => {
                 }
                 return response;
             })
-            .catch(() => {
-                // 🟢 THE MAGIC: The internet is down! 
-                return caches.match(event.request).then(cachedResponse => {
-                    // 1. First, try to return the exact page they were already on
-                    if (cachedResponse) {
-                        return cachedResponse;
-                    }
-                    
-                    // 2. INTELLIGENT ROUTING: If exact match fails, check the URL text and force-load the correct app!
-                    const reqUrl = event.request.url.toLowerCase();
-                    
-                    if (reqUrl.includes('waiter')) {
-                        return caches.match('./Impact%20Waiter%20Panel-%20Demo%20Resto.html');
-                    } 
-                    else if (reqUrl.includes('kds')) {
-                        return caches.match('./KDSpaneldemoresto3452.html');
-                    }
-                    
-                    // If it is the Customer Dashboard or Partner Portal, do nothing and let it show the Dino Page (No offline mode for them)
-                    return null; 
-                });
+            .catch(async () => {
+                // 🟢 THE MAGIC: The internet is down! Serve from cache.
+                const cachedResponse = await caches.match(event.request);
+                if (cachedResponse) {
+                    return cachedResponse;
+                }
+
+                // If exact match fails, try to aggressively find the Waiter or KDS files in the cache memory
+                const cache = await caches.open(CACHE_NAME);
+                const keys = await cache.keys();
+                
+                const reqUrl = event.request.url.toLowerCase();
+                
+                if (reqUrl.includes('waiter')) {
+                    const waiterMatch = keys.find(req => req.url.toLowerCase().includes('waiter'));
+                    if (waiterMatch) return cache.match(waiterMatch);
+                } 
+                else if (reqUrl.includes('kds')) {
+                    const kdsMatch = keys.find(req => req.url.toLowerCase().includes('kds'));
+                    if (kdsMatch) return cache.match(kdsMatch);
+                }
+
+                return null; 
             })
     );
 });
