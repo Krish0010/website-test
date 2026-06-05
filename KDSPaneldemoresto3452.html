@@ -830,13 +830,18 @@
                         const banner = document.getElementById('persistent-offline-banner');
                         if (banner) { banner.classList.add('hidden'); banner.classList.remove('flex'); }
 
-                        // Play the new positive sound!
+                        // Play positive restored sound
                         playRestoredSound();
 
                         showKDSToast("Connection Restored", "The KDS is back online.", "bg-k-success text-white");
+                        
+                        // 🟢 AUTO-DISMISS FIX: Ignore CSS uppercase transforms when checking title
                         const alertModal = document.getElementById('kds-alert-modal');
-                        if (alertModal && !alertModal.classList.contains('hidden') && document.getElementById('kds-alert-title').innerText === "System Offline") {
-                            closeKDSAlert();
+                        if (alertModal && !alertModal.classList.contains('hidden')) {
+                            const titleEl = document.getElementById('kds-alert-title');
+                            if (titleEl && titleEl.textContent.trim().toLowerCase() === "system offline") {
+                                closeKDSAlert();
+                            }
                         }
                     }
                     
@@ -1882,6 +1887,7 @@ async function processStrikeQueue() {
         }
 
         function playRestoredSound() {
+            stopAlertSound(); // 🟢 AUDIO FIX: Kill any looping offline alarms immediately!
             if (!globalAudioCtx || isAudioMuted) return; 
             try {
                 if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
