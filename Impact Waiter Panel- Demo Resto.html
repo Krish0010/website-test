@@ -2224,6 +2224,45 @@
         // 🟢 GLOBAL CACHE: Prevents wasting server numbers if the waiter hits "Print" multiple times
         let sessionBillNumbers = {};
 
+// --- BUTTON WRAPPER FUNCTIONS ---
+
+function printCustomerBill() {
+    const table = document.getElementById('table-select').value;
+    const currentSubtotal = document.getElementById('ticket-subtotal').innerText;
+
+    if (!table) {
+        showPosAlert("Missing Info", "Please select a table before printing the bill.", "warning");
+        return;
+    }
+    if (activeTicket.length === 0) { 
+        showPosAlert("Empty Ticket", "There is nothing to print.", "warning");
+        return; 
+    }
+    
+    // Prevent waiters from printing a bill if they forgot to fire new items
+    const hasUnlockedItems = activeTicket.some(item => !item.isLocked);
+    if (hasUnlockedItems) {
+        showPosAlert("Unsaved Changes", "You have unsent items. Please tap 'Update Order' to send them to the kitchen before printing the bill.", "error");
+        return;
+    }
+
+    executePrintCustomerBill(table, currentSubtotal);
+}
+
+function fireToKitchen() {
+    const table = document.getElementById('table-select').value;
+    
+    if (!table) {
+        showPosAlert("Missing Info", "Please select a table first.", "warning");
+        return;
+    }
+    if (activeTicket.length === 0) { 
+        showPosAlert("Empty Ticket", "Please add items before firing.", "warning");
+        return; 
+    }
+    
+    executeFire(table);
+}
         async function executePrintCustomerBill(table, currentSubtotal) {
             closePosAlert();
             
@@ -2237,26 +2276,34 @@
             let officialBillNo = sessionBillNumbers[currentInput];
 
             if (!officialBillNo) {
-                if (navigator.onLine) {
-                    try {
-                        const response = await fetch(SCRIPT_URL, {
-                            method: 'POST',
-                            body: JSON.stringify({ action: "get_official_bill_number", device_token: localStorage.getItem('impact_device_token') })
-                        });
-                        const data = await response.json();
-                        if (data.success) {
-                            officialBillNo = data.billNumber;
-                            sessionBillNumbers[currentInput] = officialBillNo; // Save to cache
-                        } else {
-                            officialBillNo = generateOfflineBillNumber(); // Backend failed, fallback
-                        }
-                    } catch (err) {
-                        officialBillNo = generateOfflineBillNumber(); // Network dropped during fetch
+            if (navigator.onLine) {
+                try {
+                    // 🟢 PREVENTS INFINITE LOADING SPINNERS ON SPOTTY WI-FI
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 6000); 
+
+                    const response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: "get_official_bill_number", device_token: localStorage.getItem('impact_device_token') }),
+                        signal: controller.signal
+                    });
+                    
+                    clearTimeout(timeoutId);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        officialBillNo = data.billNumber;
+                        sessionBillNumbers[currentInput] = officialBillNo; // Save to cache
+                    } else {
+                        officialBillNo = generateOfflineBillNumber(); // Backend failed, fallback
                     }
-                } else {
-                    officialBillNo = generateOfflineBillNumber(); // Offline, use fallback
+                } catch (err) {
+                    officialBillNo = generateOfflineBillNumber(); // Network dropped or timed out
                 }
+            } else {
+                officialBillNo = generateOfflineBillNumber(); // Offline, use fallback
             }
+        }
 
             // Save globally so `clearTable` can access it
             window.currentBillNumber = officialBillNo;
