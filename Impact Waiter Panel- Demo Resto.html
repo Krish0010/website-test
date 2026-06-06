@@ -501,7 +501,7 @@
         function escapeJS(str) { return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
 
         // REPLACE WITH YOUR ACTUAL SCRIPT URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYgUxutsxq3u5AY8o2Q2yKPCA9y_gcB3dQmTYVgxlLFsHX4OLZV0NqONVrd-nKyuc/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwcX6H5UdEOCpCFvyBAwnoPwSll2uailXsyKe7MApLQg8uM62aMym7s6JQShTB9fATD/exec"; 
 
         // 🟢 ENTERPRISE ARCHITECTURE: Unique Terminal ID & Sequential Ledger
         let terminalId = localStorage.getItem('impact_terminal_id');
@@ -525,32 +525,6 @@
             localStorage.setItem('impact_token_seq', (seq + 1).toString()); // Save the next number
             
             return terminalId + "-" + seqString; // Output: "KX-001"
-        }
-
-        // 🟢 BULLETPROOF OFFLINE BILL GENERATOR: Infinite Scalability Prefix Engine
-        function generateOfflineBillNumber() {
-            const today = new Date().toDateString();
-            const storedDate = localStorage.getItem('impact_bill_date');
-            
-            // Start at 1000 so the receipt looks like a professional bill number
-            let seq = parseInt(localStorage.getItem('impact_bill_seq') || "1000");
-
-            // Reset counter at the start of a new day back to 1000
-            if (storedDate !== today) {
-                seq = 1000;
-                localStorage.setItem('impact_bill_date', today);
-            }
-
-            // Failsafe: Max 9,000 bills per tablet per day. Loop back if needed.
-            if (seq > 9999) seq = 1000;
-
-            const tid = localStorage.getItem('impact_terminal_id') || terminalId || "AAA";
-            
-            // Save the next number
-            localStorage.setItem('impact_bill_seq', (seq + 1).toString()); 
-            
-            // Output: "AAA-1000", "AAB-1042"
-            return tid + "-" + seq.toString(); 
         }
 
         let currentInput = "";
@@ -1394,7 +1368,8 @@
             clearNumpad();
             activeTicket = [];
             currentTicketTimestamp = null;
-            localStorage.removeItem('waiter_draft'); // 🟢 Ticket closed manually, clear draft
+            window.currentBillNumber = null; // 🟢 Wipes the bill number memory for the next table!
+            localStorage.removeItem('waiter_draft'); 
         }
 
         function openCustomDishModal() {
@@ -2121,14 +2096,23 @@
             setTimeout(() => { container.scrollTop = container.scrollHeight; }, 100);
         } 
 
-        // 🟢 JAVASCRIPT SCOPE FIX: Extracted so it can be called safely
+
+
+// 🟢 JAVASCRIPT SCOPE FIX: Extracted so it can be called safely
         function executeOfflineSettle(table, currentSubtotal) {
             let vaultStr = localStorage.getItem('impact_offline_vault');
             let vault = [];
             try { if (vaultStr) vault = JSON.parse(vaultStr); } catch(e) {}
             
             // Push the settlement command to the vault
-            const payload = { action: "waiter_settle", token: currentInput, table: table, totalAmount: currentSubtotal, device_token: localStorage.getItem('impact_device_token') };
+            const payload = { 
+                action: "waiter_settle", 
+                token: currentInput, 
+                table: table, 
+                totalAmount: currentSubtotal, 
+                billNumber: window.currentBillNumber || "NO_BILL_PRINTED", // 🟢 Attach the Bill Number here!
+                device_token: localStorage.getItem('impact_device_token') 
+            };
             vault.push({ token: currentInput, table: table, payload: payload, timestamp: Date.now() });
             localStorage.setItem('impact_offline_vault', JSON.stringify(vault));
 
@@ -2215,7 +2199,14 @@
 
                     try {
                         const response = await fetch(SCRIPT_URL, {
-                            method: 'POST', body: JSON.stringify({ action: "waiter_settle", token: currentInput, table: table, totalAmount: currentSubtotal, device_token: localStorage.getItem('impact_device_token') })
+                            method: 'POST', body: JSON.stringify({ 
+                                action: "waiter_settle", 
+                                token: currentInput, 
+                                table: table, 
+                                totalAmount: currentSubtotal, 
+                                billNumber: window.currentBillNumber || "NO_BILL_PRINTED", // 🟢 Attach the Bill Number here!
+                                device_token: localStorage.getItem('impact_device_token') 
+                            })
                         });
                         const data = await response.json();
                         if (data.success) {
@@ -2230,152 +2221,50 @@
             );
         }
 
-        // --- 🟢 KITCHEN PRE-FLIGHT CHECKS ---
-        async function fireToKitchen() {
-            const table = document.getElementById('table-select').value;
-            if (!table) { showPosAlert("Missing Table", "Please select a Table Number from the dropdown.", "error"); return; }
-            if (activeTicket.length === 0) { showPosAlert("Empty Ticket", "There are no items on this ticket.", "warning"); return; }
+        // 🟢 GLOBAL CACHE: Prevents wasting server numbers if the waiter hits "Print" multiple times
+        let sessionBillNumbers = {};
 
-            const blankItems = activeTicket.filter(i => !i.name.trim());
-            if (blankItems.length > 0) {
-                showPosAlert("Missing Information", "One or more dishes have a blank name. Please enter a name or remove the item.", "error");
-                return;
-            }
+        async function executePrintCustomerBill(table, currentSubtotal) {
+            closePosAlert();
+            
+            // 🟢 UX: Show loading spinner on the print button while talking to Google Servers
+            const printBtn = document.getElementById('print-bill-btn');
+            const originalPrintHtml = printBtn.innerHTML;
+            printBtn.innerHTML = `<div class="w-5 h-5 border-[3px] border-indigo-600 border-t-transparent rounded-full animate-spin"></div>`;
+            printBtn.disabled = true;
 
-            const outOfStockItems = activeTicket.filter(item => {
-                const menuMatch = cachedMenu.find(m => String(m.name || '').toLowerCase() === item.name.trim().toLowerCase());
-                return menuMatch && isDishOut(menuMatch);
-            });
+            // Check if we already fetched a bill number for this active token
+            let officialBillNo = sessionBillNumbers[currentInput];
 
-            if (outOfStockItems.length > 0) {
-                // 🟢 UX FIX: Format each out-of-stock item cleanly
-                const namesHtml = outOfStockItems.map(i => `<span class="block font-black text-gray-900 text-[15px] sm:text-base truncate w-full text-center">${sanitizeHTML(i.name)}</span>`).join('');
-                
-                const premiumMessage = `
-                    <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">
-                        The following items on this ticket are currently out of stock:
-                    </div>
-                    
-                    <div class="bg-red-50/50 border border-red-100 rounded-xl py-3 px-4 mx-2 mb-4 shadow-inner flex flex-col items-center justify-center max-h-32 overflow-y-auto">
-                        ${namesHtml}
-                    </div>
-
-                    <div class="text-[11px] sm:text-xs text-gray-500 leading-relaxed px-4">
-                        Do you want to automatically force them <span class="font-black text-green-600 tracking-wider">IN STOCK</span> and fire the order to the kitchen?
-                    </div>
-                `;
-
-                showPosAlert(
-                    "86'D Items Detected!", 
-                    premiumMessage, 
-                    "warning", 
-                    () => {
-                        outOfStockItems.forEach(item => {
-                            const m = cachedMenu.find(x => String(x.name || '').toLowerCase() === item.name.trim().toLowerCase());
-                            if (m) m.inStock = "Yes";
-                            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_toggle_stock", dishName: item.name.trim(), newStatus: "Yes", device_token: localStorage.getItem('impact_device_token') })});
+            if (!officialBillNo) {
+                if (navigator.onLine) {
+                    try {
+                        const response = await fetch(SCRIPT_URL, {
+                            method: 'POST',
+                            body: JSON.stringify({ action: "get_official_bill_number", device_token: localStorage.getItem('impact_device_token') })
                         });
-                        renderTicket(); 
-                        executeFire(table); 
-                    },
-                    "Force Fire"
-                );
-                return; 
-            }
-
-            const zeroPriceItems = activeTicket.filter(i => parseFloat(i.price) === 0);
-            if (zeroPriceItems.length > 0) {
-                showPosAlert(
-                    "Zero Price Warning", 
-                    "Some items on this ticket are priced at ₹0.00. Are you sure you want to send this to the kitchen?", 
-                    "warning", 
-                    () => { executeFire(table); },
-                    "Fire Anyway"
-                );
-                return;
-            }
-
-            executeFire(table);
-        }
-
-        // 🟢 ENTERPRISE FEATURE: Auto-Sync Engine
-        let isSyncingQueue = false;
-        
-        // Listen for internet returning to auto-flush the vault
-        window.addEventListener('online', async () => {
-            if (isSyncingQueue) return;
-            const vaultStr = localStorage.getItem('impact_offline_vault');
-            if (vaultStr) {
-                let vault = [];
-                try { vault = JSON.parse(vaultStr); } catch(e) {}
-                if (vault.length > 0) {
-                    showToastNotification("Network Restored", `Auto-syncing ${vault.length} offline orders...`);
-                    isSyncingQueue = true;
-                    
-                    let remainingVault = [];
-                    for (let order of vault) {
-                        try {
-                            const res = await fetch(SCRIPT_URL, { 
-                                method: 'POST', 
-                                body: JSON.stringify(order.payload)
-                            });
-                            const data = await res.json();
-                            if (!data.success && data.errorCode !== "TABLE_COLLISION") {
-                                remainingVault.push(order); // Kefunction printOfflineKOT(table, token, cart)ep if server error
-                            }
-                        } catch(e) {
-                            remainingVault.push(order); // Keep if network drops again
+                        const data = await response.json();
+                        if (data.success) {
+                            officialBillNo = data.billNumber;
+                            sessionBillNumbers[currentInput] = officialBillNo; // Save to cache
+                        } else {
+                            officialBillNo = generateOfflineBillNumber(); // Backend failed, fallback
                         }
+                    } catch (err) {
+                        officialBillNo = generateOfflineBillNumber(); // Network dropped during fetch
                     }
-                    
-                    if (remainingVault.length === 0) {
-                        localStorage.removeItem('impact_offline_vault');
-                        showToastNotification("Sync Complete", "All offline orders sent to KDS and Sales Log.", "bg-w-success text-white");
-                    } else {
-                        localStorage.setItem('impact_offline_vault', JSON.stringify(remainingVault));
-                    }
-                    isSyncingQueue = false;
+                } else {
+                    officialBillNo = generateOfflineBillNumber(); // Offline, use fallback
                 }
             }
-        });
 
-// 🟢 ENTERPRISE FEATURE: Generate Physical Customer Invoice
-        function printCustomerBill() {
-            if (activeTicket.length === 0) {
-                showPosAlert("Empty Ticket", "There are no items to print.", "warning");
-                return;
-            }
+            // Save globally so `clearTable` can access it
+            window.currentBillNumber = officialBillNo;
 
-            const table = document.getElementById('table-select').value || "Unassigned";
-            const currentSubtotal = document.getElementById('ticket-subtotal').innerText;
+            // Restore the print button
+            printBtn.innerHTML = originalPrintHtml;
+            printBtn.disabled = false;
 
-            // 🟢 PREMIUM UI: Print Confirmation Modal
-            const premiumMessage = `
-                <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">
-                    Generate a physical invoice for this table?
-                </div>
-                
-                <div class="bg-indigo-50 border border-indigo-100 rounded-xl py-4 px-4 mx-2 mb-4 shadow-inner flex flex-col items-center justify-center">
-                    <span class="text-[9px] uppercase font-bold tracking-widest text-indigo-400 mb-1">Total Amount</span>
-                    <span class="font-black text-indigo-900 text-2xl tracking-tight">₹${currentSubtotal}</span>
-                </div>
-
-                <div class="text-[11px] sm:text-xs text-gray-500 leading-relaxed px-4">
-                    This will spool the bill to your local printer. You must still tap <b>Settle</b> after the customer pays to clear the table.
-                </div>
-            `;
-
-            showPosAlert(
-                "Print Customer Bill", 
-                premiumMessage, 
-                "info", 
-                () => { executePrintCustomerBill(table, currentSubtotal); }, 
-                "Print Invoice"
-            );
-        }
-
-function executePrintCustomerBill(table, currentSubtotal) {
-            closePosAlert();
             const printArea = document.getElementById('print-area');
             
             let totalQty = 0;
@@ -2412,9 +2301,6 @@ function executePrintCustomerBill(table, currentSubtotal) {
             const dateStr = ("0" + now.getDate()).slice(-2) + "/" + ("0" + (now.getMonth() + 1)).slice(-2) + "/" + now.getFullYear().toString().slice(-2);
             const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false});
 
-            // 🟢 ENTERPRISE FIX: Generates unique, non-repeating bill number using the prefix logic
-            const offlineBillNo = generateOfflineBillNumber();
-
             printArea.innerHTML = `
                 <div style="font-family: monospace; color: black; font-size: 12px; line-height: 1.4; padding: 2px; width: 100%; box-sizing: border-box;">
                     
@@ -2442,7 +2328,7 @@ function executePrintCustomerBill(table, currentSubtotal) {
                             <td style="text-align: right; vertical-align: top;">
                                 <b>Dine In: ${table}</b><br>
                                 <br>
-                                Bill No.: ${offlineBillNo}
+                                Bill No.: ${officialBillNo}
                             </td>
                         </tr>
                     </table>
@@ -2512,6 +2398,35 @@ function executePrintCustomerBill(table, currentSubtotal) {
             // Trigger native print dialog (routes to Bluetooth thermal printer)
             // Small timeout prevents the dark modal from being captured in the print frame!
             setTimeout(() => { window.print(); }, 400); 
+        }
+
+        // 🟢 OFFLINE FALLBACK GENERATOR: 5-Device Partitioning Logic
+        // Ensures up to 5 offline Waiter tablets have their own 999-order blocks (5000s, 6000s, etc.)
+        function generateOfflineBillNumber() {
+            const today = new Date().toDateString();
+            const storedDate = localStorage.getItem('impact_offline_bill_date');
+            
+            // 1. Convert the 3-letter Terminal ID into a Base Range
+            const tid = localStorage.getItem('impact_terminal_id') || "AAA";
+            let hash = 0;
+            for(let i=0; i<tid.length; i++) hash += tid.charCodeAt(i);
+            const termDigit = (hash % 5) + 5; // Yields 5, 6, 7, 8, or 9
+            const baseRange = termNum * 1000;
+
+            let seq = parseInt(localStorage.getItem('impact_offline_bill_seq') || "1");
+
+            // 2. Reset counter at start of day
+            if (storedDate !== today) {
+                seq = 1; 
+                localStorage.setItem('impact_offline_bill_date', today);
+            }
+            
+            // 3. Failsafe Cap
+            if (seq > 999) seq = 1;
+
+            localStorage.setItem('impact_offline_bill_seq', (seq + 1).toString()); 
+            
+            return (baseRange + seq).toString(); 
         } 
 
         // 🟢 ENTERPRISE FEATURE: Generate Physical KOT
