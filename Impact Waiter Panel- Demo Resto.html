@@ -2224,45 +2224,6 @@
         // 🟢 GLOBAL CACHE: Prevents wasting server numbers if the waiter hits "Print" multiple times
         let sessionBillNumbers = {};
 
-// --- BUTTON WRAPPER FUNCTIONS ---
-
-function printCustomerBill() {
-    const table = document.getElementById('table-select').value;
-    const currentSubtotal = document.getElementById('ticket-subtotal').innerText;
-
-    if (!table) {
-        showPosAlert("Missing Info", "Please select a table before printing the bill.", "warning");
-        return;
-    }
-    if (activeTicket.length === 0) { 
-        showPosAlert("Empty Ticket", "There is nothing to print.", "warning");
-        return; 
-    }
-    
-    // Prevent waiters from printing a bill if they forgot to fire new items
-    const hasUnlockedItems = activeTicket.some(item => !item.isLocked);
-    if (hasUnlockedItems) {
-        showPosAlert("Unsaved Changes", "You have unsent items. Please tap 'Update Order' to send them to the kitchen before printing the bill.", "error");
-        return;
-    }
-
-    executePrintCustomerBill(table, currentSubtotal);
-}
-
-function fireToKitchen() {
-    const table = document.getElementById('table-select').value;
-    
-    if (!table) {
-        showPosAlert("Missing Info", "Please select a table first.", "warning");
-        return;
-    }
-    if (activeTicket.length === 0) { 
-        showPosAlert("Empty Ticket", "Please add items before firing.", "warning");
-        return; 
-    }
-    
-    executeFire(table);
-}
         async function executePrintCustomerBill(table, currentSubtotal) {
             closePosAlert();
             
@@ -2276,34 +2237,36 @@ function fireToKitchen() {
             let officialBillNo = sessionBillNumbers[currentInput];
 
             if (!officialBillNo) {
-            if (navigator.onLine) {
-                try {
-                    // 🟢 PREVENTS INFINITE LOADING SPINNERS ON SPOTTY WI-FI
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 6000); 
+                if (navigator.onLine) {
+                    try {
+                        // 🟢 PREVENTS INFINITE LOADING SPINNERS ON SPOTTY WI-FI
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 6000); 
 
-                    const response = await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action: "get_official_bill_number", device_token: localStorage.getItem('impact_device_token') }),
-                        signal: controller.signal
-                    });
-                    
-                    clearTimeout(timeoutId);
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        officialBillNo = data.billNumber;
-                        sessionBillNumbers[currentInput] = officialBillNo; // Save to cache
-                    } else {
-                        officialBillNo = generateOfflineBillNumber(); // Backend failed, fallback
+                        const response = await fetch(SCRIPT_URL, {
+                            method: 'POST',
+                            body: JSON.stringify({ action: "get_official_bill_number", device_token: localStorage.getItem('impact_device_token') }),
+                            signal: controller.signal
+                        });
+                        
+                        clearTimeout(timeoutId);
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            officialBillNo = data.billNumber;
+                            sessionBillNumbers[currentInput] = officialBillNo; // Save to cache
+                        } else {
+                            officialBillNo = Math.floor(1000 + Math.random() * 9000).toString(); // Backend failed, fallback
+                        }
+                    } catch (err) {
+                        officialBillNo = Math.floor(1000 + Math.random() * 9000).toString(); // Network dropped during fetch
                     }
-                } catch (err) {
-                    officialBillNo = generateOfflineBillNumber(); // Network dropped or timed out
+                } else {
+                    // 🟢 OFFLINE FALLBACK: Highly randomized pure 4-digit number (1000 - 9999)
+                    // If a collision happens here, the Partner Portal will generate a fresh code for the customer!
+                    officialBillNo = Math.floor(1000 + Math.random() * 9000).toString();
                 }
-            } else {
-                officialBillNo = generateOfflineBillNumber(); // Offline, use fallback
             }
-        }
 
             // Save globally so `clearTable` can access it
             window.currentBillNumber = officialBillNo;
@@ -2445,37 +2408,6 @@ function fireToKitchen() {
             // Trigger native print dialog (routes to Bluetooth thermal printer)
             // Small timeout prevents the dark modal from being captured in the print frame!
             setTimeout(() => { window.print(); }, 400); 
-        }
-
-        // 🟢 OFFLINE FALLBACK GENERATOR: 5-Device Partitioning Logic
-        // Ensures up to 5 offline Waiter tablets have their own 999-order blocks (5000s, 6000s, etc.)
-        function generateOfflineBillNumber() {
-            const today = new Date().toDateString();
-            const storedDate = localStorage.getItem('impact_offline_bill_date');
-            
-            // 1. Convert the 3-letter Terminal ID into a Base Range
-            const tid = localStorage.getItem('impact_terminal_id') || "AAA";
-            let hash = 0;
-            for(let i=0; i<tid.length; i++) hash += tid.charCodeAt(i);
-            const termDigit = (hash % 5) + 5; // Yields 5, 6, 7, 8, or 9
-            
-            // 🟢 JAVASCRIPT TYPO FIX: Changed termNum to termDigit
-            const baseRange = termDigit * 1000;
-
-            let seq = parseInt(localStorage.getItem('impact_offline_bill_seq') || "1");
-
-            // 2. Reset counter at start of day
-            if (storedDate !== today) {
-                seq = 1; 
-                localStorage.setItem('impact_offline_bill_date', today);
-            }
-            
-            // 3. Failsafe Cap
-            if (seq > 999) seq = 1;
-
-            localStorage.setItem('impact_offline_bill_seq', (seq + 1).toString()); 
-            
-            return (baseRange + seq).toString(); 
         } 
 
         // 🟢 ENTERPRISE FEATURE: Generate Physical KOT
@@ -3004,7 +2936,8 @@ function fireToKitchen() {
                 } else {
                     badge.classList.add('hidden');
                 }
-            } // Closes the 'if' block
+            } // Closes the 'if (badge && data.success)' block
+          } // Closes the 'if (data.success)' block
         } // Closes the 'try' block
         catch (err) {
             // 🟢 SLEEP/THROTTLE FIX: Mobile browsers kill fetches when the device screen locks.
