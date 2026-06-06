@@ -501,7 +501,7 @@
         function escapeJS(str) { return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
 
         // REPLACE WITH YOUR ACTUAL SCRIPT URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwcX6H5UdEOCpCFvyBAwnoPwSll2uailXsyKe7MApLQg8uM62aMym7s6JQShTB9fATD/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybxIVlOZ4KHAzN9r8Ez1b38DmbjKoUEyHVXLaEMNrwYXCVtf3X0VMxGGkSmpRXw98n/exec"; 
 
         // 🟢 ENTERPRISE ARCHITECTURE: Unique Terminal ID & Sequential Ledger
         let terminalId = localStorage.getItem('impact_terminal_id');
@@ -2411,7 +2411,9 @@
             let hash = 0;
             for(let i=0; i<tid.length; i++) hash += tid.charCodeAt(i);
             const termDigit = (hash % 5) + 5; // Yields 5, 6, 7, 8, or 9
-            const baseRange = termNum * 1000;
+            
+            // 🟢 JAVASCRIPT TYPO FIX: Changed termNum to termDigit
+            const baseRange = termDigit * 1000;
 
             let seq = parseInt(localStorage.getItem('impact_offline_bill_seq') || "1");
 
