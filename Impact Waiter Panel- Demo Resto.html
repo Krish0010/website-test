@@ -2096,9 +2096,98 @@
             setTimeout(() => { container.scrollTop = container.scrollHeight; }, 100);
         } 
 
+        // --- 🟢 BUTTON WRAPPER FUNCTIONS ---
+        function printCustomerBill() {
+            const table = document.getElementById('table-select').value;
+            const currentSubtotal = document.getElementById('ticket-subtotal').innerText;
 
+            if (!table) {
+                showPosAlert("Missing Info", "Please select a table before printing the bill.", "warning");
+                return;
+            }
+            if (activeTicket.length === 0) { 
+                showPosAlert("Empty Ticket", "There is nothing to print.", "warning");
+                return; 
+            }
+            
+            // Prevent waiters from printing a bill if they forgot to fire new items
+            const hasUnlockedItems = activeTicket.some(item => !item.isLocked);
+            if (hasUnlockedItems) {
+                showPosAlert("Unsaved Changes", "You have unsent items. Please tap 'Update Order' to send them to the kitchen before printing the bill.", "error");
+                return;
+            }
 
-// 🟢 JAVASCRIPT SCOPE FIX: Extracted so it can be called safely
+            executePrintCustomerBill(table, currentSubtotal);
+        }
+
+        function fireToKitchen() {
+            const table = document.getElementById('table-select').value;
+            
+            if (!table) { showPosAlert("Missing Table", "Please select a Table Number from the dropdown.", "error"); return; }
+            if (activeTicket.length === 0) { showPosAlert("Empty Ticket", "There are no items on this ticket.", "warning"); return; }
+
+            const blankItems = activeTicket.filter(i => !i.name.trim());
+            if (blankItems.length > 0) {
+                showPosAlert("Missing Information", "One or more dishes have a blank name. Please enter a name or remove the item.", "error");
+                return;
+            }
+
+            const outOfStockItems = activeTicket.filter(item => {
+                const menuMatch = cachedMenu.find(m => String(m.name || '').toLowerCase() === item.name.trim().toLowerCase());
+                return menuMatch && isDishOut(menuMatch);
+            });
+
+            if (outOfStockItems.length > 0) {
+                const namesHtml = outOfStockItems.map(i => `<span class="block font-black text-gray-900 text-[15px] sm:text-base truncate w-full text-center">${sanitizeHTML(i.name)}</span>`).join('');
+                
+                const premiumMessage = `
+                    <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">
+                        The following items on this ticket are currently out of stock:
+                    </div>
+                    
+                    <div class="bg-red-50/50 border border-red-100 rounded-xl py-3 px-4 mx-2 mb-4 shadow-inner flex flex-col items-center justify-center max-h-32 overflow-y-auto">
+                        ${namesHtml}
+                    </div>
+
+                    <div class="text-[11px] sm:text-xs text-gray-500 leading-relaxed px-4">
+                        Do you want to automatically force them <span class="font-black text-green-600 tracking-wider">IN STOCK</span> and fire the order to the kitchen?
+                    </div>
+                `;
+
+                showPosAlert(
+                    "86'D Items Detected!", 
+                    premiumMessage, 
+                    "warning", 
+                    () => {
+                        outOfStockItems.forEach(item => {
+                            const m = cachedMenu.find(x => String(x.name || '').toLowerCase() === item.name.trim().toLowerCase());
+                            if (m) m.inStock = "Yes";
+                            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_toggle_stock", dishName: item.name.trim(), newStatus: "Yes", device_token: localStorage.getItem('impact_device_token') })});
+                        });
+                        renderTicket(); 
+                        executeFire(table); 
+                    },
+                    "Force Fire"
+                );
+                return; 
+            }
+
+            const zeroPriceItems = activeTicket.filter(i => parseFloat(i.price) === 0);
+            if (zeroPriceItems.length > 0) {
+                showPosAlert(
+                    "Zero Price Warning", 
+                    "Some items on this ticket are priced at ₹0.00. Are you sure you want to send this to the kitchen?", 
+                    "warning", 
+                    () => { executeFire(table); },
+                    "Fire Anyway"
+                );
+                return;
+            }
+
+            executeFire(table);
+        }
+
+        // 🟢 JAVASCRIPT SCOPE FIX: Extracted so it can be called safely
         function executeOfflineSettle(table, currentSubtotal) {
             let vaultStr = localStorage.getItem('impact_offline_vault');
             let vault = [];
