@@ -2898,7 +2898,15 @@ let activeManagerPin = ""; // Temporary session memory so they don't have to kee
             const orig = btn.innerText;
             btn.innerHTML = `<div class="w-5 h-5 border-[3px] border-white border-t-transparent rounded-full animate-spin mx-auto"></div>`;
             
-            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "verify_kds_manager", pin: pin }) })
+            // 🟢 SECURITY FIX: Attach the device_token so the server firewall lets the request through!
+            fetch(SCRIPT_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ 
+                    action: "verify_kds_manager", 
+                    pin: pin,
+                    device_token: localStorage.getItem('impact_device_token')
+                }) 
+            })
             .then(res => res.json())
             .then(data => {
                 btn.innerHTML = orig;
@@ -2907,7 +2915,8 @@ let activeManagerPin = ""; // Temporary session memory so they don't have to kee
                     document.getElementById('mgr-lock-overlay').classList.add('hidden');
                     document.getElementById('mgr-hub-pin-input').value = "";
                 } else {
-                    showPosAlert("Access Denied", "Incorrect Manager PIN.", "error");
+                    // 🟢 UX FIX: Display the actual error message from the server (e.g. "Unauthorized" vs "Invalid PIN")
+                    showPosAlert("Access Denied", data.message || "Incorrect Manager PIN.", "error");
                 }
             }).catch(e => {
                 btn.innerHTML = orig;
