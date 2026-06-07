@@ -2174,7 +2174,30 @@
             }
 
             if (isMaster) {
-                executePrintCustomerBill(table, currentSubtotal);
+                // 🟢 UX UPGRADE: Master Tablet Print Confirmation Modal
+                const premiumMessage = `
+                    <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">
+                        Are you sure you want to generate the final bill for this table?
+                    </div>
+                    
+                    <div class="bg-indigo-50 border border-indigo-100 rounded-xl py-4 px-4 mx-2 mb-4 shadow-inner flex flex-col items-center justify-center">
+                        <span class="text-[9px] uppercase font-bold tracking-widest text-indigo-400 mb-1">Total Amount</span>
+                        <span class="font-black text-indigo-900 text-2xl tracking-tight">₹${currentSubtotal}</span>
+                    </div>
+
+                    <div class="text-[11px] sm:text-xs text-gray-500 leading-relaxed px-4">
+                        This will generate the official bill sequence number and send the receipt to the thermal printer.
+                    </div>
+                `;
+
+                // Uses the blue "info" theme for the print confirmation
+                showPosAlert(
+                    "Print Final Bill?", 
+                    premiumMessage, 
+                    "info", 
+                    () => { executePrintCustomerBill(table, currentSubtotal); }, 
+                    "Yes, Print Bill"
+                );
             } else {
                 requestBillFromMaster(table);
             }
@@ -2462,13 +2485,12 @@
                 const itemTotal = (i.qty * i.price).toFixed(2);
                 const price = i.price.toFixed(2);
                 
-                // Keep kitchen notes tiny and indented if they exist
-                let noteHtml = i.note ? `<br><span style="font-size: 10px; margin-left: 5px;">- ${sanitizeHTML(i.note)}</span>` : "";
+                // 🟢 UX UPGRADE: Purposely stripped 'i.note' from the physical customer receipt.
                 
                 return `
                 <tr style="border-bottom: 1px dashed #ccc;">
                     <td style="padding: 4px 0; text-align: left; max-width: 110px; word-wrap: break-word;">
-                        ${sanitizeHTML(i.name)}${noteHtml}
+                        ${sanitizeHTML(i.name)}
                     </td>
                     <td style="padding: 4px 0; text-align: center; vertical-align: top;">${i.qty}</td>
                     <td style="padding: 4px 0; text-align: right; vertical-align: top;">${price}</td>
