@@ -296,11 +296,17 @@
                     </div>
                 </div>
 
+                // 🟢 ENTERPRISE ARCHITECTURE: Render appropriate button based on Master status
+                const isMaster = localStorage.getItem('impact_is_master') === 'true';
+                const printBtnText = isMaster ? "Print Bill" : "Request Bill";
+                const printBtnIcon = isMaster 
+                    ? `<path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0v2.625c0 .621.504 1.125 1.125 1.125h8.25c.621 0 1.125-.504 1.125-1.125V9.214z"></path>` 
+                    : `<path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"></path>`;
+
                 <div class="flex gap-2">
-                    <!-- 🟢 UX FIX: Button Order (Left to Right) -> Print | Fire | Settle -->
-                    <button id="print-bill-btn" onclick="printCustomerBill()" class="w-1/4 py-3 bg-indigo-50 text-indigo-600 border border-indigo-200 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-indigo-100 transition-colors active:scale-95 flex flex-col items-center justify-center gap-0.5">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0v2.625c0 .621.504 1.125 1.125 1.125h8.25c.621 0 1.125-.504 1.125-1.125V9.214z"></path></svg>
-                        Print Bill
+                    <button id="print-bill-btn" onclick="printCustomerBill()" class="w-1/4 py-3 bg-indigo-50 text-indigo-600 border border-indigo-200 rounded-xl font-bold uppercase tracking-widest text-[9px] sm:text-[10px] hover:bg-indigo-100 transition-colors active:scale-95 flex flex-col items-center justify-center gap-0.5 px-1 text-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">${printBtnIcon}</svg>
+                        ${printBtnText}
                     </button>
                     <button id="fire-btn" onclick="fireToKitchen()" class="w-2/4 bg-w-success text-white rounded-xl font-black uppercase tracking-widest text-[13px] shadow-lg shadow-green-600/30 hover:bg-green-700 transition-colors flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"></path></svg>
@@ -413,21 +419,48 @@
         </div>
     </div>
 
-    <div id="manager-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] hidden flex-col justify-center items-center p-4 opacity-0 transition-opacity duration-200">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto transform scale-95 transition-transform duration-200 flex flex-col" id="manager-box">
-            <div class="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center sticky top-0 z-10">
+<div id="manager-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] hidden flex-col justify-center items-center p-4 opacity-0 transition-opacity duration-200">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm max-h-[90vh] overflow-hidden transform scale-95 transition-transform duration-200 flex flex-col relative" id="manager-box">
+            
+            <div id="mgr-lock-overlay" class="absolute inset-0 bg-white z-[60] flex flex-col p-8 items-center justify-center transition-opacity duration-300">
+                <div class="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
+                </div>
+                <h3 class="font-black text-xl text-gray-900 mb-6">Manager Access</h3>
+                <input type="password" id="mgr-hub-pin-input" placeholder="Enter PIN" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-4 font-black text-center tracking-[0.3em] text-gray-900 outline-none focus:border-amber-500 mb-4">
+                <button id="mgr-hub-unlock-btn" onclick="unlockManagerHub()" class="w-full py-4 bg-gray-900 text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-black transition-colors shadow-lg">Unlock Hub</button>
+                <button onclick="closeManagerModal()" class="mt-4 text-xs font-bold text-gray-400 hover:text-gray-600 uppercase tracking-widest">Cancel</button>
+            </div>
+
+            <div class="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center sticky top-0 z-10 shrink-0">
                 <h3 class="font-black text-lg text-gray-900 tracking-tight flex items-center gap-2">
-                    <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
-                    Manager Override
+                    <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z"></path></svg>
+                    Manager Hub
                 </h3>
                 <button onclick="closeManagerModal()" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
             </div>
             
-            <div class="p-6 flex flex-col gap-4">
+            <div class="p-6 flex flex-col gap-4 overflow-y-auto">
+                
+                <div class="flex items-center justify-between bg-indigo-50 border border-indigo-100 p-4 rounded-xl shadow-inner mb-0">
+                    <div>
+                        <h4 class="text-indigo-900 font-black text-xs uppercase tracking-wider">Master Tablet</h4>
+                        <p class="text-indigo-400 text-[10px] font-medium mt-0.5">Allow Bill Printing on Device</p>
+                    </div>
+                    <button id="toggle-master-btn" onclick="toggleMasterTab()" class="w-12 h-7 rounded-full bg-gray-300 relative transition-colors duration-300">
+                        <div id="toggle-master-knob" class="w-5 h-5 bg-white rounded-full absolute top-1 left-1 transition-transform duration-300"></div>
+                    </button>
+                </div>
+                
+                <button onclick="openPastBillsModal()" id="btn-past-bills" style="display:none;" class="w-full py-3.5 bg-white text-indigo-600 border border-indigo-200 rounded-xl font-black uppercase tracking-widest text-[11px] hover:bg-indigo-50 transition-colors shadow-sm mb-2 flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    View Past Bills
+                </button>
+
                 <div class="flex items-center justify-between bg-gray-50 border border-gray-100 p-4 rounded-xl shadow-inner mb-2">
                     <div>
                         <h4 class="text-gray-900 font-black text-xs uppercase tracking-wider">Haptic Alerts</h4>
-                        <p class="text-gray-400 text-[10px] font-medium mt-0.5">Vibrate on ready food & errors</p>
+                        <p class="text-gray-400 text-[10px] font-medium mt-0.5">Vibrate on ready food</p>
                     </div>
                     <button id="toggle-vibrate-btn" onclick="toggleVibration()" class="w-12 h-7 rounded-full bg-w-success relative transition-colors duration-300">
                         <div id="toggle-vibrate-knob" class="w-5 h-5 bg-white rounded-full absolute top-1 left-1 transition-transform duration-300 translate-x-[1.25rem]"></div>
@@ -435,7 +468,7 @@
                 </div>
                 
                 <div>
-                    <label class="text-[10px] uppercase font-bold tracking-widest text-gray-400 mb-1 block">Select Action</label>
+                    <label class="text-[10px] uppercase font-bold tracking-widest text-gray-400 mb-1 block">Menu Database</label>
                     <select id="mgr-action-type" onchange="toggleManagerFields()" class="w-full bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 font-black text-w-accent outline-none focus:border-amber-400 transition-colors appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22%230284c7%22%3E%3Cpath fill-rule=%22evenodd%22 d=%22M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z%22 clip-rule=%22evenodd%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1.5em 1.5em;">
                         <option value="add">Add New Dish</option>
                         <option value="edit">Edit Dish Price</option>
@@ -469,15 +502,31 @@
                         </select>
                     </div>
                 </div>
-
-                <div class="mt-2 p-4 bg-amber-50 rounded-xl border border-amber-200/50">
-                    <label class="text-[10px] uppercase font-black tracking-widest text-amber-700 mb-1 block">Manager PIN Required</label>
-                    <input type="password" id="mgr-pin" placeholder="Enter Passcode" class="w-full bg-white border-2 border-amber-200 rounded-xl px-4 py-3 font-black text-center tracking-[0.2em] text-amber-600 outline-none focus:border-amber-500 transition-colors">
-                </div>
                 
                 <button id="mgr-submit-btn" onclick="submitManagerAction()" class="mt-2 w-full py-4 bg-gray-900 text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-black transition-colors shadow-lg">
-                    Execute Action
+                    Execute Menu Change
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="past-bills-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[300] hidden flex-col justify-end">
+        <div class="bg-gray-50 w-full h-[85vh] rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.3)] flex flex-col animate-[slideUp_0.3s_ease-out]">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-white rounded-t-[32px] shrink-0">
+                <div class="flex flex-col">
+                    <h3 class="font-black text-2xl tracking-tight text-gray-900">Past Bills</h3>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Last 7 Days (Master Only)</p>
+                </div>
+                <button onclick="closePastBillsModal()" class="w-10 h-10 bg-gray-100 border border-gray-200 rounded-full flex items-center justify-center text-gray-600 font-bold hover:bg-gray-200 shadow-sm transition-colors active:scale-95">✕</button>
+            </div>
+            <div class="p-4 bg-white relative shrink-0 border-b border-gray-100">
+                <input type="text" id="bill-search" oninput="renderPastBills()" placeholder="Search Bill No. (e.g. AAA-0042)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 font-bold text-gray-800 outline-none focus:border-indigo-400 transition-all text-sm uppercase placeholder:normal-case">
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-50 relative">
+                <div id="past-bills-loader" class="flex justify-center mt-10 hidden">
+                    <div class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+                <div id="past-bills-list" class="flex flex-col gap-3 pb-10"></div>
             </div>
         </div>
     </div>
@@ -501,7 +550,7 @@
         function escapeJS(str) { return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
 
         // REPLACE WITH YOUR ACTUAL SCRIPT URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybxIVlOZ4KHAzN9r8Ez1b38DmbjKoUEyHVXLaEMNrwYXCVtf3X0VMxGGkSmpRXw98n/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5Vfml342BmiaMayknqBYtwj9rPFfYnZtwrLpGN1uHdipYsOHe7ALMoskmgcTKlLA/exec"; 
 
         // 🟢 ENTERPRISE ARCHITECTURE: Unique Terminal ID & Sequential Ledger
         let terminalId = localStorage.getItem('impact_terminal_id');
@@ -2098,26 +2147,56 @@
 
         // --- 🟢 BUTTON WRAPPER FUNCTIONS ---
         function printCustomerBill() {
+            const isMaster = localStorage.getItem('impact_is_master') === 'true';
             const table = document.getElementById('table-select').value;
             const currentSubtotal = document.getElementById('ticket-subtotal').innerText;
 
             if (!table) {
-                showPosAlert("Missing Info", "Please select a table before printing the bill.", "warning");
+                showPosAlert("Missing Info", "Please select a table.", "warning");
                 return;
             }
             if (activeTicket.length === 0) { 
-                showPosAlert("Empty Ticket", "There is nothing to print.", "warning");
+                showPosAlert("Empty Ticket", "There is nothing here.", "warning");
                 return; 
             }
             
-            // Prevent waiters from printing a bill if they forgot to fire new items
             const hasUnlockedItems = activeTicket.some(item => !item.isLocked);
             if (hasUnlockedItems) {
-                showPosAlert("Unsaved Changes", "You have unsent items. Please tap 'Update Order' to send them to the kitchen before printing the bill.", "error");
+                showPosAlert("Unsaved Changes", "You have unsent items. Please tap 'Update Order' to send them to the kitchen before doing this.", "error");
                 return;
             }
 
-            executePrintCustomerBill(table, currentSubtotal);
+            if (isMaster) {
+                executePrintCustomerBill(table, currentSubtotal);
+            } else {
+                requestBillFromMaster(table);
+            }
+        }
+
+        async function requestBillFromMaster(table) {
+            const btn = document.getElementById('print-bill-btn');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = `<div class="w-4 h-4 border-[2px] border-indigo-600 border-t-transparent rounded-full animate-spin"></div>`;
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: "request_bill", token: currentInput, table: table, device_token: localStorage.getItem('impact_device_token') })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showPosAlert("Bill Requested", `The master tablet has been alerted to print the bill for Table ${table}.`, "success");
+                } else {
+                    showPosAlert("Error", "Could not request bill. Server busy.", "error");
+                }
+            } catch(e) {
+                showPosAlert("Network Error", "Unable to reach the server. Is the Wi-Fi down?", "error");
+            } finally {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
         }
 
         function fireToKitchen() {
@@ -2343,17 +2422,21 @@
                         
                         if (data.success) {
                             officialBillNo = data.billNumber;
-                            sessionBillNumbers[currentInput] = officialBillNo; // Save to cache
+                            sessionBillNumbers[currentInput] = officialBillNo; 
+                            
+                            // 🟢 SYNC ENGINE: Keep the offline generator perfectly up to date!
+                            if (data.currentPrefix && data.currentSeq) {
+                                localStorage.setItem('impact_bill_prefix', data.currentPrefix);
+                                localStorage.setItem('impact_bill_seq', data.currentSeq.toString());
+                            }
                         } else {
-                            officialBillNo = Math.floor(1000 + Math.random() * 9000).toString(); // Backend failed, fallback
+                            officialBillNo = generateOfflineBillNumber(); // Backend failed, fallback
                         }
                     } catch (err) {
-                        officialBillNo = Math.floor(1000 + Math.random() * 9000).toString(); // Network dropped during fetch
+                        officialBillNo = generateOfflineBillNumber(); // Network dropped during fetch
                     }
                 } else {
-                    // 🟢 OFFLINE FALLBACK: Highly randomized pure 4-digit number (1000 - 9999)
-                    // If a collision happens here, the Partner Portal will generate a fresh code for the customer!
-                    officialBillNo = Math.floor(1000 + Math.random() * 9000).toString();
+                    officialBillNo = generateOfflineBillNumber(); // Offline, use fallback
                 }
             }
 
@@ -2498,6 +2581,28 @@
             // Small timeout prevents the dark modal from being captured in the print frame!
             setTimeout(() => { window.print(); }, 400); 
         } 
+
+        // 🟢 OFFLINE FALLBACK GENERATOR: Alphanumeric Sequential Sync (Master Tablet Only)
+        function generateOfflineBillNumber() {
+            let prefix = localStorage.getItem('impact_bill_prefix') || "AAA";
+            let seq = parseInt(localStorage.getItem('impact_bill_seq') || "0");
+            
+            seq++;
+            
+            if (seq > 9999) {
+                seq = 1;
+                // Offline carry-over logic (AAA -> AAB)
+                let c1 = prefix.charCodeAt(0), c2 = prefix.charCodeAt(1), c3 = prefix.charCodeAt(2);
+                c3++;
+                if (c3 > 90) { c3 = 65; c2++; }
+                if (c2 > 90) { c2 = 65; c1++; }
+                prefix = String.fromCharCode(c1, c2, c3);
+                localStorage.setItem('impact_bill_prefix', prefix);
+            }
+            
+            localStorage.setItem('impact_bill_seq', seq.toString());
+            return prefix + "-" + seq.toString().padStart(4, '0');
+        }
 
         // 🟢 ENTERPRISE FEATURE: Generate Physical KOT
         function printOfflineKOT(table, token, cart) {
@@ -2775,19 +2880,75 @@
             }
         }
 
+
+let activeManagerPin = ""; // Temporary session memory so they don't have to keep re-typing it
+
+        function unlockManagerHub() {
+            const pin = document.getElementById('mgr-hub-pin-input').value;
+            if (!pin) return;
+            
+            const btn = document.getElementById('mgr-hub-unlock-btn');
+            const orig = btn.innerText;
+            btn.innerHTML = `<div class="w-5 h-5 border-[3px] border-white border-t-transparent rounded-full animate-spin mx-auto"></div>`;
+            
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "verify_kds_manager", pin: pin }) })
+            .then(res => res.json())
+            .then(data => {
+                btn.innerHTML = orig;
+                if(data.success) {
+                    activeManagerPin = pin; // Save locally for actions
+                    document.getElementById('mgr-lock-overlay').classList.add('hidden');
+                    document.getElementById('mgr-hub-pin-input').value = "";
+                } else {
+                    showPosAlert("Access Denied", "Incorrect Manager PIN.", "error");
+                }
+            }).catch(e => {
+                btn.innerHTML = orig;
+                showPosAlert("Network Error", "Could not verify PIN.", "error");
+            });
+        }
+
+        function toggleMasterTab() {
+            const isMaster = localStorage.getItem('impact_is_master') === 'true';
+            localStorage.setItem('impact_is_master', !isMaster);
+            updateMasterUI();
+            renderTicket(); // Force the print button text to update instantly in the background
+        }
+
+        function updateMasterUI() {
+            const isMaster = localStorage.getItem('impact_is_master') === 'true';
+            const btn = document.getElementById('toggle-master-btn');
+            const knob = document.getElementById('toggle-master-knob');
+            const pbBtn = document.getElementById('btn-past-bills');
+            
+            if (isMaster) {
+                if (btn) { btn.classList.add('bg-w-success'); btn.classList.remove('bg-gray-300'); }
+                if (knob) knob.style.transform = 'translateX(1.25rem)';
+                if (pbBtn) pbBtn.style.display = 'flex';
+            } else {
+                if (btn) { btn.classList.remove('bg-w-success'); btn.classList.add('bg-gray-300'); }
+                if (knob) knob.style.transform = 'translateX(0)';
+                if (pbBtn) pbBtn.style.display = 'none';
+            }
+        }
+
         function openManagerModal() {
-            // 🟢 OFFLINE BLOCKER
             if (!navigator.onLine) {
                 showPosAlert("Feature Unavailable", "Manager controls and menu edits are disabled while the system is offline.", "error");
                 return;
             }
 
             syncMenuBackground(); 
-            updateVibrateUI(); // 🟢 Sync the vibration toggle UI
+            updateVibrateUI(); 
+            updateMasterUI(); // 🟢 Sync Master Tablet UI
+            
+            // Lock the hub!
+            document.getElementById('mgr-lock-overlay').classList.remove('hidden');
+            activeManagerPin = "";
+            
             document.getElementById('mgr-action-type').value = 'add';
             document.getElementById('mgr-dish-name').value = '';
             document.getElementById('mgr-dish-price').value = '';
-            document.getElementById('mgr-pin').value = '';
             
             const selectEl = document.getElementById('mgr-dish-select');
             let sortedMenu = [...cachedMenu].sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
@@ -2816,12 +2977,74 @@
             setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 200);
         }
 
+        let cachedPastBills = [];
+        
+        async function openPastBillsModal() {
+            closeManagerModal();
+            const modal = document.getElementById('past-bills-modal');
+            const loader = document.getElementById('past-bills-loader');
+            const list = document.getElementById('past-bills-list');
+            
+            safePushState('pastbills');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            loader.classList.remove('hidden'); list.innerHTML = '';
+            
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "fetch_past_bills" }) });
+                const data = await response.json();
+                loader.classList.add('hidden');
+                
+                if (data.success) {
+                    cachedPastBills = data.bills;
+                    renderPastBills();
+                } else {
+                    list.innerHTML = `<p class="text-center text-red-500 font-bold mt-10">Failed to load bills.</p>`;
+                }
+            } catch(e) {
+                loader.classList.add('hidden');
+                list.innerHTML = `<p class="text-center text-gray-500 font-bold mt-10">Network error.</p>`;
+            }
+        }
+
+        function closePastBillsModal(fromPopState = false) {
+            if (!fromPopState && window.location.hash.includes('pastbills')) { try { window.history.back(); } catch(e) {} return; }
+            document.getElementById('past-bills-modal').classList.add('hidden');
+            document.getElementById('past-bills-modal').classList.remove('flex');
+        }
+
+        function renderPastBills() {
+            const query = document.getElementById('bill-search').value.toLowerCase().trim();
+            const list = document.getElementById('past-bills-list');
+            
+            let filtered = cachedPastBills.filter(b => b.billNo.toLowerCase().includes(query) || b.table.toLowerCase().includes(query));
+            
+            if (filtered.length === 0) {
+                list.innerHTML = `<p class="text-center text-gray-400 font-bold text-sm py-10">No bills match search.</p>`;
+                return;
+            }
+
+            list.innerHTML = filtered.map(b => {
+                let d = new Date(b.date);
+                return `
+                <div class="p-4 bg-white border border-gray-200 rounded-2xl shadow-sm">
+                    <div class="flex justify-between items-start mb-2 border-b border-gray-100 pb-2">
+                        <div>
+                            <span class="font-black text-indigo-700 text-sm tracking-tight">${b.billNo}</span>
+                            <span class="text-[10px] text-gray-400 font-bold ml-2">${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        </div>
+                        <span class="font-black text-gray-900">₹${b.total}</span>
+                    </div>
+                    <div class="text-xs text-gray-600 font-medium">Table ${b.table.replace('Table', '').trim()} <span class="text-gray-300 mx-1">|</span> Token #${b.token}</div>
+                </div>`;
+            }).join('');
+        }
+
         function submitManagerAction() {
             const actionType = document.getElementById('mgr-action-type').value;
             const name = actionType === 'add' ? document.getElementById('mgr-dish-name').value.trim() : document.getElementById('mgr-dish-select').value;
             const price = document.getElementById('mgr-dish-price').value;
             const category = document.getElementById('mgr-dish-category').value;
-            const pin = document.getElementById('mgr-pin').value;
+            const pin = activeManagerPin; // 🟢 Grab from memory
 
             if (!pin) { showPosAlert("Missing Info", "Manager PIN is required.", "warning"); return; }
             if (actionType === 'add' && (!name || !price)) { showPosAlert("Missing Info", "Name and Price required.", "warning"); return; }
@@ -2982,6 +3205,18 @@
                             if (!alertedReadyTables.has(t.token)) {
                                 showToastNotification("Order Ready", `${t.table} is completely ready to serve!`, alertTimeStr);
                                 alertedReadyTables.add(t.token);
+                            }
+                        }
+
+                        // 🟢 MASTER TABLET: Check for "Request Bill" broadcasts!
+                        if (status.includes("BILL REQUESTED")) {
+                            const isMaster = localStorage.getItem('impact_is_master') === 'true';
+                            if (isMaster) {
+                                activeReadyCount++; // Light up the notification dot!
+                                if (!alertedReadyTables.has(t.token + "_bill")) {
+                                    showToastNotification("Bill Requested", `${t.table} has requested their bill!`, alertTimeStr);
+                                    alertedReadyTables.add(t.token + "_bill");
+                                }
                             }
                         }
                         
