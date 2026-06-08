@@ -1154,12 +1154,12 @@
            async function fetchOrder(isSilentRefresh = false) {
             syncMenuBackground(); 
             
-            const isValidSmartOrder = currentInput.length === 4;
-            // 🟢 VALIDATION FIX: Allow 6-character tokens starting with ANY 2-letter terminal prefix (e.g., KX-492)
-            const isValidTerminalOrder = /^[A-Z]{2}-\d{3}$/.test(currentInput); 
+            const isValidSmartOrder = currentInput.length >= 4 && !currentInput.includes("-");
+            // 🟢 VALIDATION FIX: Expand regex to support the new 3-letter Enterprise Terminal IDs (e.g., AAA-001)
+            const isValidTerminalOrder = /^[A-Z]{2,4}-\d{3,5}$/.test(currentInput); 
             
             if (!isValidSmartOrder && !isValidTerminalOrder) { 
-                if(!isSilentRefresh) showPosAlert("Invalid Token", "Please enter a 4-digit token or use the 'New Walk-In' button.", "warning"); 
+                if(!isSilentRefresh) showPosAlert("Invalid Token", "Please enter a valid token or use the 'New Walk-In' button.", "warning"); 
                 return; 
             }
 
