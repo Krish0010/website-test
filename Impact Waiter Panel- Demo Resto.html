@@ -2736,8 +2736,12 @@
         function printOfflineKOT(table, token, cart) {
             const printArea = document.getElementById('print-area');
             
-            // 🟢 PACING FIX: Sort cart so 'Serve First' is at the top, just like the real KDS
-            const sortedCart = [...cart].sort((a, b) => {
+            // 🟢 PREVENT DOUBLE-COOKING: Filter out items that were already sent to the kitchen!
+            const newItems = cart.filter(i => i.isLocked === false);
+            const isUpdate = cart.some(i => i.isLocked === true); // If there are older locked items, this is an update
+
+            // 🟢 PACING FIX: Sort only the new items so 'Serve First' is at the top
+            const sortedCart = [...newItems].sort((a, b) => {
                 const rank = { "Serve First": 1, "Main Course": 2, "Serve Last": 3 };
                 return (rank[a.pacing] || 2) - (rank[b.pacing] || 2);
             });
@@ -2757,10 +2761,14 @@
                 `;
             }).join('');
 
+            // Dynamically alter the receipt header based on whether it is a new table or an addition
+            let headerTitle = isUpdate ? "** UPDATE KOT **" : "** OFFLINE KOT **";
+            let headerSub = isUpdate ? "ADDED TO EXISTING ORDER" : "NETWORK DOWN - ENTERED MANUALLY";
+
             printArea.innerHTML = `
                 <div style="border: 2px solid black; padding: 10px; margin-bottom: 15px; text-align: center;">
-                    <h1 style="margin:0; font-size: 24px; font-weight:900;">** OFFLINE KOT **</h1>
-                    <p style="margin:5px 0 0 0; font-size: 12px; font-weight:bold;">NETWORK DOWN - ENTERED MANUALLY</p>
+                    <h1 style="margin:0; font-size: 24px; font-weight:900;">${headerTitle}</h1>
+                    <p style="margin:5px 0 0 0; font-size: 12px; font-weight:bold;">${headerSub}</p>
                 </div>
                 <div style="text-align:center; font-size: 28px; font-weight:900; margin-bottom: 10px; border-bottom: 2px dashed black; padding-bottom: 10px;">TABLE ${table}</div>
                 <div style="font-size: 16px; font-weight: bold; margin-bottom: 15px;">Token: #${token}</div>
