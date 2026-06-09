@@ -1350,9 +1350,14 @@
 
                     let assignedTable = "";
                     const fireNextBtn = document.getElementById('fire-next-btn');
-                    if (data.status && (data.status.includes("- LOCKED") || data.status.includes("- FIRE NEXT") || data.status.includes("- READY"))) {
+                    // 🟢 PARSING FIX: Teach the tablet how to extract the table number from Printed and Offline bills!
+                    if (data.status && (data.status.includes("- LOCKED") || data.status.includes("- FIRE NEXT") || data.status.includes("- READY") || data.status.includes("BILL PRINTED") || data.status.includes("OFFLINE KOT"))) {
                         assignedTable = data.status.split("-")[0].replace("Table", "").trim();
-                        if (!data.status.includes("- READY") && fireNextBtn) { fireNextBtn.classList.remove('hidden'); fireNextBtn.classList.add('flex'); }
+                        if (!data.status.includes("- READY") && !data.status.includes("BILL PRINTED") && fireNextBtn) { 
+                            fireNextBtn.classList.remove('hidden'); fireNextBtn.classList.add('flex'); 
+                        } else {
+                            if (fireNextBtn) { fireNextBtn.classList.add('hidden'); fireNextBtn.classList.remove('flex'); }
+                        }
                     } else {
                         if (fireNextBtn) { fireNextBtn.classList.add('hidden'); fireNextBtn.classList.remove('flex'); }
                     }
@@ -1797,13 +1802,12 @@
                 
                 // 🟢 FOOLPROOF UI: If the bill is printed, turn Settle green and make it pulse to guide the cashier!
                 if (hasPrinted) {
-                    settleBtn.className = "w-1/4 py-3 bg-green-50 text-green-700 border border-green-300 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-green-100 transition-all cursor-pointer shadow-md animate-pulse";
-                    settleBtn.innerHTML = "Settle & Pay";
+                    settleBtn.className = "w-1/4 py-3 bg-green-50 text-green-700 border border-green-300 rounded-xl font-black uppercase tracking-widest text-[9px] sm:text-[10px] hover:bg-green-100 transition-all cursor-pointer shadow-md animate-pulse";
+                    settleBtn.innerHTML = "Mark as Paid";
                 } else {
                     settleBtn.className = "w-1/4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-red-100 transition-colors cursor-pointer shadow-sm";
                     settleBtn.innerHTML = "Settle";
-                }
-            } else {
+                } else {
                 settleBtn.disabled = true;
                 settleBtn.className = "w-1/4 py-3 bg-gray-100 text-gray-400 border border-gray-200 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-colors cursor-not-allowed";
                 settleBtn.innerHTML = "Settle";
@@ -2312,10 +2316,12 @@
                 return; 
             }
             
-            // 🟢 DOOMSDAY BYPASS: Master tablets can bypass the lock to print Emergency Manual Bills
+            const isEmergency = currentOrderStatus.includes("EMERGENCY");
             const hasUnlockedItems = activeTicket.some(item => !item.isLocked);
             
-            if (hasUnlockedItems && !isMaster) {
+            // 🟢 DOOMSDAY BYPASS: Master tablets can bypass the lock ONLY if it is an explicit Emergency Manual Bill.
+            // If they are just adding a dish to a normal table, they MUST send it to the kitchen first!
+            if (hasUnlockedItems && !(isMaster && isEmergency)) {
                 showPosAlert("Unsaved Changes", "You have unsent items. Please tap 'Update Order' to send them to the kitchen before doing this.", "error");
                 return;
             }
