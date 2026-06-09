@@ -592,7 +592,7 @@
         function escapeJS(str) { return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
 
         // REPLACE WITH YOUR ACTUAL SCRIPT URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwE7aer8bcOXwqIJQmfhy88Tn0PqlFWSOHk_zWIENrTOjsLOgvfo22fLz9a5Wq4-umk/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxUnIuBj7Ov0ybWasKeW_iMXs1cWmOMrVLX2K8-SmYksBGoWcKebkZ2AXAPxerHK3L8/exec"; 
 
         // 🟢 ENTERPRISE ARCHITECTURE: Unique Terminal ID & Sequential Ledger
         let terminalId = localStorage.getItem('impact_terminal_id');
@@ -1332,6 +1332,13 @@
                     currentOrderStatus = data.status || "Pending";
                     originalTicketState = JSON.stringify(activeTicket);
                     
+                    // 🟢 MEMORY RESTORE FIX: Extract the exact Bill Number from the server status and restore it to RAM!
+                    const printMatch = currentOrderStatus.match(/BILL PRINTED:\s*([A-Z0-9\-]+)/);
+                    if (printMatch) {
+                        sessionBillNumbers[currentInput] = printMatch[1];
+                        window.currentBillNumber = printMatch[1];
+                    }
+
                     // 🟢 NaN BUG FIX: Translate the Google Sheets text string into strict mathematical milliseconds
                     if (data.timestamp) {
                         currentTicketTimestamp = new Date(data.timestamp).getTime();
@@ -2577,13 +2584,17 @@
             if (!officialBillNo) {
                 if (navigator.onLine) {
                     try {
-                        // 🟢 PREVENTS INFINITE LOADING SPINNERS ON SPOTTY WI-FI
+                       // 🟢 PREVENTS INFINITE LOADING SPINNERS ON SPOTTY WI-FI
                         const controller = new AbortController();
                         const timeoutId = setTimeout(() => controller.abort(), 6000); 
 
                         const response = await fetch(SCRIPT_URL, {
                             method: 'POST',
-                            body: JSON.stringify({ action: "get_official_bill_number", device_token: localStorage.getItem('impact_device_token') }),
+                            body: JSON.stringify({ 
+                                action: "get_official_bill_number", 
+                                token: currentInput, // 🟢 FIX: Sends the token to the server so it knows which table to update!
+                                device_token: localStorage.getItem('impact_device_token') 
+                            }),
                             signal: controller.signal
                         });
                         
@@ -2750,12 +2761,12 @@
                 
                 if (localStorage.getItem('impact_is_master') === 'true') {
                     // 🟢 INSTANT STATE UPDATE: Force local app to know this is printed immediately!
-                    if (!currentOrderStatus.includes("BILL PRINTED")) currentOrderStatus += " | BILL PRINTED";
+                    if (!currentOrderStatus.includes("BILL PRINTED")) currentOrderStatus += ` | BILL PRINTED: ${officialBillNo}`;
                     
                     // Update Active Tables list locally so the badge turns Indigo instantly without waiting for a server ping
                     let tIndex = currentOpenTables.findIndex(t => t.token === currentInput);
                     if (tIndex !== -1 && !currentOpenTables[tIndex].fullStatus.includes("BILL PRINTED")) {
-                        currentOpenTables[tIndex].fullStatus += " | BILL PRINTED";
+                        currentOpenTables[tIndex].fullStatus += ` | BILL PRINTED: ${officialBillNo}`;
                     }
 
                     // 🟢 HOSTAGE RELEASE: Kick them back to the home screen
