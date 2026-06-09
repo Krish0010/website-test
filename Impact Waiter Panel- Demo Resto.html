@@ -1555,7 +1555,7 @@
                 container.innerHTML = `<div class="flex-1 flex flex-col items-center justify-center text-gray-400 mt-10"><svg class="w-16 h-16 mb-3 text-gray-200" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"></path></svg><p class="font-bold text-sm tracking-wide">Ticket is empty</p></div>`;
             } else {
                 // 🟢 UX FIX: Inject Dynamic Station-Level Status Board
-                const isOrderLocked = currentOrderStatus.includes("LOCKED") || currentOrderStatus.includes("FIRE NEXT") || currentOrderStatus.includes("READY");
+                const isOrderLocked = currentOrderStatus.includes("LOCKED") || currentOrderStatus.includes("FIRE NEXT") || currentOrderStatus.includes("READY") || currentOrderStatus.includes("OFFLINE KOT");
                 
                 if (isOrderLocked) {
                     // Extract exactly which stations are cooking this specific order
@@ -1733,8 +1733,9 @@
 
             // 🟢 THE GHOST CHARGE VULNERABILITY LOCK (Master Override)
             const hasUnlockedItems = activeTicket.some(item => !item.isLocked);
-            const isLocked = currentOrderStatus.includes("LOCKED") || currentOrderStatus.includes("READY");
+            const isLocked = currentOrderStatus.includes("LOCKED") || currentOrderStatus.includes("READY") || currentOrderStatus.includes("OFFLINE KOT");
             const isFireNext = currentOrderStatus.includes("FIRE NEXT");
+            const isOfflineKOT = currentOrderStatus.includes("OFFLINE KOT");
 
            // SETTLE BUTTON LOGIC: Locked completely if there are unsent items.
             if ((isLocked || isFireNext) && !hasUnlockedItems) {
@@ -1781,7 +1782,14 @@
                 fireBtn.disabled = true;
 
                 fireNextBtn.classList.remove('hidden'); fireNextBtn.classList.add('flex');
-                fireNextBtn.className = "mt-2 w-full flex bg-purple-50 border border-purple-200 text-purple-700 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-[12px] py-3 shadow-sm hover:bg-purple-100 transition-all active:scale-[0.98] items-center justify-center gap-2 cursor-pointer";
+                
+                // 🟢 UX FIX: Gray out the button if offline, but leave it clickable for the popup!
+                if (isOfflineKOT) {
+                    fireNextBtn.className = "mt-2 w-full flex bg-gray-100 border border-gray-200 text-gray-400 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-[12px] py-3 shadow-inner items-center justify-center gap-2 cursor-pointer";
+                } else {
+                    fireNextBtn.className = "mt-2 w-full flex bg-purple-50 border border-purple-200 text-purple-700 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-[12px] py-3 shadow-sm hover:bg-purple-100 transition-all active:scale-[0.98] items-center justify-center gap-2 cursor-pointer";
+                }
+                
                 fireNextBtn.innerHTML = `<svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"></path></svg> Alert Kitchen: Fire "Serve Last"`;
                 fireNextBtn.disabled = false;
             }
@@ -2907,13 +2915,28 @@
         async function fireNextCourse() {
             const table = document.getElementById('table-select').value;
             if (!table) return;
+
+            // 🟢 OFFLINE KOT CHECK: Block digital requests for offline tickets
+            if (currentOrderStatus.includes("OFFLINE KOT") || !navigator.onLine) {
+                const offlineMessage = `
+                    <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">
+                        You cannot digitally alert the kitchen while the network is down or for an offline ticket.
+                    </div>
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl py-3 px-4 mx-2 mb-4 shadow-inner flex flex-col items-center justify-center">
+                        <span class="font-black text-amber-900 text-sm tracking-tight text-center">Please walk to the kitchen and manually tell the chefs to fire the "Serve Last" dishes for Table ${table}.</span>
+                    </div>
+                `;
+                showPosAlert("Network Offline", offlineMessage, "warning");
+                return;
+            }
+
             const btn = document.getElementById('fire-next-btn');
             const originalText = btn.innerHTML;
             btn.innerHTML = `<div class="w-5 h-5 border-[3px] border-purple-400 border-t-transparent rounded-full animate-spin"></div>`;
             btn.disabled = true;
 
             try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_fire_next", token: currentInput, table: table, device_token: localStorage.getItem('impact_device_token') }) });
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "waiter_fire_next", token: currentInput, table: table, device_token: localStorage.getItem('impact_device_token') }) });
                 const data = await response.json();
                 if (data.success) { 
                     closePosAlert();
