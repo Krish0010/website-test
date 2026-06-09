@@ -438,7 +438,7 @@
                 <div class="flex items-center justify-between bg-indigo-50 border border-indigo-100 p-4 rounded-xl shadow-inner mb-0">
                     <div>
                         <h4 class="text-indigo-900 font-black text-xs uppercase tracking-wider">Master Tablet</h4>
-                        <p class="text-indigo-400 text-[10px] font-medium mt-0.5">Allow Bill Printing on Device</p>
+                        <p class="text-indigo-400 text-[10px] font-medium mt-0.5">Allow Bill Printing on This Device</p>
                     </div>
                     <button id="toggle-master-btn" onclick="toggleMasterTab()" class="w-12 h-7 rounded-full bg-gray-300 relative transition-colors duration-300">
                         <div id="toggle-master-knob" class="w-5 h-5 bg-white rounded-full absolute top-1 left-1 transition-transform duration-300"></div>
@@ -1737,8 +1737,8 @@
             const isFireNext = currentOrderStatus.includes("FIRE NEXT");
             const isOfflineKOT = currentOrderStatus.includes("OFFLINE KOT");
 
-           // SETTLE BUTTON LOGIC: Locked completely if there are unsent items.
-            if ((isLocked || isFireNext) && !hasUnlockedItems) {
+           // 🟢 SETTLE BUTTON LOGIC: Locked if there are unsent items (Unless it is the Master Tablet doing an Emergency Bill)
+            if (((isLocked || isFireNext) && !hasUnlockedItems) || (hasUnlockedItems && isMaster)) {
                 settleBtn.disabled = false;
                 settleBtn.className = "w-1/4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-red-100 transition-colors cursor-pointer";
             } else {
@@ -2260,15 +2260,24 @@
                 return; 
             }
             
+            // 🟢 DOOMSDAY BYPASS: Master tablets can bypass the lock to print Emergency Manual Bills
             const hasUnlockedItems = activeTicket.some(item => !item.isLocked);
-            if (hasUnlockedItems) {
+            
+            if (hasUnlockedItems && !isMaster) {
                 showPosAlert("Unsaved Changes", "You have unsent items. Please tap 'Update Order' to send them to the kitchen before doing this.", "error");
                 return;
             }
 
             if (isMaster) {
                 // 🟢 UX UPGRADE: Master Tablet Print Confirmation Modal
+                const warningBanner = hasUnlockedItems ? `
+                    <div class="bg-red-50 border border-red-200 rounded-xl py-2 px-3 mx-2 mb-3 text-[10px] font-black text-red-600 uppercase tracking-widest text-center shadow-inner">
+                        ⚠️ Contains Un-Fired Items (Emergency Bill)
+                    </div>
+                ` : "";
+
                 const premiumMessage = `
+                    ${warningBanner}
                     <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">
                         Are you sure you want to generate the final bill for this table?
                     </div>
@@ -2435,6 +2444,7 @@
 
         // --- FINAL ACTIONS ---
         function clearTable() {
+            const isMaster = localStorage.getItem('impact_is_master') === 'true';
             const table = document.getElementById('table-select').value || "Unassigned";
             const currentSubtotal = document.getElementById('ticket-subtotal').innerText;
 
@@ -2443,9 +2453,9 @@
                 return; 
             }
 
-            // 🟢 SECURITY: The Ghost Charge Vulnerability Lock
+            // 🟢 SECURITY: The Ghost Charge Vulnerability Lock (Bypassed for Master Tablet Emergency Bills)
             const hasUnlockedItems = activeTicket.some(item => !item.isLocked);
-            if (hasUnlockedItems) {
+            if (hasUnlockedItems && !isMaster) {
                 showPosAlert("Unsaved Changes", "You have added items to this order but haven't fired them to the kitchen yet.<br><br>Please tap <b>Update Order</b> to send them, or delete the unsent items before settling.", "error");
                 return;
             }
@@ -2477,8 +2487,15 @@
                 </div>
             ` : "";
 
+            const warningBanner = (hasUnlockedItems && isMaster) ? `
+                <div class="bg-red-50 border border-red-200 rounded-xl py-2 px-3 mx-2 mb-3 text-[10px] font-black text-red-600 uppercase tracking-widest text-center shadow-inner">
+                    ⚠️ Settling Un-Fired Items (Manual Bill)
+                </div>
+            ` : "";
+
             const premiumMessage = `
                 ${readyVerificationHtml}
+                ${warningBanner}
                 <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">
                     Are you sure you want to settle this table?
                 </div>
