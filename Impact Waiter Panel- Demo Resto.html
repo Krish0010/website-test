@@ -3377,26 +3377,55 @@ let activeManagerPin = ""; // Temporary session memory so they don't have to kee
         }
 
         function confirmAndPrintBill() {
-            if (tempDiscountAmount > 0) {
-                // Secretly append the discount as a locked, negative-price item to the cart!
-                activeTicket.push({ 
-                    id: "DISC_" + Date.now(), 
-                    name: "Discount Applied", 
-                    qty: 1, 
-                    price: -Math.abs(tempDiscountAmount), 
-                    note: "", 
-                    course: "main", 
-                    isLocked: true 
-                });
-                renderTicket();
-                saveDraft();
-            }
-            
             const table = document.getElementById('table-select').value;
-            const newTotal = document.getElementById('ticket-subtotal').innerText;
+            const newTotal = document.getElementById('discount-modal-final').innerText;
             
-            closeDiscountModal();
-            executePrintCustomerBill(table, newTotal); // Prints the bill with discount baked in!
+            closeDiscountModal(); // Hide the discount screen first
+            
+            // 🟢 UX FIX: Restore the "Are you sure?" confirmation popup before finalizing the print!
+            setTimeout(() => {
+                const premiumMessage = `
+                    <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">
+                        Are you sure you want to generate the final bill for this table?
+                    </div>
+                    
+                    <div class="bg-indigo-50 border border-indigo-100 rounded-xl py-4 px-4 mx-2 mb-4 shadow-inner flex flex-col items-center justify-center">
+                        <span class="text-[9px] uppercase font-bold tracking-widest text-indigo-400 mb-1">Final Amount</span>
+                        <span class="font-black text-indigo-900 text-2xl tracking-tight">₹${newTotal}</span>
+                    </div>
+
+                    <div class="text-[11px] sm:text-xs text-gray-500 leading-relaxed px-4">
+                        This will generate the official bill sequence number and send the receipt to the thermal printer.
+                    </div>
+                `;
+
+                showPosAlert(
+                    "Print Final Bill?", 
+                    premiumMessage, 
+                    "info", 
+                    () => { 
+                        // 🟢 Only push the discount to the cart if they actually confirm the print!
+                        if (tempDiscountAmount > 0) {
+                            activeTicket.push({ 
+                                id: "DISC_" + Date.now(), 
+                                name: "Discount Applied", 
+                                qty: 1, 
+                                price: -Math.abs(tempDiscountAmount), 
+                                note: "", 
+                                course: "main", 
+                                isLocked: true 
+                            });
+                            renderTicket();
+                            saveDraft();
+                        }
+                        
+                        // Grab the true mathematical subtotal from the DOM to ensure total accuracy
+                        const finalDomTotal = document.getElementById('ticket-subtotal').innerText;
+                        executePrintCustomerBill(table, finalDomTotal); 
+                    }, 
+                    "Yes, Print Bill"
+                );
+            }, 300); // 300ms delay allows the discount modal to finish sliding down smoothly
         }
 
         function submitManagerAction() {
