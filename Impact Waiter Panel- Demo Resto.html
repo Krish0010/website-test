@@ -167,6 +167,8 @@
             </div>
         </div>
     </div>
+
+
 <div id="view-auth" class="flex-1 flex flex-col items-center justify-center p-6 w-full max-w-sm mx-auto z-50 bg-w-bg absolute inset-0">
         <div class="bg-white p-8 rounded-3xl shadow-xl w-full flex flex-col items-center text-center border border-gray-100">
             <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
@@ -182,8 +184,8 @@
             </button>
         </div>
     </div>
+
     <div id="view-numpad" class="flex-1 w-full max-w-sm mx-auto flex flex-col justify-center gap-4 px-4 py-4 min-h-0 transition-opacity duration-300">
-        
         <div class="flex flex-col items-center shrink-0 w-full">
             <p class="text-gray-400 font-black uppercase tracking-widest text-[10px] sm:text-xs mb-2">Enter Customer Token</p>
             <div class="w-full bg-white border-2 border-w-accent rounded-2xl h-[8vh] min-h-[55px] max-h-[75px] mb-2 flex items-center justify-center text-4xl font-black text-w-accent tracking-widest shadow-inner">
@@ -233,9 +235,7 @@
         </div>
     </div>
 
-<div id="view-ticket" class="hidden flex-col flex-1 w-full max-w-2xl mx-auto bg-w-bg relative min-h-0 overflow-hidden">
-        
-        <!-- 🟢 UI/UX FIX: Compressed Header and Table Selector for Mobile -->
+    <div id="view-ticket" class="hidden flex-col flex-1 w-full max-w-2xl mx-auto bg-w-bg relative min-h-0 overflow-hidden">
         <div class="bg-w-card p-3 sm:p-5 border-b border-w-border shadow-sm shrink-0 flex flex-col gap-2 sm:gap-4 z-10 relative">
             <div class="flex items-center justify-between">
                 <div class="flex flex-col">
@@ -269,8 +269,7 @@
             </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-2 sm:p-3 flex flex-col gap-2 relative" id="order-items-container" ondragover="handleDragOverContainer(event)" ondragleave="stopAutoScroll()" ondrop="stopAutoScroll()">
-            </div>
+        <div class="flex-1 overflow-y-auto p-2 sm:p-3 flex flex-col gap-2 relative" id="order-items-container" ondragover="handleDragOverContainer(event)" ondragleave="stopAutoScroll()" ondrop="stopAutoScroll()"></div>
 
         <div class="bg-w-card border-t border-w-border shadow-[0_-10px_30px_rgba(0,0,0,0.05)] shrink-0 z-10 pb-3">
             <div class="flex gap-2 p-2 border-b border-w-border bg-gray-50/50">
@@ -331,8 +330,7 @@
                 <div id="table-selector-loader" class="absolute inset-0 flex items-center justify-center bg-gray-50/80 backdrop-blur-sm z-10 hidden">
                     <div class="w-10 h-10 border-4 border-w-accent border-t-transparent rounded-full animate-spin"></div>
                 </div>
-                <div id="table-selector-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-3 sm:gap-4 pb-10">
-                    </div>
+                <div id="table-selector-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-3 sm:gap-4 pb-10"></div>
             </div>
         </div>
     </div>
@@ -412,7 +410,7 @@
         </div>
     </div>
 
-<div id="manager-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] hidden flex-col justify-center items-center p-4 opacity-0 transition-opacity duration-200">
+    <div id="manager-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] hidden flex-col justify-center items-center p-4 opacity-0 transition-opacity duration-200">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm max-h-[90vh] overflow-hidden transform scale-95 transition-transform duration-200 flex flex-col relative" id="manager-box">
             
             <div id="mgr-lock-overlay" class="absolute inset-0 bg-white z-[60] flex flex-col p-8 items-center justify-center transition-opacity duration-300">
@@ -434,7 +432,6 @@
             </div>
             
             <div class="p-6 flex flex-col gap-4 overflow-y-auto">
-                
                 <div class="flex items-center justify-between bg-indigo-50 border border-indigo-100 p-4 rounded-xl shadow-inner mb-0">
                     <div>
                         <h4 class="text-indigo-900 font-black text-xs uppercase tracking-wider">Master Tablet</h4>
@@ -520,8 +517,7 @@
             <div class="p-4 bg-white relative shrink-0 border-b border-gray-100">
                 <input type="text" id="bill-search" oninput="renderPastBills()" placeholder="Search Bill No. (e.g. AAA-0042)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 font-bold text-gray-800 outline-none focus:border-indigo-400 transition-all text-sm uppercase placeholder:normal-case">
             </div>
-
-<div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-50 relative">
+            <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-50 relative">
                 <div id="past-bills-loader" class="flex justify-center mt-10 hidden">
                     <div class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
                 </div>
@@ -571,7 +567,6 @@
             </div>
         </div>
     </div>
-
 
     <div id="pos-alert-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999999] hidden flex-col justify-center items-center p-6 opacity-0 transition-opacity duration-200">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-200" id="pos-alert-box">
