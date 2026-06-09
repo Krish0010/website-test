@@ -1777,17 +1777,27 @@
 
             // 🟢 THE GHOST CHARGE VULNERABILITY LOCK (Master Override)
             const hasUnlockedItems = activeTicket.some(item => !item.isLocked);
-            const isLocked = currentOrderStatus.includes("LOCKED") || currentOrderStatus.includes("READY") || currentOrderStatus.includes("OFFLINE KOT");
+            
+            // Note: We now include BILL PRINTED as a globally locked state so waiters don't accidentally add things to a printed bill
+            const isLocked = currentOrderStatus.includes("LOCKED") || currentOrderStatus.includes("READY") || currentOrderStatus.includes("OFFLINE KOT") || currentOrderStatus.includes("BILL PRINTED");
             const isFireNext = currentOrderStatus.includes("FIRE NEXT");
             const isOfflineKOT = currentOrderStatus.includes("OFFLINE KOT");
+            const hasPrinted = currentOrderStatus.includes("BILL PRINTED") || sessionBillNumbers[currentInput] || window.currentBillNumber; 
 
-           // 🟢 SETTLE BUTTON LOGIC: Locked if there are unsent items (Unless it is the Master Tablet doing an Emergency Bill)
-            if (((isLocked || isFireNext) && !hasUnlockedItems) || (hasUnlockedItems && isMaster)) {
+           // 🟢 SETTLE BUTTON LOGIC: Unlocked if everything is fired, OR if it's the Master doing an Emergency Bill, OR if the bill was already printed!
+            if (((isLocked || isFireNext) && !hasUnlockedItems) || (hasUnlockedItems && isMaster) || hasPrinted) {
                 settleBtn.disabled = false;
-                settleBtn.className = "w-1/4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-red-100 transition-colors cursor-pointer";
+                settleBtn.className = "w-1/4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-red-100 transition-colors cursor-pointer shadow-sm";
             } else {
                 settleBtn.disabled = true;
                 settleBtn.className = "w-1/4 py-3 bg-gray-100 text-gray-400 border border-gray-200 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-colors cursor-not-allowed";
+            }
+
+            // 🟢 POST-PRINT UX: Change Print button to "Apply Reward" if bill already generated
+            if (isMaster && hasPrinted && printBtnText) {
+                printBtnText.innerText = "Apply Reward";
+            } else if (isMaster && printBtnText) {
+                printBtnText.innerText = "Print Bill"; // Ensure it resets if they jump to a fresh table
             }
 
             const isEmergency = currentOrderStatus.includes("EMERGENCY");
@@ -1967,35 +1977,6 @@
             }
         }
 
-        // --- 🟢 PREMIUM TOAST NOTIFICATION LOGIC ---
-        function clearAllToasts() {
-            const container = document.getElementById('toast-container');
-            if (!container) return;
-            const toasts = Array.from(container.children);
-            toasts.forEach(toast => {
-                toast.classList.remove('translate-y-0', 'sm:translate-x-0', 'opacity-100', 'scale-100');
-                toast.classList.add('opacity-0', 'scale-95'); // Smooth fade out
-            });
-            setTimeout(() => { 
-                container.innerHTML = ''; 
-                updateClearAllButton(); 
-            }, 300);
-        }
-
-        function updateClearAllButton() {
-            const container = document.getElementById('toast-container');
-            const btn = document.getElementById('clear-all-toasts-btn');
-            const badge = document.getElementById('toast-count-badge');
-            if (container && btn && badge) {
-                const count = container.children.length;
-                badge.innerText = count;
-                if (count > 2) {
-                    btn.classList.remove('hidden');
-                } else {
-                    btn.classList.add('hidden');
-                }
-            }
-        }
 
         // --- 🟢 ELITE UI/UX: TOAST NOTIFICATION ENGINE ---
         function clearAllToasts() {
@@ -2757,8 +2738,24 @@
             `;
             
             // Trigger native print dialog (routes to Bluetooth thermal printer)
-            // Small timeout prevents the dark modal from being captured in the print frame!
-            setTimeout(() => { window.print(); }, 400); 
+            setTimeout(() => { 
+                window.print(); 
+                
+                if (localStorage.getItem('impact_is_master') === 'true') {
+                    // 🟢 HOSTAGE RELEASE: Do not force them to stay on the screen.
+                    // Kick them back out so they can help the next table immediately.
+                    closeTicket();
+                    
+                    // Show a helpful alert so they know the table is waiting for Settle
+                    setTimeout(() => {
+                        showPosAlert(
+                            "Bill Generated", 
+                            `The bill for Table ${table} is printing.<br><br>The table is now marked <b>BILL PRINTED</b>. You can tap it again later to apply discounts or Settle the final payment.`, 
+                            "success"
+                        );
+                    }, 500);
+                }
+            }, 400); 
         } 
 
         // 🟢 OFFLINE FALLBACK GENERATOR: Alphanumeric Sequential Sync (Master Tablet Only)
@@ -3038,7 +3035,13 @@
                     let statusText = "COOKING";
                     let borderStyle = "border-gray-100 hover:border-w-accent hover:shadow-md";
 
-                    if (isReady) {
+                    const hasPrinted = t.fullStatus && t.fullStatus.includes("BILL PRINTED");
+
+                    if (hasPrinted) {
+                        statusColor = "bg-indigo-100 text-indigo-700 border-indigo-200";
+                        statusText = "BILL PRINTED";
+                        borderStyle = "border-indigo-400 shadow-md ring-1 ring-indigo-400/50";
+                    } else if (isReady) {
                         statusColor = "bg-green-100 text-green-700 border-green-200";
                         statusText = "FOOD READY";
                         borderStyle = "border-green-400 shadow-md ring-1 ring-green-400/50";
