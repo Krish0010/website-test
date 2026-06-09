@@ -529,6 +529,59 @@
         </div>
     </div>
 
+<div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-50 relative">
+                <div id="past-bills-loader" class="flex justify-center mt-10 hidden">
+                    <div class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+                <div id="past-bills-list" class="flex flex-col gap-3 pb-10"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="discount-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[500] hidden flex-col justify-end transition-opacity duration-300">
+        <div class="bg-gray-50 w-full rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.3)] flex flex-col animate-[slideUp_0.3s_ease-out]">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-white rounded-t-[32px] shrink-0">
+                <div class="flex flex-col">
+                    <h3 class="font-black text-2xl tracking-tight text-gray-900">Bill Summary</h3>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Review & Apply Discount</p>
+                </div>
+                <button onclick="closeDiscountModal()" class="w-10 h-10 bg-gray-100 border border-gray-200 rounded-full flex items-center justify-center text-gray-600 font-bold hover:bg-gray-200 shadow-sm transition-colors active:scale-95">✕</button>
+            </div>
+            <div class="p-6 flex flex-col gap-4">
+                <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                    <span class="text-sm font-bold text-gray-500 uppercase tracking-widest">Subtotal</span>
+                    <span class="text-xl font-black text-gray-900">₹<span id="discount-modal-subtotal">0.00</span></span>
+                </div>
+                
+                <div class="flex gap-3">
+                    <div class="flex-1">
+                        <label class="text-[10px] uppercase font-bold tracking-widest text-gray-400 mb-1 block">Discount Type</label>
+                        <select id="discount-type" onchange="calculateDiscountLive()" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 font-black text-indigo-600 outline-none focus:border-indigo-400 transition-colors appearance-none cursor-pointer">
+                            <option value="amount">Amount (₹)</option>
+                            <option value="percent">Percentage (%)</option>
+                        </select>
+                    </div>
+                    <div class="flex-1">
+                        <label class="text-[10px] uppercase font-bold tracking-widest text-gray-400 mb-1 block">Value</label>
+                        <input type="number" id="discount-value" oninput="calculateDiscountLive()" placeholder="0" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 font-black text-gray-900 outline-none focus:border-indigo-400 transition-colors">
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center bg-indigo-50 p-4 rounded-xl border border-indigo-100 shadow-inner mt-2">
+                    <span class="text-sm font-black text-indigo-900 uppercase tracking-widest">Final Total</span>
+                    <span class="text-3xl font-black text-indigo-600 tracking-tight">₹<span id="discount-modal-final">0.00</span></span>
+                </div>
+
+                <button onclick="confirmAndPrintBill()" class="mt-2 w-full py-4 bg-indigo-600 text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-indigo-700 transition-colors shadow-lg flex justify-center items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0v2.625c0 .621.504 1.125 1.125 1.125h8.25c.621 0 1.125-.504 1.125-1.125V9.214z"></path></svg>
+                    Confirm & Print Bill
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pos-alert-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999999] hidden flex-col justify-center items-center p-6 opacity-0 transition-opacity duration-200">
+
     <div id="pos-alert-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999999] hidden flex-col justify-center items-center p-6 opacity-0 transition-opacity duration-200">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-200" id="pos-alert-box">
             <div id="pos-alert-header" class="h-2 w-full bg-w-accent"></div>
@@ -2280,37 +2333,8 @@
             }
 
             if (isMaster) {
-                // 🟢 UX UPGRADE: Master Tablet Print Confirmation Modal
-                const warningBanner = hasUnlockedItems ? `
-                    <div class="bg-red-50 border border-red-200 rounded-xl py-2 px-3 mx-2 mb-3 text-[10px] font-black text-red-600 uppercase tracking-widest text-center shadow-inner">
-                        ⚠️ Contains Un-Fired Items (Emergency Bill)
-                    </div>
-                ` : "";
-
-                const premiumMessage = `
-                    ${warningBanner}
-                    <div class="text-gray-600 text-[14px] sm:text-[15px] mb-3 px-2 font-medium">
-                        Are you sure you want to generate the final bill for this table?
-                    </div>
-                    
-                    <div class="bg-indigo-50 border border-indigo-100 rounded-xl py-4 px-4 mx-2 mb-4 shadow-inner flex flex-col items-center justify-center">
-                        <span class="text-[9px] uppercase font-bold tracking-widest text-indigo-400 mb-1">Total Amount</span>
-                        <span class="font-black text-indigo-900 text-2xl tracking-tight">₹${currentSubtotal}</span>
-                    </div>
-
-                    <div class="text-[11px] sm:text-xs text-gray-500 leading-relaxed px-4">
-                        This will generate the official bill sequence number and send the receipt to the thermal printer.
-                    </div>
-                `;
-
-                // Uses the blue "info" theme for the print confirmation
-                showPosAlert(
-                    "Print Final Bill?", 
-                    premiumMessage, 
-                    "info", 
-                    () => { executePrintCustomerBill(table, currentSubtotal); }, 
-                    "Yes, Print Bill"
-                );
+                // 🟢 MASTER UX: Open the new Summary & Discount Screen instead of a basic alert
+                openDiscountModal();
             } else {
                 requestBillFromMaster(table);
             }
@@ -3221,7 +3245,7 @@ let activeManagerPin = ""; // Temporary session memory so they don't have to kee
             box.classList.add('scale-95');
             setTimeout(() => { modal.classList.remove('flex'); modal.classList.add('hidden'); }, 200);
         }
-
+         
         let cachedPastBills = [];
         
         async function openPastBillsModal() {
@@ -3235,7 +3259,14 @@ let activeManagerPin = ""; // Temporary session memory so they don't have to kee
             loader.classList.remove('hidden'); list.innerHTML = '';
             
             try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "fetch_past_bills" }) });
+                // 🟢 SECURITY FIX: Attach device_token so backend allows it!
+                const response = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ 
+                        action: "fetch_past_bills",
+                        device_token: localStorage.getItem('impact_device_token')
+                    }) 
+                });
                 const data = await response.json();
                 loader.classList.add('hidden');
                 
@@ -3257,6 +3288,14 @@ let activeManagerPin = ""; // Temporary session memory so they don't have to kee
             document.getElementById('past-bills-modal').classList.remove('flex');
         }
 
+        // 🟢 UX UPGRADE: If a bill is Unsettled, click it to load it directly into the POS!
+        function loadBillToPos(token) {
+            closePastBillsModal();
+            currentInput = token;
+            document.getElementById('token-input').innerText = currentInput;
+            fetchOrder();
+        }
+
         function renderPastBills() {
             const query = document.getElementById('bill-search').value.toLowerCase().trim();
             const list = document.getElementById('past-bills-list');
@@ -3270,18 +3309,100 @@ let activeManagerPin = ""; // Temporary session memory so they don't have to kee
 
             list.innerHTML = filtered.map(b => {
                 let d = new Date(b.date);
+                
+                let statusBadge = b.isSettled 
+                    ? `<span class="bg-green-100 text-green-700 border border-green-200 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest shadow-sm">Settled</span>`
+                    : `<span class="bg-amber-100 text-amber-700 border border-amber-200 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-widest shadow-sm">Unsettled</span>`;
+                    
+                let pointerClass = b.isSettled ? "" : "cursor-pointer hover:border-indigo-300 hover:shadow-md transition-all active:scale-[0.98]";
+
                 return `
-                <div class="p-4 bg-white border border-gray-200 rounded-2xl shadow-sm">
+                <div ${b.isSettled ? '' : `onclick="loadBillToPos('${b.token}')"`} class="p-4 bg-white border border-gray-200 rounded-2xl shadow-sm ${pointerClass}">
                     <div class="flex justify-between items-start mb-2 border-b border-gray-100 pb-2">
-                        <div>
-                            <span class="font-black text-indigo-700 text-sm tracking-tight">${b.billNo}</span>
-                            <span class="text-[10px] text-gray-400 font-bold ml-2">${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        <div class="flex flex-col gap-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-black text-indigo-700 text-sm tracking-tight">${b.billNo}</span>
+                                ${statusBadge}
+                            </div>
+                            <span class="text-[10px] text-gray-400 font-bold">${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                         </div>
                         <span class="font-black text-gray-900">₹${b.total}</span>
                     </div>
-                    <div class="text-xs text-gray-600 font-medium">Table ${b.table.replace('Table', '').trim()} <span class="text-gray-300 mx-1">|</span> Token #${b.token}</div>
+                    <div class="text-xs text-gray-600 font-medium">${b.table.replace('Table', '').trim()} <span class="text-gray-300 mx-1">|</span> Token #${b.token}</div>
+                    ${!b.isSettled ? `<div class="mt-2 text-[10px] font-bold text-indigo-500 uppercase tracking-widest flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg> Tap to open & settle</div>` : ''}
                 </div>`;
             }).join('');
+        }
+
+        // 🟢 DISCOUNT ENGINE LOGIC
+        let tempDiscountAmount = 0;
+
+        function openDiscountModal() {
+            // Remove any previously applied discount before opening so math doesn't stack weirdly
+            activeTicket = activeTicket.filter(item => !item.name.includes("Discount Applied"));
+            renderTicket(); // Update underlying UI/Total
+            
+            const freshSubtotal = document.getElementById('ticket-subtotal').innerText;
+
+            document.getElementById('discount-modal-subtotal').innerText = freshSubtotal;
+            document.getElementById('discount-modal-final').innerText = freshSubtotal;
+            document.getElementById('discount-value').value = "";
+            document.getElementById('discount-type').value = "amount";
+            tempDiscountAmount = 0;
+
+            const modal = document.getElementById('discount-modal');
+            safePushState('discount');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeDiscountModal(fromPopState = false) {
+            if (!fromPopState && window.location.hash.includes('discount')) { try { window.history.back(); } catch(e) {} return; }
+            const modal = document.getElementById('discount-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function calculateDiscountLive() {
+            const subtotal = parseFloat(document.getElementById('discount-modal-subtotal').innerText);
+            const type = document.getElementById('discount-type').value;
+            const val = parseFloat(document.getElementById('discount-value').value) || 0;
+            
+            let discount = 0;
+            if (type === 'percent') {
+                discount = subtotal * (val / 100);
+            } else {
+                discount = val;
+            }
+            
+            if (discount > subtotal) discount = subtotal; // Prevent negative bills
+            
+            tempDiscountAmount = discount;
+            const finalTotal = (subtotal - discount).toFixed(2);
+            document.getElementById('discount-modal-final').innerText = finalTotal;
+        }
+
+        function confirmAndPrintBill() {
+            if (tempDiscountAmount > 0) {
+                // Secretly append the discount as a locked, negative-price item to the cart!
+                activeTicket.push({ 
+                    id: "DISC_" + Date.now(), 
+                    name: "Discount Applied", 
+                    qty: 1, 
+                    price: -Math.abs(tempDiscountAmount), 
+                    note: "", 
+                    course: "main", 
+                    isLocked: true 
+                });
+                renderTicket();
+                saveDraft();
+            }
+            
+            const table = document.getElementById('table-select').value;
+            const newTotal = document.getElementById('ticket-subtotal').innerText;
+            
+            closeDiscountModal();
+            executePrintCustomerBill(table, newTotal); // Prints the bill with discount baked in!
         }
 
         function submitManagerAction() {
