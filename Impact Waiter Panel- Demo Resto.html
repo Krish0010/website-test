@@ -1746,8 +1746,19 @@
                 settleBtn.className = "w-1/4 py-3 bg-gray-100 text-gray-400 border border-gray-200 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-colors cursor-not-allowed";
             }
 
+            const isEmergency = currentOrderStatus.includes("EMERGENCY");
+
             // FIRE BUTTON LOGIC:
-            if (hasUnlockedItems) {
+            if (isEmergency) {
+                // 🟢 PREVENT DOUBLE-COOKING: Lock the fire button completely for post-consumption emergency bills
+                fireBtn.className = "w-2/4 bg-gray-200 text-gray-400 rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm flex items-center justify-center gap-2 cursor-not-allowed border border-gray-300";
+                fireBtn.innerHTML = `🚫 KOT Disabled`;
+                fireBtn.disabled = true;
+
+                fireNextBtn.classList.add('hidden'); 
+                fireNextBtn.classList.remove('flex');
+                
+            } else if (hasUnlockedItems) {
                 // Regardless of table state, if there is a new item, they MUST be able to fire/update.
                 fireBtn.className = isLocked || isFireNext 
                     ? "w-2/4 bg-amber-500 text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm shadow-xl shadow-amber-500/30 hover:bg-amber-600 transition-colors flex items-center justify-center gap-2"
@@ -3154,6 +3165,8 @@ let activeManagerPin = ""; // Temporary session memory so they don't have to kee
         function triggerEmergencyBill() {
             closeManagerModal();
             startNewOrder(); // Generate a fresh ticket
+            
+            currentOrderStatus = "EMERGENCY BILL"; // 🟢 Explicitly tag this ticket so the kitchen buttons lock!
             
             setTimeout(() => {
                 showPosAlert(
