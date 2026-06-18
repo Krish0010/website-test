@@ -208,6 +208,26 @@
         </div>
     </div>
 
+<!-- 🟢 MODAL: INITIAL DEVICE AUTHENTICATION (LOCK SCREEN) -->
+    <div id="auth-modal" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4 bg-gray-900/95 backdrop-blur-xl transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.6)] w-full max-w-sm flex flex-col items-center text-center border border-gray-100 transform transition-transform duration-300 scale-100" id="auth-box">
+            <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-5 shadow-inner border border-blue-100">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
+            </div>
+            <h2 class="font-black text-2xl text-gray-900 tracking-tight mb-2">Terminal Locked</h2>
+            <p class="text-xs text-gray-500 font-medium mb-6 leading-relaxed px-2">Please enter the staff passcode to activate this device for redemptions.</p>
+            
+            <input type="password" id="staff-auth-pin" placeholder="Enter Passcode" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-4 font-black text-center tracking-[0.3em] text-gray-900 outline-none focus:border-blue-500 focus:bg-white transition-all mb-4" autocomplete="off">
+            
+            <div id="auth-error" class="hidden w-full mb-4 text-red-600 text-[10px] font-bold uppercase tracking-wider bg-red-50 p-3 rounded-xl border border-red-100"></div>
+
+            <button id="auth-submit-btn" onclick="saveStaffAuth()" class="w-full py-4 bg-gray-900 text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-black transition-colors shadow-lg active:scale-[0.98] flex justify-center items-center">
+                <span id="auth-submit-text">Unlock Terminal</span>
+                <span id="auth-loader" class="loader hidden" style="border-top-color: white; width: 16px; height: 16px; border-width: 2px;"></span>
+            </button>
+        </div>
+    </div>
+
     <script>
         // 🔴 IMPORTANT: Replace this with your newly deployed Web App URL
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1ATeWIcqDlKEh8kRYqgtQc6ebBJFpjnNM0lT1N6g9GH1JmHHTu9NIKAn7-b7XE1PY/exec"; 
@@ -216,28 +236,87 @@
         let currentlyVerifiedCode = "";
         let undoInterval;
 
+        // 🟢 NEW: BOOT UP AUTH CHECK
+        function checkStaffAuth() {
+            const token = localStorage.getItem('impact_staff_token');
+            const authModal = document.getElementById('auth-modal');
+            const authBox = document.getElementById('auth-box');
+            
+            if (!token) {
+                authModal.classList.remove('hidden');
+                // Use a tiny timeout to ensure the browser paints the flexbox before animating opacity
+                setTimeout(() => {
+                    authModal.classList.remove('opacity-0');
+                    document.getElementById('staff-auth-pin').focus();
+                }, 10);
+            } else {
+                authModal.classList.add('hidden');
+            }
+        }
+
+        function saveStaffAuth() {
+            const pin = document.getElementById('staff-auth-pin').value.trim();
+            const errorDiv = document.getElementById('auth-error');
+            
+            if (!pin) {
+                errorDiv.innerText = "Passcode is required to continue.";
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            
+            toggleLoading('auth-submit-btn', 'auth-submit-text', 'auth-loader', true);
+            
+            // Save to browser memory
+            localStorage.setItem('impact_staff_token', pin);
+            errorDiv.classList.add('hidden');
+            document.getElementById('staff-auth-pin').value = '';
+            
+            const authModal = document.getElementById('auth-modal');
+            const authBox = document.getElementById('auth-box');
+            
+            // Smooth fade out
+            authModal.classList.add('opacity-0');
+            authBox.classList.remove('scale-100');
+            authBox.classList.add('scale-95');
+            
+            setTimeout(() => {
+                authModal.classList.add('hidden');
+                toggleLoading('auth-submit-btn', 'auth-submit-text', 'auth-loader', false);
+                document.getElementById('discount-code').focus(); // Auto-focus the scanner input!
+            }, 300);
+        }
+
         // 🛡️ THE SECURE POST HELPER
         async function securePost(paramsObj) {
-            // 🟢 APPSEC FIX: Retrieve from encrypted/local storage, NEVER hardcode in JS text.
             let staffToken = localStorage.getItem('impact_staff_token');
             if (!staffToken) {
-                staffToken = prompt("🔒 Terminal Locked. Enter Staff API Key to activate:");
-                if (staffToken) {
-                    localStorage.setItem('impact_staff_token', staffToken);
-                } else {
-                    showError("API Key required for access.");
-                    return { success: false, message: "No API key provided." };
-                }
+                checkStaffAuth(); // Summon the lock screen
+                throw new Error("Terminal Locked"); // Abort execution silently
             }
             
             paramsObj.staff_auth = staffToken; 
             const formData = new URLSearchParams(paramsObj);
             const response = await fetch(SCRIPT_URL, { method: 'POST', body: formData });
-            return await response.json();
+            const data = await response.json();
+            
+            // 🟢 SECURITY BOUNCER: If the backend rejects our saved token, the token was changed/revoked.
+            // We wipe the bad token from memory and force the screen to lock immediately.
+            if (data.success === false && data.message === "Unauthorized API Request.") {
+                localStorage.removeItem('impact_staff_token');
+                checkStaffAuth(); // Summon the lock screen
+                throw new Error("Invalid Staff Passcode"); 
+            }
+            
+            return data;
         }
 
         document.addEventListener("DOMContentLoaded", () => {
+            // 🟢 FIRE THE LOCK SCREEN CHECK IMMEDIATELY
+            checkStaffAuth();
+
             document.getElementById('restaurant-name-display').innerText = RESTAURANT_NAME;
+            
+            document.getElementById('staff-auth-pin').addEventListener('keypress', function (e) { if (e.key === 'Enter') saveStaffAuth(); });
             document.getElementById('discount-code').addEventListener('keypress', function (e) { if (e.key === 'Enter') verifyCode(); });
             
             ['override-pin', 'override-bill', 'override-email'].forEach(id => {
