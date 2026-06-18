@@ -210,7 +210,7 @@
 
     <script>
         // 🔴 IMPORTANT: Replace this with your newly deployed Web App URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzWgYPAoK5uQiHduVoiT9z3xSL4dguH9mA2Tyx-PmJPajMSEs_9rVaemzKcDYf6FCLH/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1ATeWIcqDlKEh8kRYqgtQc6ebBJFpjnNM0lT1N6g9GH1JmHHTu9NIKAn7-b7XE1PY/exec"; 
         const RESTAURANT_NAME = "Temp New"; 
 
         let currentlyVerifiedCode = "";
@@ -218,6 +218,19 @@
 
         // 🛡️ THE SECURE POST HELPER
         async function securePost(paramsObj) {
+            // 🟢 APPSEC FIX: Retrieve from encrypted/local storage, NEVER hardcode in JS text.
+            let staffToken = localStorage.getItem('impact_staff_token');
+            if (!staffToken) {
+                staffToken = prompt("🔒 Terminal Locked. Enter Staff API Key to activate:");
+                if (staffToken) {
+                    localStorage.setItem('impact_staff_token', staffToken);
+                } else {
+                    showError("API Key required for access.");
+                    return { success: false, message: "No API key provided." };
+                }
+            }
+            
+            paramsObj.staff_auth = staffToken; 
             const formData = new URLSearchParams(paramsObj);
             const response = await fetch(SCRIPT_URL, { method: 'POST', body: formData });
             return await response.json();
