@@ -13,12 +13,22 @@
         @media screen and (max-width: 768px) { input { font-size: 16px !important; } }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6">
+<body class="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 transition-all duration-500" id="app-body">
 
-    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100 relative z-10">
+    <div class="w-full max-w-lg bg-white rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] overflow-hidden border border-gray-100 relative z-10 flex flex-col min-h-[500px]">
         
-        <div class="bg-gray-900 text-white p-6 sm:p-8 text-center">
-            <h1 class="text-xl sm:text-2xl font-extrabold tracking-widest mb-1">FOODSTORYTVC</h1>
+        <div class="bg-gray-900 text-white p-6 sm:p-8 text-center relative">
+            <div class="absolute top-4 right-4 flex items-center gap-2">
+                <button onclick="resetApp()" class="p-2 rounded-lg bg-white/5 hover:bg-white/20 text-gray-300 hover:text-white transition-all active:scale-95" title="Reset App (New Scan)">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"></path></svg>
+                </button>
+                <button onclick="toggleFullscreen()" id="fs-btn" class="p-2 rounded-lg bg-white/5 hover:bg-white/20 text-gray-300 hover:text-white transition-all active:scale-95 hidden sm:block" title="Toggle Fullscreen">
+                    <svg class="w-5 h-5" id="fs-icon-enter" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"></path></svg>
+                    <svg class="w-5 h-5 hidden" id="fs-icon-exit" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25"></path></svg>
+                </button>
+            </div>
+
+            <h1 class="text-xl sm:text-2xl font-extrabold tracking-widest mb-1 mt-2">FOODSTORYTVC</h1>
             <p class="text-[10px] sm:text-xs text-green-500 font-bold tracking-[0.2em] uppercase">IMPACT Partner Portal</p>
             <div class="mt-4 inline-block px-4 py-1 rounded-full bg-gray-800 border border-gray-700">
                 <p id="restaurant-name-display" class="text-gray-300 text-sm font-medium"></p>
@@ -173,14 +183,17 @@
         </div>
     </div>
 
-    <div id="success-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+    <div id="success-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-md transition-opacity duration-300 opacity-0">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center">
-            <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-6">
+            <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-6 shadow-inner">
                 <svg class="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
             </div>
             <h3 class="text-2xl font-extrabold text-gray-900 mb-2 tracking-tight">Success!</h3>
             <p class="text-sm text-gray-500 font-medium mb-8">The customer's offer has been securely redeemed and recorded.</p>
-            <button onclick="closeModal()" class="w-full bg-gray-900 text-white font-bold py-4 px-4 rounded-xl hover:bg-black active:scale-[0.98] transition-all tracking-wider uppercase text-sm">Done</button>
+            <button onclick="resetAppFromSuccess()" class="w-full bg-gray-900 text-white font-bold py-4 px-4 rounded-xl hover:bg-black active:scale-[0.98] transition-all tracking-wider uppercase text-sm shadow-lg flex items-center justify-center gap-2">
+                Scan Next Customer
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg>
+            </button>
         </div>
     </div>
 
@@ -731,10 +744,64 @@
             const errorMsg = document.getElementById('error-message'); errorMsg.innerText = message; errorMsg.classList.remove('hidden');
         }
 
-        function toggleLoading(btnId, textId, loaderId, isLoading) {
+       function toggleLoading(btnId, textId, loaderId, isLoading) {
             const btnText = document.getElementById(textId); const loader = document.getElementById(loaderId); const btn = document.getElementById(btnId);
             if (isLoading) { btnText.classList.add('hidden'); loader.classList.remove('hidden'); btn.disabled = true; } 
             else { btnText.classList.remove('hidden'); loader.classList.add('hidden'); btn.disabled = false; }
+        }
+
+        // 🟢 POS UX FIX: Seamless "Next Customer" Reset (No browser refresh required)
+        function resetApp() {
+            // Fade out the results to make it feel smooth
+            const resultCard = document.getElementById('result-card');
+            resultCard.classList.remove('slide-in-from-bottom-2');
+            resultCard.classList.add('opacity-0', 'scale-95');
+            
+            setTimeout(() => {
+                // Clear UI states
+                document.getElementById('discount-code').value = '';
+                document.getElementById('error-message').classList.add('hidden');
+                document.getElementById('result-card').classList.add('hidden');
+                document.getElementById('undo-container').classList.add('hidden');
+                clearInterval(undoInterval);
+                
+                // Reset animation classes for next time
+                resultCard.classList.remove('opacity-0', 'scale-95');
+                resultCard.classList.add('slide-in-from-bottom-2');
+                
+                // Auto-focus the scanner input instantly for the cashier
+                document.getElementById('discount-code').focus();
+            }, 200);
+        }
+
+        function resetAppFromSuccess() {
+            closeModal();
+            setTimeout(() => {
+                resetApp();
+            }, 300); // Wait for success modal to finish animating out before wiping data
+        }
+
+        // 🟢 POS UX FIX: Native Fullscreen API
+        function toggleFullscreen() {
+            const elem = document.documentElement;
+            const iconEnter = document.getElementById('fs-icon-enter');
+            const iconExit = document.getElementById('fs-icon-exit');
+
+            if (!document.fullscreenElement) {
+                if (elem.requestFullscreen) { elem.requestFullscreen(); }
+                else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen(); } // Safari
+                else if (elem.msRequestFullscreen) { elem.msRequestFullscreen(); } // IE11
+                
+                iconEnter.classList.add('hidden');
+                iconExit.classList.remove('hidden');
+            } else {
+                if (document.exitFullscreen) { document.exitFullscreen(); }
+                else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+                else if (document.msExitFullscreen) { document.msExitFullscreen(); }
+                
+                iconEnter.classList.remove('hidden');
+                iconExit.classList.add('hidden');
+            }
         }
     </script>
 </body>
