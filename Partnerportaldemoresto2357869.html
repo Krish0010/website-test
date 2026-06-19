@@ -290,24 +290,36 @@
         async function securePost(paramsObj) {
             let staffToken = localStorage.getItem('impact_staff_token');
             if (!staffToken) {
-                checkStaffAuth(); // Summon the lock screen
-                throw new Error("Terminal Locked"); // Abort execution silently
+                checkStaffAuth(); 
+                throw new Error("Terminal Locked"); 
             }
             
             paramsObj.staff_auth = staffToken; 
             const formData = new URLSearchParams(paramsObj);
-            const response = await fetch(SCRIPT_URL, { method: 'POST', body: formData });
-            const data = await response.json();
             
-            // 🟢 SECURITY BOUNCER: If the backend rejects our saved token, the token was changed/revoked.
-            // We wipe the bad token from memory and force the screen to lock immediately.
-            if (data.success === false && data.message === "Unauthorized API Request.") {
-                localStorage.removeItem('impact_staff_token');
-                checkStaffAuth(); // Summon the lock screen
-                throw new Error("Invalid Staff Passcode"); 
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: formData });
+                const data = await response.json();
+                
+                // 🟢 SECURITY BOUNCER: Handle backend rejection gracefully
+                if (data.success === false && data.message === "Unauthorized API Request.") {
+                    localStorage.removeItem('impact_staff_token');
+                    checkStaffAuth();
+                    const authErrorDiv = document.getElementById('auth-error');
+                    authErrorDiv.innerText = "Invalid or Revoked Passcode.";
+                    authErrorDiv.classList.remove('hidden');
+                    throw new Error("Invalid Staff Passcode"); 
+                }
+                
+                return data;
+            } catch (err) {
+                // If it's our own thrown error, pass it up. Otherwise it's a true network error.
+                if (err.message === "Invalid Staff Passcode" || err.message === "Terminal Locked") {
+                    throw err;
+                }
+                console.error("Fetch failed:", err);
+                return { success: false, message: "Server connection failed." };
             }
-            
-            return data;
         }
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -492,7 +504,10 @@
                 if (data.success) showResultCard(data.data, fullCode);
                 else showError(data.message);
             } catch (err) {
-                showError("Connection Error. Try again.");
+                // If the error was just the lock screen triggering, do NOT show a red error message.
+                if (err.message !== "Invalid Staff Passcode" && err.message !== "Terminal Locked") {
+                    showError("Connection Error. Try again.");
+                }
             } finally {
                 toggleLoading('verify-btn', 'verify-text', 'verify-loader', false);
             }
