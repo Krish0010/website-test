@@ -184,8 +184,11 @@
     </div>
 
     <div id="success-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-md transition-opacity duration-300 opacity-0">
-        <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center">
-            <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-6 shadow-inner">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center relative">
+            
+            <button onclick="closeModal()" class="absolute top-4 right-5 text-gray-400 hover:text-gray-800 text-3xl font-bold transition-colors leading-none">&times;</button>
+            
+            <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-6 shadow-inner mt-2">
                 <svg class="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
             </div>
             <h3 class="text-2xl font-extrabold text-gray-900 mb-2 tracking-tight">Success!</h3>
@@ -243,7 +246,7 @@
 
     <script>
         // 🔴 IMPORTANT: Replace this with your newly deployed Web App URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxFM3rh5_DoeYJZ0mIPO1oPeKIEyeQgT5wrZE9gl8d-3ZAVIF9fteOywWfLGaEUiNwY/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzCyOifl9NzCuBknRENXGFPyLV7jEA6hVIg0lUYpQ77ktZefcZ5bXfOHklLCsBwCuz0/exec"; 
         const RESTAURANT_NAME = "Temp New"; 
 
         let currentlyVerifiedCode = "";
