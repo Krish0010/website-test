@@ -749,8 +749,14 @@
 
        function toggleLoading(btnId, textId, loaderId, isLoading) {
             const btnText = document.getElementById(textId); const loader = document.getElementById(loaderId); const btn = document.getElementById(btnId);
-            if (isLoading) { btnText.classList.add('hidden'); loader.classList.remove('hidden'); btn.disabled = true; } 
-            else { btnText.classList.remove('hidden'); loader.classList.add('hidden'); btn.disabled = false; }
+            if (isLoading) { 
+                btnText.classList.add('hidden'); loader.classList.remove('hidden'); btn.disabled = true; 
+                // 🟢 UX FIX: Prevent impatient cashier refreshes mid-transaction
+                window.onbeforeunload = () => "Transaction in progress. Please do not refresh.";
+            } else { 
+                btnText.classList.remove('hidden'); loader.classList.add('hidden'); btn.disabled = false; 
+                window.onbeforeunload = null;
+            }
         }
 
         // 🟢 POS UX FIX: Seamless "Next Customer" Reset (No browser refresh required)
