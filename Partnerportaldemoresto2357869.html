@@ -112,10 +112,52 @@
             </div>
         </div>
 
-        <div class="border-t border-gray-100 bg-gray-50 py-3 text-center mt-auto">
-            <button onclick="openOverrideModal()" class="text-[9px] text-gray-400 hover:text-gray-900 font-bold tracking-widest uppercase transition-colors">
+        <div class="border-t border-gray-100 bg-gray-50 py-3 flex justify-center gap-8 mt-auto">
+            <button onclick="openHelpModal()" class="text-[9px] text-gray-500 hover:text-gray-900 font-bold tracking-widest uppercase transition-colors flex items-center gap-1">
+                ❓ Staff Help
+            </button>
+            <button onclick="openOverrideModal()" class="text-[9px] text-gray-400 hover:text-gray-900 font-bold tracking-widest uppercase transition-colors flex items-center gap-1">
                 🔒 Manager Access
             </button>
+        </div>
+    </div>
+
+    <!-- 🟢 MODAL: STAFF SOP HELP -->
+    <div id="help-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl transform scale-90 transition-transform duration-300 relative flex flex-col max-h-[85vh]">
+            <button onclick="closeHelpModal()" class="absolute top-4 right-5 text-gray-400 hover:text-gray-800 text-3xl font-bold transition-colors leading-none z-10">&times;</button>
+            
+            <div class="text-center mb-4 mt-2">
+                <h3 class="text-xl font-extrabold text-gray-900 tracking-tight">IMPACT Cheat Sheet</h3>
+                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Staff Protocol</p>
+            </div>
+
+            <div class="overflow-y-auto pr-2 space-y-4 text-sm text-gray-700">
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <p class="font-bold text-gray-900 text-[11px] uppercase mb-1">1. The Visual Check</p>
+                    <p class="text-xs">If the offer says "Valid Today Only," the customer MUST hand you today's physical paper receipt. Ensure the Bill Number on the screen matches the paper.</p>
+                </div>
+                
+                <div class="bg-blue-50 p-3 rounded-xl border border-blue-100">
+                    <p class="font-bold text-blue-900 text-[11px] uppercase mb-1">2. Fixing Typos (Blue Button)</p>
+                    <p class="text-xs text-blue-800">If the bill number on the screen is slightly different from the receipt, click <strong>✏️ Edit</strong> to correct it before hitting Redeem.</p>
+                </div>
+
+                <div class="bg-green-50 p-3 rounded-xl border border-green-100">
+                    <p class="font-bold text-green-900 text-[11px] uppercase mb-1">3. Redeeming (Green Button)</p>
+                    <p class="text-xs text-green-800">Once you click <strong>Confirm Redemption</strong>, use a pen to draw an 'X' on their physical receipt so they cannot use it again.</p>
+                </div>
+
+                <div class="bg-red-50 p-3 rounded-xl border border-red-100">
+                    <p class="font-bold text-red-900 text-[11px] uppercase mb-1">4. Flag as Spam (Red Button)</p>
+                    <p class="text-xs text-red-800">Only use this if a customer is showing a fake/forged receipt or causing a severe dispute. This will permanently ban them.</p>
+                </div>
+
+                <div class="bg-orange-50 p-3 rounded-xl border border-orange-100">
+                    <p class="font-bold text-orange-900 text-[11px] uppercase mb-1">5. Voided or Used Errors</p>
+                    <p class="text-xs text-orange-800">If the screen says Used or Voided, tell the customer: <em>"Our system shows this receipt has already claimed a reward today."</em> If they argue, call a Manager.</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -354,6 +396,27 @@
             document.getElementById('typo-new-bill').addEventListener('keypress', function (e) { if (e.key === 'Enter') executeTypoFix(); });
             document.getElementById('spam-reason').addEventListener('keypress', function (e) { if (e.key === 'Enter') executeSpamAction(); });
         });
+
+
+function openHelpModal() {
+            const modal = document.getElementById('help-modal');
+            const modalBox = modal.querySelector('div');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalBox.classList.remove('scale-90');
+                modalBox.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeHelpModal() {
+            const modal = document.getElementById('help-modal');
+            const modalBox = modal.querySelector('div');
+            modal.classList.add('opacity-0');
+            modalBox.classList.remove('scale-100');
+            modalBox.classList.add('scale-90');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
 
         function openTypoModal() {
             const modal = document.getElementById('typo-modal');
