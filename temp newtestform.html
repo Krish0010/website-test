@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Feedback | Foodstorytvc</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-black': '#0a0a0a', 
+                        'brand-card': '#141414',
+                        'brand-gold': '#e8c064',
+                        'brand-gold-hover': '#f3d382',
+                        'brand-red': '#ef4444'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            background-color: #0a0a0a; 
+            color: #e5e7eb; 
+            overflow: hidden; /* Lock scrolling for app-like feel */
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .page-textured-overlay { 
+            background-image: linear-gradient(rgba(10, 10, 10, 0.95), rgba(10, 10, 10, 0.95)), url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"); 
+        }
+
+        /* Wizard Transitions */
+        .step-container {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .step-container.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(0);
+        }
+
+        .step-container.exit-left {
+            transform: translateX(-20px);
+        }
+
+        /* Custom Inputs */
+        input[type="text"], input[type="email"], input[type="tel"], textarea, select {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            color: #fff;
+            width: 100%;
+            padding: 16px 20px;
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #e8c064;
+            box-shadow: 0 0 0 1px #e8c064, inset 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        input.error-shake {
+            border-color: #ef4444;
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* Star Rating UI */
+        .star-container {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 20px 0;
+            direction: rtl; /* For clean hover fill logic */
+        }
+
+        .star-btn {
+            font-size: 42px;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            line-height: 1;
+        }
+
+        .star-btn:hover,
+        .star-btn:hover ~ .star-btn,
+        .star-container[data-rating="5"] .star-btn:nth-child(n+1),
+        .star-container[data-rating="4"] .star-btn:nth-child(n+2),
+        .star-container[data-rating="3"] .star-btn:nth-child(n+3),
+        .star-container[data-rating="2"] .star-btn:nth-child(n+4),
+        .star-container[data-rating="1"] .star-btn:nth-child(5) {
+            color: #e8c064;
+            text-shadow: 0 0 15px rgba(232, 192, 100, 0.4);
+        }
+
+        /* Micro-animations */
+        .star-pop {
+            animation: starPop 0.3s ease forwards;
+        }
+
+        @keyframes starPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    </style>
+</head>
+<body class="page-textured-overlay flex flex-col h-[100dvh]">
+
+    <input type="text" id="website_url" name="website_url" tabindex="-1" autocomplete="off" style="display:none; position:absolute; top:-9999px; left:-9999px;">
+
+    <div class="w-full h-1 bg-gray-900 fixed top-0 z-50">
+        <div id="progress-bar" class="h-full bg-brand-gold transition-all duration-500 w-[10%]"></div>
+    </div>
+
+    <div class="flex-1 w-full max-w-lg mx-auto relative flex flex-col mt-4">
+        
+        <div class="w-full pt-8 pb-4 px-6 flex justify-between items-center z-40">
+            <img src="https://res.cloudinary.com/dr6xhnhor/image/upload/v1781864406/big_size_Logo_without_background_new_ubp9mn.png" alt="Logo" class="w-12 h-12 rounded-full border border-brand-gold/30">
+            <div id="step-counter" class="text-xs font-bold text-gray-500 uppercase tracking-widest">Start</div>
+        </div>
+
+        <div class="flex-1 relative w-full overflow-hidden">
+            
+            <div id="step-1" class="step-container active px-6 overflow-y-auto custom-scroll pb-24 pt-4">
+                <h1 class="text-3xl font-black text-white mb-2 leading-tight tracking-tight">Your feedback = <br><span class="text-brand-gold">A Small Surprise 🎁</span></h1>
+                <p class="text-sm text-gray-400 mb-8 font-medium">Takes 30 seconds. Gets you a secret reward for your next visit.</p>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Restaurant Location <span class="text-brand-red">*</span></label>
+                        <select id="input-restaurant" class="appearance-none" onchange="validateStep1()">
+                            <option value="" disabled selected>Select the restaurant you are at...</option>
+                            <option value="BurgerHub Downtown">BurgerHub Downtown</option>
+                            <option value="BurgerHub Uptown">BurgerHub Uptown</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Your Best Email <span class="text-brand-red">*</span></label>
+                        <input type="email" id="input-email" placeholder="Where should we send the reward?" oninput="validateStep1()" autocomplete="email">
+                        <p id="email-error" class="text-brand-red text-[10px] font-bold mt-2 ml-1 hidden uppercase tracking-wider">Please enter a valid email address.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Bill Number <span class="text-brand-red">*</span></label>
+                        <input type="text" id="input-bill" placeholder="Enter the last 4 digits of your receipt" inputmode="numeric" oninput="validateStep1()">
+                        <p class="text-[10px] text-gray-500 italic mt-2 ml-1 leading-snug">Required to unlock the reward code. Shared or fake receipt numbers instantly void all discounts.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="step-2" class="step-container px-6 overflow-y-auto custom-scroll pb-24 pt-4">
+                <div class="flex items-center gap-2 text-brand-gold mb-2 text-sm font-bold uppercase tracking-widest">
+                    <span>⭐</span> Dish Rating
+                </div>
+                <h2 class="text-2xl font-black text-white mb-6 leading-tight">What was the <span class="text-brand-gold">Main Dish</span> you tried today?</h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <input type="text" id="input-dish1-name" placeholder="e.g., Spicy Chicken Burger" oninput="validateStep2()">
+                    </div>
+
+                    <div id="rating-container-1" class="opacity-30 pointer-events-none transition-opacity duration-300">
+                        <p class="text-center text-xs font-bold text-gray-400 uppercase tracking-widest mt-6">How was it?</p>
+                        <div class="star-container" data-rating="0" id="stars-1">
+                            <span class="star-btn" onclick="setRating(1, 5)">★</span>
+                            <span class="star-btn" onclick="setRating(1, 4)">★</span>
+                            <span class="star-btn" onclick="setRating(1, 3)">★</span>
+                            <span class="star-btn" onclick="setRating(1, 2)">★</span>
+                            <span class="star-btn" onclick="setRating(1, 1)">★</span>
+                        </div>
+                    </div>
+
+                    <div id="comment-container-1" class="hidden animate-in slide-in-from-bottom-4 duration-300">
+                        <textarea id="input-dish1-comment" rows="2" placeholder="Any specific thoughts? (Optional)"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div id="step-3" class="step-container px-6 overflow-y-auto custom-scroll pb-24 pt-4">
+                <div class="flex items-center gap-2 text-brand-gold mb-2 text-sm font-bold uppercase tracking-widest">
+                    <span>🍟</span> Sides / Drinks
+                </div>
+                <h2 class="text-2xl font-black text-white mb-6 leading-tight">Did you try anything else? <span class="text-gray-500 text-lg font-normal">(Optional)</span></h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <input type="text" id="input-dish2-name" placeholder="e.g., Loaded Fries, Mojito" oninput="activateRating2()">
+                    </div>
+
+                    <div id="rating-container-2" class="opacity-30 pointer-events-none transition-opacity duration-300">
+                        <p class="text-center text-xs font-bold text-gray-400 uppercase tracking-widest mt-6">How was it?</p>
+                        <div class="star-container" data-rating="0" id="stars-2">
+                            <span class="star-btn" onclick="setRating(2, 5)">★</span>
+                            <span class="star-btn" onclick="setRating(2, 4)">★</span>
+                            <span class="star-btn" onclick="setRating(2, 3)">★</span>
+                            <span class="star-btn" onclick="setRating(2, 2)">★</span>
+                            <span class="star-btn" onclick="setRating(2, 1)">★</span>
+                        </div>
+                    </div>
+
+                    <div id="comment-container-2" class="hidden animate-in slide-in-from-bottom-4 duration-300">
+                        <textarea id="input-dish2-comment" rows="2" placeholder="Any specific thoughts? (Optional)"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div id="step-4" class="step-container px-6 flex flex-col items-center justify-center h-full text-center pb-20">
+                
+                <div id="submit-loader" class="flex flex-col items-center">
+                    <div class="w-16 h-16 border-4 border-[#1a1a1a] border-t-brand-gold rounded-full animate-spin mb-6"></div>
+                    <h2 class="text-xl font-black text-white mb-2">Generating Reward...</h2>
+                    <p class="text-sm text-gray-400">Verifying your receipt securely.</p>
+                </div>
+
+                <div id="submit-success" class="hidden flex flex-col items-center animate-in zoom-in duration-500">
+                    <div class="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mb-6 border border-green-500/50">
+                        <span class="text-4xl">🎉</span>
+                    </div>
+                    <h2 class="text-3xl font-black text-white mb-3">You're In!</h2>
+                    <p class="text-base text-gray-300 mb-6 max-w-[250px] leading-relaxed">Your secure reward code has been sent to your email.</p>
+                    <div class="bg-[#1a1a1a] border border-gray-800 p-4 rounded-xl w-full">
+                        <p class="text-xs text-brand-gold font-bold uppercase tracking-widest mb-1">Next Step</p>
+                        <p class="text-sm text-gray-400">Show the email to the staff at the counter to claim it today.</p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div id="nav-footer" class="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black to-transparent z-50">
+            <div class="max-w-lg mx-auto flex gap-3">
+                <button id="btn-back" onclick="prevStep()" class="hidden px-6 py-4 rounded-xl font-bold text-gray-400 bg-[#1a1a1a] border border-gray-800 hover:text-white transition-colors">
+                    Back
+                </button>
+                <button id="btn-next" onclick="nextStep()" disabled class="flex-1 py-4 rounded-xl font-black text-black bg-brand-gold/50 cursor-not-allowed uppercase tracking-widest transition-all duration-300">
+                    Continue
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ==========================================
+        // ⚙️ CONFIGURATION
+        // ==========================================
+        // 🔴 CRITICAL: Paste the URL of your Service C (Customer Dashboard) Web App here!
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzmJGCc6PGM1Ej6M7ls3CisoFfJjOYHVHUCHe2ESpVRAdy_zW6jIADxzpLt6JcO2dDm-Q/exec"; 
+
+        // ==========================================
+        // APP LOGIC
+        // ==========================================
+        let currentStep = 1;
+        const totalSteps = 3; // Step 4 is the success screen
+        
+        let formData = {
+            restaurant: "",
+            email: "",
+            billNumber: "",
+            customDish1Name: "",
+            customDish1Rating: 0,
+            customDish1Comment: "",
+            customDish2Name: "",
+            customDish2Rating: 0,
+            customDish2Comment: ""
+        };
+
+        // Initialize
+        document.addEventListener("DOMContentLoaded", () => {
+            updateUI();
+            
+            // Generate Device Fingerprint if it doesn't exist
+            if (!localStorage.getItem("impact_device_id")) {
+                const newId = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+                localStorage.setItem("impact_device_id", newId);
+            }
+        });
+
+        // Regex Email Validator
+        function isValidEmail(email) {
+            const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            return re.test(String(email).toLowerCase());
+        }
+
+        // --- STEP 1 VALIDATION ---
+        function validateStep1() {
+            const resto = document.getElementById('input-restaurant').value;
+            const email = document.getElementById('input-email').value.trim();
+            const bill = document.getElementById('input-bill').value.trim();
+            const emailError = document.getElementById('email-error');
+            const emailInput = document.getElementById('input-email');
+            
+            let isEmailGood = false;
+            
+            if (email.length > 0) {
+                if (isValidEmail(email)) {
+                    isEmailGood = true;
+                    emailError.classList.add('hidden');
+                    emailInput.classList.remove('error-shake', 'border-brand-red');
+                } else {
+                    emailError.classList.remove('hidden');
+                    emailInput.classList.add('border-brand-red');
+                }
+            } else {
+                emailError.classList.add('hidden');
+                emailInput.classList.remove('error-shake', 'border-brand-red');
+            }
+
+            const isValid = resto !== "" && isEmailGood && bill.length >= 1;
+            toggleNextButton(isValid);
+
+            if (isValid) {
+                formData.restaurant = resto;
+                formData.email = email;
+                formData.billNumber = bill;
+            }
+        }
+
+        // --- STEP 2 VALIDATION ---
+        function validateStep2() {
+            const dishName = document.getElementById('input-dish1-name').value.trim();
+            const ratingContainer = document.getElementById('rating-container-1');
+            
+            if (dishName.length > 2) {
+                ratingContainer.classList.remove('opacity-30', 'pointer-events-none');
+                formData.customDish1Name = dishName;
+            } else {
+                ratingContainer.classList.add('opacity-30', 'pointer-events-none');
+            }
+
+            // Must have a dish name AND a rating to proceed
+            const isValid = dishName.length > 2 && formData.customDish1Rating > 0;
+            toggleNextButton(isValid);
+        }
+
+        // --- STEP 3 VALIDATION (Optional) ---
+        function activateRating2() {
+            const dishName = document.getElementById('input-dish2-name').value.trim();
+            const ratingContainer = document.getElementById('rating-container-2');
+            
+            if (dishName.length > 2) {
+                ratingContainer.classList.remove('opacity-30', 'pointer-events-none');
+                formData.customDish2Name = dishName;
+                toggleNextButton(formData.customDish2Rating > 0); // Force rating if they entered a name
+            } else {
+                ratingContainer.classList.add('opacity-30', 'pointer-events-none');
+                formData.customDish2Name = "";
+                formData.customDish2Rating = 0;
+                // If dish is empty, they can skip this step, so enable next
+                toggleNextButton(true);
+            }
+        }
+
+        // --- RATING ENGINE ---
+        function setRating(stepNum, rating) {
+            const container = document.getElementById(`stars-${stepNum}`);
+            const commentBox = document.getElementById(`comment-container-${stepNum}`);
+            
+            // Set UI State
+            container.setAttribute('data-rating', rating);
+            
+            // Animate the clicked star
+            const stars = container.querySelectorAll('.star-btn');
+            // Remember: CSS is RTL, so index mapping is backwards
+            const clickedStarIndex = 5 - rating; 
+            stars[clickedStarIndex].classList.remove('star-pop');
+            void stars[clickedStarIndex].offsetWidth; // trigger reflow
+            stars[clickedStarIndex].classList.add('star-pop');
+
+            // Show comment box
+            commentBox.classList.remove('hidden');
+
+            // Save Data
+            if (stepNum === 1) {
+                formData.customDish1Rating = rating;
+                validateStep2();
+                // Auto-advance if 5 stars!
+                if (rating === 5) setTimeout(() => { if(currentStep === 2) nextStep(); }, 600);
+            } else {
+                formData.customDish2Rating = rating;
+                activateRating2();
+                // Auto-advance if 5 stars!
+                if (rating === 5) setTimeout(() => { if(currentStep === 3) nextStep(); }, 600);
+            }
+        }
+
+        // --- NAVIGATION ENGINE ---
+        function toggleNextButton(isActive) {
+            const btn = document.getElementById('btn-next');
+            if (isActive) {
+                btn.disabled = false;
+                btn.classList.remove('bg-brand-gold/50', 'cursor-not-allowed', 'text-black');
+                btn.classList.add('bg-brand-gold', 'text-black', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
+            } else {
+                btn.disabled = true;
+                btn.classList.add('bg-brand-gold/50', 'cursor-not-allowed', 'text-black');
+                btn.classList.remove('bg-brand-gold', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
+            }
+        }
+
+        function updateUI() {
+            // Update Progress Bar
+            const progress = ((currentStep - 1) / totalSteps) * 100;
+            document.getElementById('progress-bar').style.width = `${progress === 0 ? 10 : progress}%`;
+
+            // Hide all steps, show current
+            for (let i = 1; i <= 4; i++) {
+                const el = document.getElementById(`step-${i}`);
+                if (i === currentStep) {
+                    el.classList.remove('hidden'); // Ensure it's in DOM
+                    // Small delay to allow CSS transition to catch
+                    setTimeout(() => {
+                        el.classList.remove('exit-left');
+                        el.classList.add('active');
+                    }, 10);
+                } else if (i < currentStep) {
+                    el.classList.remove('active');
+                    el.classList.add('exit-left');
+                    setTimeout(() => el.classList.add('hidden'), 400); // Hide after transition
+                } else {
+                    el.classList.remove('active', 'exit-left');
+                    setTimeout(() => el.classList.add('hidden'), 400);
+                }
+            }
+
+            // Footer Logic
+            const backBtn = document.getElementById('btn-back');
+            const nextBtn = document.getElementById('btn-next');
+            const counter = document.getElementById('step-counter');
+
+            if (currentStep === 1) {
+                backBtn.classList.add('hidden');
+                counter.innerText = "Step 1 of 3";
+                nextBtn.innerText = "Continue";
+                validateStep1();
+            } else if (currentStep === 2) {
+                backBtn.classList.remove('hidden');
+                counter.innerText = "Step 2 of 3";
+                nextBtn.innerText = "Continue";
+                validateStep2();
+            } else if (currentStep === 3) {
+                backBtn.classList.remove('hidden');
+                counter.innerText = "Final Step";
+                nextBtn.innerText = "Submit & Claim Reward";
+                activateRating2(); // Ensure valid state
+            } else if (currentStep === 4) {
+                document.getElementById('nav-footer').classList.add('hidden');
+                counter.parentElement.classList.add('hidden'); // Hide header
+                document.getElementById('progress-bar').style.width = '100%';
+            }
+        }
+
+        function nextStep() {
+            if (currentStep === 1 && document.getElementById('input-email').value.trim() !== "") {
+                if(!isValidEmail(document.getElementById('input-email').value.trim())) {
+                    document.getElementById('input-email').classList.add('error-shake');
+                    setTimeout(() => document.getElementById('input-email').classList.remove('error-shake'), 400);
+                    return;
+                }
+            }
+
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateUI();
+            } else if (currentStep === totalSteps) {
+                submitForm();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateUI();
+            }
+        }
+
+        // --- SUBMISSION ENGINE (The API Bridge) ---
+        async function submitForm() {
+            // Capture final comments
+            formData.customDish1Comment = document.getElementById('input-dish1-comment').value.trim();
+            formData.customDish2Comment = document.getElementById('input-dish2-comment').value.trim();
+            
+            // Transition to loading screen
+            currentStep = 4;
+            updateUI();
+
+            // Construct the exact JSON payload the backend expects
+            const payload = {
+                action: "submit_feedback",
+                deviceId: localStorage.getItem("impact_device_id"),
+                honeypot: document.getElementById('website_url').value, // Bot trap
+                email: formData.email,
+                billNumber: formData.billNumber,
+                restaurant: formData.restaurant,
+                mobile: "", // Optional, left blank for this v1
+                ratings: []
+            };
+
+            // Map Dish 1
+            if (formData.customDish1Name !== "") {
+                payload.ratings.push({
+                    name: formData.customDish1Name,
+                    rating: formData.customDish1Rating,
+                    comment: formData.customDish1Comment,
+                    isCustom1: true
+                });
+                // Flat keys for absolute schema mapping
+                payload.customDish1Name = formData.customDish1Name;
+            }
+
+            // Map Dish 2
+            if (formData.customDish2Name !== "" && formData.customDish2Rating > 0) {
+                payload.ratings.push({
+                    name: formData.customDish2Name,
+                    rating: formData.customDish2Rating,
+                    comment: formData.customDish2Comment,
+                    isCustom2: true
+                });
+                payload.customDish2Name = formData.customDish2Name;
+            }
+
+            try {
+                // Send the payload securely (text/plain to bypass CORS)
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                
+                // Show Success Screen regardless of spam/shadowban (Zero-Trust UI)
+                setTimeout(() => {
+                    document.getElementById('submit-loader').classList.add('hidden');
+                    document.getElementById('submit-success').classList.remove('hidden');
+                    document.getElementById('submit-success').classList.add('flex');
+                }, 1000); // Artificial delay to make it feel like "heavy processing"
+
+            } catch (error) {
+                console.error("Submission error", error);
+                alert("Network error. Please check your connection and try again.");
+                currentStep = 3; // Kick back to final step
+                updateUI();
+                document.getElementById('nav-footer').classList.remove('hidden');
+            }
+        }
+
+    </script>
+</body>
+</html>
