@@ -5,577 +5,587 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Feedback | Foodstorytvc</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        'brand-black': '#0a0a0a', 
-                        'brand-card': '#141414',
+                        'brand-black': '#050505', 
+                        'brand-card': 'rgba(20, 20, 20, 0.7)',
                         'brand-gold': '#e8c064',
                         'brand-gold-hover': '#f3d382',
                         'brand-red': '#ef4444'
                     },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    }
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
                 }
             }
         }
     </script>
     <style>
         body { 
-            background-color: #0a0a0a; 
+            background-color: #050505; 
             color: #e5e7eb; 
-            overflow: hidden; /* Lock scrolling for app-like feel */
+            overflow-x: hidden;
             -webkit-tap-highlight-color: transparent;
         }
         
-        .page-textured-overlay { 
-            background-image: linear-gradient(rgba(10, 10, 10, 0.95), rgba(10, 10, 10, 0.95)), url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"); 
-        }
-
-        /* Wizard Transitions */
-        .step-container {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            opacity: 0;
+        /* Premium Background Orbs */
+        .ambient-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.3;
             pointer-events: none;
-            transform: translateX(20px);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            flex-direction: column;
+        }
+        .orb-1 { top: -10%; left: -10%; width: 300px; height: 300px; background: rgba(232, 192, 100, 0.15); }
+        .orb-2 { bottom: -10%; right: -10%; width: 400px; height: 400px; background: rgba(232, 192, 100, 0.1); }
+
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: rgba(25, 25, 25, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.1);
         }
 
-        .step-container.active {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateX(0);
-        }
-
-        .step-container.exit-left {
-            transform: translateX(-20px);
-        }
-
-        /* Custom Inputs */
-        input[type="text"], input[type="email"], input[type="tel"], textarea, select {
-            background-color: #1a1a1a;
-            border: 1px solid #333;
+        /* Form Inputs */
+        input[type="text"], input[type="email"], textarea, select {
+            background-color: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             color: #fff;
             width: 100%;
             padding: 16px 20px;
-            border-radius: 12px;
-            font-size: 16px;
+            border-radius: 16px;
+            font-size: 15px;
             outline: none;
-            transition: all 0.3s ease;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         input:focus, textarea:focus, select:focus {
             border-color: #e8c064;
-            box-shadow: 0 0 0 1px #e8c064, inset 0 2px 4px rgba(0,0,0,0.5);
+            background-color: rgba(0, 0, 0, 0.7);
+            box-shadow: 0 0 0 4px rgba(232, 192, 100, 0.15);
         }
 
-        input.error-shake {
-            border-color: #ef4444;
-            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Animated SVG Stars - Fixed Sibling Logic */
+        .star-container { display: flex; justify-content: center; gap: 8px; direction: rtl; }
+        .star-svg {
+            width: 48px; height: 48px;
+            cursor: pointer;
+            fill: transparent;
+            stroke: #4b5563;
+            stroke-width: 1.5;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .star-svg:hover, .star-svg:hover ~ .star-svg,
+        .star-container[data-rating="5"] .star-svg:nth-child(n+1),
+        .star-container[data-rating="4"] .star-svg:nth-child(n+2),
+        .star-container[data-rating="3"] .star-svg:nth-child(n+3),
+        .star-container[data-rating="2"] .star-svg:nth-child(n+4),
+        .star-container[data-rating="1"] .star-svg:nth-child(5) {
+            fill: #e8c064;
+            stroke: #e8c064;
+            filter: drop-shadow(0 0 8px rgba(232, 192, 100, 0.6));
+            transform: scale(1.15);
         }
 
+        /* Choice Chips (Yes/No) */
+        .choice-btn {
+            flex: 1;
+            padding: 16px;
+            border-radius: 16px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 13px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.03);
+            color: #9ca3af;
+            transition: all 0.2s ease;
+        }
+        .choice-btn.yes:hover, .choice-btn.yes.active {
+            background: #16a34a; border-color: #16a34a; color: #fff;
+            box-shadow: 0 0 20px rgba(22, 163, 74, 0.3);
+        }
+        .choice-btn.no:hover, .choice-btn.no.active {
+            background: #ef4444; border-color: #ef4444; color: #fff;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .view-section { display: none; opacity: 0; transform: translateY(15px); transition: all 0.4s ease; }
+        .view-section.active { display: block; opacity: 1; transform: translateY(0); }
+        
+        .error-shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; border-color: #ef4444 !important; }
         @keyframes shake {
             10%, 90% { transform: translate3d(-1px, 0, 0); }
             20%, 80% { transform: translate3d(2px, 0, 0); }
             30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
             40%, 60% { transform: translate3d(4px, 0, 0); }
         }
-
-        /* Star Rating UI */
-        .star-container {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin: 20px 0;
-            direction: rtl; /* For clean hover fill logic */
-        }
-
-        .star-btn {
-            font-size: 42px;
-            color: #333;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            line-height: 1;
-        }
-
-        .star-btn:hover,
-        .star-btn:hover ~ .star-btn,
-        .star-container[data-rating="5"] .star-btn:nth-child(n+1),
-        .star-container[data-rating="4"] .star-btn:nth-child(n+2),
-        .star-container[data-rating="3"] .star-btn:nth-child(n+3),
-        .star-container[data-rating="2"] .star-btn:nth-child(n+4),
-        .star-container[data-rating="1"] .star-btn:nth-child(5) {
-            color: #e8c064;
-            text-shadow: 0 0 15px rgba(232, 192, 100, 0.4);
-        }
-
-        /* Micro-animations */
-        .star-pop {
-            animation: starPop 0.3s ease forwards;
-        }
-
-        @keyframes starPop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.3); }
-            100% { transform: scale(1); }
-        }
-
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
     </style>
 </head>
-<body class="page-textured-overlay flex flex-col h-[100dvh]">
+<body class="antialiased min-h-[100dvh] flex flex-col relative">
 
-    <input type="text" id="website_url" name="website_url" tabindex="-1" autocomplete="off" style="display:none; position:absolute; top:-9999px; left:-9999px;">
+    <!-- Security Honeypot -->
+    <input type="text" id="website_url" name="website_url" tabindex="-1" autocomplete="off" class="hidden absolute -left-[9999px]">
 
-    <div class="w-full h-1 bg-gray-900 fixed top-0 z-50">
-        <div id="progress-bar" class="h-full bg-brand-gold transition-all duration-500 w-[10%]"></div>
+    <!-- Ambient Background -->
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+
+    <!-- Top Progress & Brand Bar -->
+    <div class="w-full px-6 pt-8 pb-4 flex justify-between items-center z-40 relative max-w-xl mx-auto">
+        <!-- Logo Fix: Locked aspect ratio -->
+        <div class="w-14 h-14 rounded-full bg-black border border-brand-gold/30 p-1 flex items-center justify-center shadow-lg shrink-0">
+            <img src="https://res.cloudinary.com/dr6xhnhor/image/upload/v1781864406/big_size_Logo_without_background_new_ubp9mn.png" alt="Logo" class="w-full h-full object-contain rounded-full">
+        </div>
+        <div class="flex flex-col items-end">
+            <div id="step-indicator" class="text-[10px] font-black text-brand-gold uppercase tracking-[0.2em] mb-1">Setup</div>
+            <div class="w-24 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div id="progress-bar" class="h-full bg-brand-gold w-[10%] transition-all duration-500 ease-out"></div>
+            </div>
+        </div>
     </div>
 
-    <div class="flex-1 w-full max-w-lg mx-auto relative flex flex-col mt-4">
+    <!-- Main Container -->
+    <div class="flex-1 w-full max-w-xl mx-auto relative px-4 sm:px-6 pb-28 pt-2 flex flex-col z-30" id="app-container">
         
-        <div class="w-full pt-8 pb-4 px-6 flex justify-between items-center z-40">
-            <img src="https://res.cloudinary.com/dr6xhnhor/image/upload/v1781864406/big_size_Logo_without_background_new_ubp9mn.png" alt="Logo" class="w-12 h-12 rounded-full border border-brand-gold/30">
-            <div id="step-counter" class="text-xs font-bold text-gray-500 uppercase tracking-widest">Start</div>
-        </div>
+        <!-- ========================================== -->
+        <!-- VIEW 1: IDENTITY & SETUP                   -->
+        <!-- ========================================== -->
+        <div id="view-setup" class="view-section active w-full h-full">
+            <div class="glass-card rounded-3xl p-6 sm:p-8 mb-6">
+                <h1 class="text-3xl font-black text-white mb-2 leading-tight tracking-tight">Your feedback = <br><span class="text-brand-gold">A Surprise 🎁</span></h1>
+                <p class="text-sm text-gray-400 mb-8 font-medium">Help us improve, and we'll send a secret reward straight to your inbox.</p>
+                
+                <div class="space-y-5">
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-1">Location <span class="text-brand-red">*</span></label>
+                        <div class="relative">
+                            <!-- Mobile Dropdown Fix: hidden disabled selected -->
+                            <select id="setup-resto" class="appearance-none cursor-pointer" onchange="validateSetup()">
+                                <option value="" disabled selected hidden>Select your restaurant...</option>
+                                <option value="Temp New">Temp New</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-brand-gold">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
+                    </div>
 
-        <div class="flex-1 relative w-full overflow-hidden">
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-1">Your Email <span class="text-brand-red">*</span></label>
+                        <input type="email" id="setup-email" placeholder="Where should we send the reward?" maxlength="100" oninput="validateSetup()" autocomplete="email">
+                        <p id="email-error" class="text-brand-red text-[10px] font-bold mt-2 ml-1 hidden uppercase tracking-wider">Valid email required.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-1">Receipt Number <span class="text-brand-red">*</span></label>
+                        <input type="text" id="setup-bill" placeholder="Last 4 digits of your bill" inputmode="numeric" maxlength="10" oninput="validateSetup()">
+                    </div>
+                </div>
+            </div>
             
-            <div id="step-1" class="step-container active px-6 overflow-y-auto custom-scroll pb-24 pt-4">
-                <h1 class="text-3xl font-black text-white mb-2 leading-tight tracking-tight">Your feedback = <br><span class="text-brand-gold">A Small Surprise 🎁</span></h1>
-                <p class="text-sm text-gray-400 mb-8 font-medium">Takes 30 seconds. Gets you a secret reward for your next visit.</p>
-                
-                <div class="space-y-6">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Restaurant Location <span class="text-brand-red">*</span></label>
-                        <select id="input-restaurant" class="appearance-none" onchange="validateStep1()">
-                            <option value="" disabled selected>Select the restaurant you are at...</option>
-                            <option value="BurgerHub Downtown">BurgerHub Downtown</option>
-                            <option value="BurgerHub Uptown">BurgerHub Uptown</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Your Best Email <span class="text-brand-red">*</span></label>
-                        <input type="email" id="input-email" placeholder="Where should we send the reward?" oninput="validateStep1()" autocomplete="email">
-                        <p id="email-error" class="text-brand-red text-[10px] font-bold mt-2 ml-1 hidden uppercase tracking-wider">Please enter a valid email address.</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Bill Number <span class="text-brand-red">*</span></label>
-                        <input type="text" id="input-bill" placeholder="Enter the last 4 digits of your receipt" inputmode="numeric" oninput="validateStep1()">
-                        <p class="text-[10px] text-gray-500 italic mt-2 ml-1 leading-snug">Required to unlock the reward code. Shared or fake receipt numbers instantly void all discounts.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div id="step-2" class="step-container px-6 overflow-y-auto custom-scroll pb-24 pt-4">
-                <div class="flex items-center gap-2 text-brand-gold mb-2 text-sm font-bold uppercase tracking-widest">
-                    <span>⭐</span> Dish Rating
-                </div>
-                <h2 class="text-2xl font-black text-white mb-6 leading-tight">What was the <span class="text-brand-gold">Main Dish</span> you tried today?</h2>
-                
-                <div class="space-y-6">
-                    <div>
-                        <input type="text" id="input-dish1-name" placeholder="e.g., Spicy Chicken Burger" oninput="validateStep2()">
-                    </div>
-
-                    <div id="rating-container-1" class="opacity-30 pointer-events-none transition-opacity duration-300">
-                        <p class="text-center text-xs font-bold text-gray-400 uppercase tracking-widest mt-6">How was it?</p>
-                        <div class="star-container" data-rating="0" id="stars-1">
-                            <span class="star-btn" onclick="setRating(1, 5)">★</span>
-                            <span class="star-btn" onclick="setRating(1, 4)">★</span>
-                            <span class="star-btn" onclick="setRating(1, 3)">★</span>
-                            <span class="star-btn" onclick="setRating(1, 2)">★</span>
-                            <span class="star-btn" onclick="setRating(1, 1)">★</span>
-                        </div>
-                    </div>
-
-                    <div id="comment-container-1" class="hidden animate-in slide-in-from-bottom-4 duration-300">
-                        <textarea id="input-dish1-comment" rows="2" placeholder="Any specific thoughts? (Optional)"></textarea>
-                    </div>
-                </div>
-            </div>
-
-            <div id="step-3" class="step-container px-6 overflow-y-auto custom-scroll pb-24 pt-4">
-                <div class="flex items-center gap-2 text-brand-gold mb-2 text-sm font-bold uppercase tracking-widest">
-                    <span>🍟</span> Sides / Drinks
-                </div>
-                <h2 class="text-2xl font-black text-white mb-6 leading-tight">Did you try anything else? <span class="text-gray-500 text-lg font-normal">(Optional)</span></h2>
-                
-                <div class="space-y-6">
-                    <div>
-                        <input type="text" id="input-dish2-name" placeholder="e.g., Loaded Fries, Mojito" oninput="activateRating2()">
-                    </div>
-
-                    <div id="rating-container-2" class="opacity-30 pointer-events-none transition-opacity duration-300">
-                        <p class="text-center text-xs font-bold text-gray-400 uppercase tracking-widest mt-6">How was it?</p>
-                        <div class="star-container" data-rating="0" id="stars-2">
-                            <span class="star-btn" onclick="setRating(2, 5)">★</span>
-                            <span class="star-btn" onclick="setRating(2, 4)">★</span>
-                            <span class="star-btn" onclick="setRating(2, 3)">★</span>
-                            <span class="star-btn" onclick="setRating(2, 2)">★</span>
-                            <span class="star-btn" onclick="setRating(2, 1)">★</span>
-                        </div>
-                    </div>
-
-                    <div id="comment-container-2" class="hidden animate-in slide-in-from-bottom-4 duration-300">
-                        <textarea id="input-dish2-comment" rows="2" placeholder="Any specific thoughts? (Optional)"></textarea>
-                    </div>
-                </div>
-            </div>
-
-            <div id="step-4" class="step-container px-6 flex flex-col items-center justify-center h-full text-center pb-20">
-                
-                <div id="submit-loader" class="flex flex-col items-center">
-                    <div class="w-16 h-16 border-4 border-[#1a1a1a] border-t-brand-gold rounded-full animate-spin mb-6"></div>
-                    <h2 class="text-xl font-black text-white mb-2">Generating Reward...</h2>
-                    <p class="text-sm text-gray-400">Verifying your receipt securely.</p>
-                </div>
-
-                <div id="submit-success" class="hidden flex flex-col items-center animate-in zoom-in duration-500">
-                    <div class="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mb-6 border border-green-500/50">
-                        <span class="text-4xl">🎉</span>
-                    </div>
-                    <h2 class="text-3xl font-black text-white mb-3">You're In!</h2>
-                    <p class="text-base text-gray-300 mb-6 max-w-[250px] leading-relaxed">Your secure reward code has been sent to your email.</p>
-                    <div class="bg-[#1a1a1a] border border-gray-800 p-4 rounded-xl w-full">
-                        <p class="text-xs text-brand-gold font-bold uppercase tracking-widest mb-1">Next Step</p>
-                        <p class="text-sm text-gray-400">Show the email to the staff at the counter to claim it today.</p>
-                    </div>
-                </div>
-
-            </div>
-
+            <button id="btn-start" onclick="startRatingFlow()" disabled class="w-full py-4 rounded-2xl font-black text-black bg-brand-gold/30 cursor-not-allowed uppercase tracking-widest transition-all duration-300">
+                Begin
+            </button>
         </div>
 
-        <div id="nav-footer" class="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black to-transparent z-50">
-            <div class="max-w-lg mx-auto flex gap-3">
-                <button id="btn-back" onclick="prevStep()" class="hidden px-6 py-4 rounded-xl font-bold text-gray-400 bg-[#1a1a1a] border border-gray-800 hover:text-white transition-colors">
-                    Back
-                </button>
-                <button id="btn-next" onclick="nextStep()" disabled class="flex-1 py-4 rounded-xl font-black text-black bg-brand-gold/50 cursor-not-allowed uppercase tracking-widest transition-all duration-300">
-                    Continue
-                </button>
+        <!-- ========================================== -->
+        <!-- VIEW 2: DYNAMIC RATING ENGINE              -->
+        <!-- ========================================== -->
+        <div id="view-rating" class="view-section w-full h-full">
+            <div id="dynamic-dish-container">
+                <!-- JavaScript injects the Swipe Cards here -->
             </div>
         </div>
 
+        <!-- ========================================== -->
+        <!-- VIEW 3: LOADING & SUCCESS                  -->
+        <!-- ========================================== -->
+        <div id="view-success" class="view-section w-full h-full flex flex-col items-center justify-center text-center mt-10">
+            
+            <div id="state-loading" class="flex flex-col items-center">
+                <div class="relative w-20 h-20 mb-8">
+                    <div class="absolute inset-0 rounded-full border-t-2 border-brand-gold animate-spin"></div>
+                    <div class="absolute inset-2 rounded-full border-r-2 border-white/20 animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+                    <div class="absolute inset-0 flex items-center justify-center text-2xl">🔒</div>
+                </div>
+                <h2 class="text-2xl font-black text-white mb-2 tracking-tight">Securing Reward...</h2>
+                <p class="text-sm text-gray-400 font-medium">Verifying receipt and preparing your code.</p>
+            </div>
+
+            <div id="state-done" class="hidden flex-col items-center">
+                <div class="w-24 h-24 bg-green-500/10 rounded-full flex items-center justify-center mb-6 border border-green-500/30 relative">
+                    <div class="absolute inset-0 rounded-full bg-green-500/20 animate-ping opacity-20"></div>
+                    <span class="text-5xl relative z-10">✨</span>
+                </div>
+                <h2 class="text-4xl font-black text-white mb-3 tracking-tight">You're In!</h2>
+                <p class="text-base text-gray-300 mb-8 leading-relaxed max-w-xs mx-auto">Your secure reward code has been generated and sent to your email.</p>
+                
+                <div class="glass-card p-5 rounded-2xl w-full max-w-xs text-left border-brand-gold/30">
+                    <p class="text-[10px] text-brand-gold font-black uppercase tracking-[0.2em] mb-1">Final Step</p>
+                    <p class="text-sm text-gray-300 font-medium leading-snug">Open your email and show the code to the staff at the counter to claim your discount.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Fixed Bottom Action Bar (For Dish Rating Phase) -->
+    <div id="action-bar" class="fixed bottom-0 left-0 right-0 p-4 sm:p-6 bg-gradient-to-t from-black via-[#050505] to-transparent z-50 hidden">
+        <div class="max-w-xl mx-auto flex flex-col gap-3">
+            <button id="btn-next-dish" onclick="advanceDish()" class="w-full py-4 rounded-2xl font-black text-black bg-brand-gold shadow-[0_0_25px_rgba(232,192,100,0.3)] uppercase tracking-widest transition-all duration-300 hidden hover:scale-[1.02]">
+                Next Dish
+            </button>
+        </div>
     </div>
 
     <script>
         // ==========================================
         // ⚙️ CONFIGURATION
         // ==========================================
-        // 🔴 CRITICAL: Paste the URL of your Service C (Customer Dashboard) Web App here!
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzmJGCc6PGM1Ej6M7ls3CisoFfJjOYHVHUCHe2ESpVRAdy_zW6jIADxzpLt6JcO2dDm-Q/exec"; 
+        // 🔴 CRITICAL: Paste the URL of your Service A (Partner Portal) Web App here!
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwPp92gP4iYeJkfZlGL7H7YzcXgi444cYA3pFqoGQDztyPg2uTEm2Fh4bKMwT8EqDnISA/exec"; 
+
+        // 🟢 The exact columns mapped in your backend Google Sheet
+        const MENU_CONFIG = [
+            { type: 'signature', name: "Fish mango curry" },
+            { type: 'signature', name: "Chicken Biriyani" },
+            { type: 'signature', name: "Malai Chicken" },
+            { type: 'signature', name: "Kerala Chicken" },
+            { type: 'custom', name: "Custom 1", prompt: "Did you try anything else?" },
+            { type: 'custom', name: "Custom 2", prompt: "Any other dish you'd like to rate?" }
+        ];
 
         // ==========================================
-        // APP LOGIC
+        // APP STATE & ENGINE
         // ==========================================
-        let currentStep = 1;
-        const totalSteps = 3; // Step 4 is the success screen
-        
-        let formData = {
-            restaurant: "",
-            email: "",
-            billNumber: "",
-            customDish1Name: "",
-            customDish1Rating: 0,
-            customDish1Comment: "",
-            customDish2Name: "",
-            customDish2Rating: 0,
-            customDish2Comment: ""
+        const State = {
+            view: 'setup',
+            currentDishIndex: 0, 
+            payload: {
+                restaurant: "", email: "", billNumber: "",
+                ratings: []
+            }
         };
 
-        // Initialize
-        document.addEventListener("DOMContentLoaded", () => {
-            updateUI();
-            
-            // Generate Device Fingerprint if it doesn't exist
-            if (!localStorage.getItem("impact_device_id")) {
-                const newId = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
-                localStorage.setItem("impact_device_id", newId);
-            }
-        });
-
-        // Regex Email Validator
-        function isValidEmail(email) {
-            const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-            return re.test(String(email).toLowerCase());
+        // Helper to generate correct standard star SVG dynamically
+        function getStarHTML(score) {
+            return `<svg class="star-svg" onclick="setRating(${score})" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>`;
         }
 
-        // --- STEP 1 VALIDATION ---
-        function validateStep1() {
-            const resto = document.getElementById('input-restaurant').value;
-            const email = document.getElementById('input-email').value.trim();
-            const bill = document.getElementById('input-bill').value.trim();
+        if (!localStorage.getItem("impact_device_id")) {
+            localStorage.setItem("impact_device_id", Math.random().toString(36).substring(2) + Date.now().toString(36));
+        }
+
+        function isValidEmail(email) {
+            return /^[^@]+@[^@]+\.[a-zA-Z]{2,}$/.test(String(email).toLowerCase());
+        }
+
+        // ==========================================
+        // UI CONTROLLERS
+        // ==========================================
+        function updateProgress() {
+            const bar = document.getElementById('progress-bar');
+            const ind = document.getElementById('step-indicator');
+            
+            if (State.view === 'setup') {
+                bar.style.width = '15%';
+                ind.innerText = 'Setup';
+            } else if (State.view === 'rating') {
+                const percent = 15 + ((State.currentDishIndex) / MENU_CONFIG.length) * 85;
+                bar.style.width = `${percent}%`;
+                ind.innerText = `Dish ${State.currentDishIndex + 1} of ${MENU_CONFIG.length}`;
+            } else {
+                bar.style.width = '100%';
+                ind.innerText = 'Done';
+            }
+        }
+
+        function validateSetup() {
+            const resto = document.getElementById('setup-resto').value;
+            const email = document.getElementById('setup-email').value.trim();
+            const bill = document.getElementById('setup-bill').value.trim();
             const emailError = document.getElementById('email-error');
-            const emailInput = document.getElementById('input-email');
+            const emailInput = document.getElementById('setup-email');
+            const startBtn = document.getElementById('btn-start');
             
-            let isEmailGood = false;
-            
+            let emailValid = false;
             if (email.length > 0) {
                 if (isValidEmail(email)) {
-                    isEmailGood = true;
+                    emailValid = true;
                     emailError.classList.add('hidden');
                     emailInput.classList.remove('error-shake', 'border-brand-red');
                 } else {
                     emailError.classList.remove('hidden');
                     emailInput.classList.add('border-brand-red');
                 }
-            } else {
-                emailError.classList.add('hidden');
-                emailInput.classList.remove('error-shake', 'border-brand-red');
             }
 
-            const isValid = resto !== "" && isEmailGood && bill.length >= 1;
-            toggleNextButton(isValid);
-
-            if (isValid) {
-                formData.restaurant = resto;
-                formData.email = email;
-                formData.billNumber = bill;
+            if (resto !== "" && emailValid && bill.length > 0) {
+                startBtn.disabled = false;
+                startBtn.classList.remove('bg-brand-gold/30', 'cursor-not-allowed', 'text-black');
+                startBtn.classList.add('bg-brand-gold', 'text-black', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
+                
+                State.payload.restaurant = resto;
+                State.payload.email = email;
+                State.payload.billNumber = bill;
+            } else {
+                startBtn.disabled = true;
+                startBtn.classList.add('bg-brand-gold/30', 'cursor-not-allowed', 'text-black');
+                startBtn.classList.remove('bg-brand-gold', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
             }
         }
 
-        // --- STEP 2 VALIDATION ---
-        function validateStep2() {
-            const dishName = document.getElementById('input-dish1-name').value.trim();
-            const ratingContainer = document.getElementById('rating-container-1');
+        function startRatingFlow() {
+            if(document.getElementById('setup-email').classList.contains('border-brand-red')) return;
             
-            if (dishName.length > 2) {
-                ratingContainer.classList.remove('opacity-30', 'pointer-events-none');
-                formData.customDish1Name = dishName;
-            } else {
-                ratingContainer.classList.add('opacity-30', 'pointer-events-none');
-            }
-
-            // Must have a dish name AND a rating to proceed
-            const isValid = dishName.length > 2 && formData.customDish1Rating > 0;
-            toggleNextButton(isValid);
-        }
-
-        // --- STEP 3 VALIDATION (Optional) ---
-        function activateRating2() {
-            const dishName = document.getElementById('input-dish2-name').value.trim();
-            const ratingContainer = document.getElementById('rating-container-2');
+            document.getElementById('view-setup').classList.remove('active');
+            document.getElementById('view-rating').classList.add('active');
+            document.getElementById('action-bar').classList.remove('hidden');
             
-            if (dishName.length > 2) {
-                ratingContainer.classList.remove('opacity-30', 'pointer-events-none');
-                formData.customDish2Name = dishName;
-                toggleNextButton(formData.customDish2Rating > 0); // Force rating if they entered a name
-            } else {
-                ratingContainer.classList.add('opacity-30', 'pointer-events-none');
-                formData.customDish2Name = "";
-                formData.customDish2Rating = 0;
-                // If dish is empty, they can skip this step, so enable next
-                toggleNextButton(true);
-            }
+            State.view = 'rating';
+            renderDishCard();
+            updateProgress();
         }
 
-        // --- RATING ENGINE ---
-        function setRating(stepNum, rating) {
-            const container = document.getElementById(`stars-${stepNum}`);
-            const commentBox = document.getElementById(`comment-container-${stepNum}`);
+        // ==========================================
+        // DYNAMIC WIZARD RENDERER
+        // ==========================================
+        function renderDishCard() {
+            const container = document.getElementById('dynamic-dish-container');
+            const item = MENU_CONFIG[State.currentDishIndex];
             
-            // Set UI State
-            container.setAttribute('data-rating', rating);
-            
-            // Animate the clicked star
-            const stars = container.querySelectorAll('.star-btn');
-            // Remember: CSS is RTL, so index mapping is backwards
-            const clickedStarIndex = 5 - rating; 
-            stars[clickedStarIndex].classList.remove('star-pop');
-            void stars[clickedStarIndex].offsetWidth; // trigger reflow
-            stars[clickedStarIndex].classList.add('star-pop');
+            // Hide the next button initially for each card
+            document.getElementById('btn-next-dish').classList.add('hidden');
 
-            // Show comment box
-            commentBox.classList.remove('hidden');
+            let html = '';
 
-            // Save Data
-            if (stepNum === 1) {
-                formData.customDish1Rating = rating;
-                validateStep2();
-                // Auto-advance if 5 stars!
-                if (rating === 5) setTimeout(() => { if(currentStep === 2) nextStep(); }, 600);
+            if (item.type === 'signature') {
+                html = `
+                <div class="glass-card rounded-3xl p-6 sm:p-8 w-full animate-in slide-in-from-right-8 duration-300">
+                    <p class="text-[10px] text-brand-gold font-black uppercase tracking-widest mb-3">Signature Menu</p>
+                    <h2 class="text-2xl font-black text-white mb-6 leading-tight">Did you try our famous <br><span class="text-brand-gold">${item.name}</span>?</h2>
+                    
+                    <div class="flex gap-3 mb-6" id="choice-container-${State.currentDishIndex}">
+                        <button onclick="handleChoice('no')" class="choice-btn no">No</button>
+                        <button onclick="handleChoice('yes')" class="choice-btn yes">Yes</button>
+                    </div>
+
+                    <div id="evaluation-box-${State.currentDishIndex}" class="hidden opacity-0 transition-opacity duration-500">
+                        <div class="w-full h-px bg-white/10 mb-6"></div>
+                        <p class="text-center text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Tap to rate</p>
+                        <div class="star-container" data-rating="0" id="stars-${State.currentDishIndex}">
+                            ${getStarHTML(5)}
+                            ${getStarHTML(4)}
+                            ${getStarHTML(3)}
+                            ${getStarHTML(2)}
+                            ${getStarHTML(1)}
+                        </div>
+
+                        <div id="comment-box-${State.currentDishIndex}" class="hidden mt-6 animate-in slide-in-from-bottom-4">
+                            <textarea id="dish-comment-${State.currentDishIndex}" rows="2" maxlength="200" placeholder="Any specific thoughts? (Optional)" class="text-sm"></textarea>
+                        </div>
+                    </div>
+                </div>`;
             } else {
-                formData.customDish2Rating = rating;
-                activateRating2();
-                // Auto-advance if 5 stars!
-                if (rating === 5) setTimeout(() => { if(currentStep === 3) nextStep(); }, 600);
-            }
-        }
+                html = `
+                <div class="glass-card rounded-3xl p-6 sm:p-8 w-full animate-in slide-in-from-right-8 duration-300">
+                    <p class="text-[10px] text-brand-gold font-black uppercase tracking-widest mb-3">Extras</p>
+                    <h2 class="text-2xl font-black text-white mb-6 leading-tight">${item.prompt} <span class="text-gray-500 font-normal text-lg">(Optional)</span></h2>
+                    
+                    <input type="text" id="custom-name-${State.currentDishIndex}" placeholder="e.g., Spicy French Fries" maxlength="50" class="font-semibold text-lg mb-6" oninput="checkCustomInput()">
 
-        // --- NAVIGATION ENGINE ---
-        function toggleNextButton(isActive) {
-            const btn = document.getElementById('btn-next');
-            if (isActive) {
-                btn.disabled = false;
-                btn.classList.remove('bg-brand-gold/50', 'cursor-not-allowed', 'text-black');
-                btn.classList.add('bg-brand-gold', 'text-black', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
-            } else {
-                btn.disabled = true;
-                btn.classList.add('bg-brand-gold/50', 'cursor-not-allowed', 'text-black');
-                btn.classList.remove('bg-brand-gold', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
-            }
-        }
+                    <div id="evaluation-box-${State.currentDishIndex}" class="opacity-30 pointer-events-none transition-opacity duration-500">
+                        <p class="text-center text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Tap to rate</p>
+                        <div class="star-container" data-rating="0" id="stars-${State.currentDishIndex}">
+                            ${getStarHTML(5)}
+                            ${getStarHTML(4)}
+                            ${getStarHTML(3)}
+                            ${getStarHTML(2)}
+                            ${getStarHTML(1)}
+                        </div>
 
-        function updateUI() {
-            // Update Progress Bar
-            const progress = ((currentStep - 1) / totalSteps) * 100;
-            document.getElementById('progress-bar').style.width = `${progress === 0 ? 10 : progress}%`;
+                        <div id="comment-box-${State.currentDishIndex}" class="hidden mt-6 animate-in slide-in-from-bottom-4">
+                            <textarea id="dish-comment-${State.currentDishIndex}" rows="2" maxlength="200" placeholder="Any specific thoughts? (Optional)" class="text-sm"></textarea>
+                        </div>
+                    </div>
+                </div>`;
 
-            // Hide all steps, show current
-            for (let i = 1; i <= 4; i++) {
-                const el = document.getElementById(`step-${i}`);
-                if (i === currentStep) {
-                    el.classList.remove('hidden'); // Ensure it's in DOM
-                    // Small delay to allow CSS transition to catch
-                    setTimeout(() => {
-                        el.classList.remove('exit-left');
-                        el.classList.add('active');
-                    }, 10);
-                } else if (i < currentStep) {
-                    el.classList.remove('active');
-                    el.classList.add('exit-left');
-                    setTimeout(() => el.classList.add('hidden'), 400); // Hide after transition
+                // If it's a custom slot, they can skip it just by clicking next without typing.
+                const nextBtn = document.getElementById('btn-next-dish');
+                nextBtn.classList.remove('hidden');
+                if (State.currentDishIndex === MENU_CONFIG.length - 1) {
+                    nextBtn.innerText = "Submit Feedback";
                 } else {
-                    el.classList.remove('active', 'exit-left');
-                    setTimeout(() => el.classList.add('hidden'), 400);
+                    nextBtn.innerText = "Next Dish";
                 }
             }
 
-            // Footer Logic
-            const backBtn = document.getElementById('btn-back');
-            const nextBtn = document.getElementById('btn-next');
-            const counter = document.getElementById('step-counter');
+            container.innerHTML = html;
 
-            if (currentStep === 1) {
-                backBtn.classList.add('hidden');
-                counter.innerText = "Step 1 of 3";
-                nextBtn.innerText = "Continue";
-                validateStep1();
-            } else if (currentStep === 2) {
-                backBtn.classList.remove('hidden');
-                counter.innerText = "Step 2 of 3";
-                nextBtn.innerText = "Continue";
-                validateStep2();
-            } else if (currentStep === 3) {
-                backBtn.classList.remove('hidden');
-                counter.innerText = "Final Step";
-                nextBtn.innerText = "Submit & Claim Reward";
-                activateRating2(); // Ensure valid state
-            } else if (currentStep === 4) {
-                document.getElementById('nav-footer').classList.add('hidden');
-                counter.parentElement.classList.add('hidden'); // Hide header
-                document.getElementById('progress-bar').style.width = '100%';
-            }
+            // Initialize payload object for this index
+            State.payload.ratings[State.currentDishIndex] = {
+                name: item.type === 'signature' ? item.name : "",
+                rating: 0, comment: "", type: item.type
+            };
         }
 
-        function nextStep() {
-            if (currentStep === 1 && document.getElementById('input-email').value.trim() !== "") {
-                if(!isValidEmail(document.getElementById('input-email').value.trim())) {
-                    document.getElementById('input-email').classList.add('error-shake');
-                    setTimeout(() => document.getElementById('input-email').classList.remove('error-shake'), 400);
-                    return;
-                }
-            }
-
-            if (currentStep < totalSteps) {
-                currentStep++;
-                updateUI();
-            } else if (currentStep === totalSteps) {
-                submitForm();
-            }
-        }
-
-        function prevStep() {
-            if (currentStep > 1) {
-                currentStep--;
-                updateUI();
-            }
-        }
-
-        // --- SUBMISSION ENGINE (The API Bridge) ---
-        async function submitForm() {
-            // Capture final comments
-            formData.customDish1Comment = document.getElementById('input-dish1-comment').value.trim();
-            formData.customDish2Comment = document.getElementById('input-dish2-comment').value.trim();
+        // --- Interaction Logic ---
+        function handleChoice(choice) {
+            const evalBox = document.getElementById(`evaluation-box-${State.currentDishIndex}`);
+            const container = document.getElementById(`choice-container-${State.currentDishIndex}`);
             
-            // Transition to loading screen
-            currentStep = 4;
-            updateUI();
+            // UI Styling
+            container.querySelectorAll('.choice-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
 
-            // Construct the exact JSON payload the backend expects
-            const payload = {
+            if (choice === 'no') {
+                evalBox.classList.add('hidden');
+                State.payload.ratings[State.currentDishIndex].rating = 0; // Clear it out
+                setTimeout(advanceDish, 300); // Auto advance on NO
+            } else {
+                evalBox.classList.remove('hidden');
+                setTimeout(() => evalBox.classList.remove('opacity-0'), 10);
+            }
+        }
+
+        function checkCustomInput() {
+            const inputVal = document.getElementById(`custom-name-${State.currentDishIndex}`).value.trim();
+            const evalBox = document.getElementById(`evaluation-box-${State.currentDishIndex}`);
+            const nextBtn = document.getElementById('btn-next-dish');
+            
+            State.payload.ratings[State.currentDishIndex].name = inputVal;
+
+            if (inputVal.length > 2) {
+                evalBox.classList.remove('opacity-30', 'pointer-events-none');
+                nextBtn.classList.add('hidden'); // Hide next until rated
+            } else {
+                evalBox.classList.add('opacity-30', 'pointer-events-none');
+                State.payload.ratings[State.currentDishIndex].rating = 0; // Clear
+                nextBtn.classList.remove('hidden'); // Allow skip
+                if (State.currentDishIndex === MENU_CONFIG.length - 1) {
+                    nextBtn.innerText = "Submit Feedback";
+                } else {
+                    nextBtn.innerText = "Next Dish";
+                }
+            }
+        }
+
+        function setRating(score) {
+            State.payload.ratings[State.currentDishIndex].rating = score;
+            const container = document.getElementById(`stars-${State.currentDishIndex}`);
+            container.setAttribute('data-rating', score);
+            document.getElementById(`comment-box-${State.currentDishIndex}`).classList.remove('hidden');
+            
+            // Enable Next Button
+            const nextBtn = document.getElementById('btn-next-dish');
+            nextBtn.classList.remove('hidden');
+            
+            // If it's the last dish, change Next button to Submit
+            if (State.currentDishIndex === MENU_CONFIG.length - 1) {
+                nextBtn.innerText = "Submit Feedback";
+            } else {
+                nextBtn.innerText = "Next Dish";
+            }
+        }
+
+        function advanceDish() {
+            // Save comment if they typed one
+            const commentEl = document.getElementById(`dish-comment-${State.currentDishIndex}`);
+            if (commentEl) {
+                State.payload.ratings[State.currentDishIndex].comment = commentEl.value.trim();
+            }
+
+            if (State.currentDishIndex < MENU_CONFIG.length - 1) {
+                State.currentDishIndex++;
+                renderDishCard();
+                updateProgress();
+            } else {
+                submitPayload();
+            }
+        }
+
+        // ==========================================
+        // API SUBMISSION
+        // ==========================================
+        async function submitPayload() {
+            // Save final comment on current screen just in case
+            const commentEl = document.getElementById(`dish-comment-${State.currentDishIndex}`);
+            if (commentEl) {
+                State.payload.ratings[State.currentDishIndex].comment = commentEl.value.trim();
+            }
+
+            // Clean payload: Remove unrated/skipped dishes
+            const cleanRatings = State.payload.ratings.filter(r => r.rating > 0 && r.name.length > 2);
+            
+            // Extract Custom Dishes for Backend Schema Mapping
+            const customDishes = cleanRatings.filter(r => r.type === 'custom');
+
+            const finalPayload = {
                 action: "submit_feedback",
                 deviceId: localStorage.getItem("impact_device_id"),
-                honeypot: document.getElementById('website_url').value, // Bot trap
-                email: formData.email,
-                billNumber: formData.billNumber,
-                restaurant: formData.restaurant,
-                mobile: "", // Optional, left blank for this v1
-                ratings: []
+                honeypot: document.getElementById('website_url').value, 
+                restaurant: State.payload.restaurant,
+                email: State.payload.email,
+                billNumber: State.payload.billNumber,
+                mobile: "", 
+                customDish1Name: customDishes[0] ? customDishes[0].name : "",
+                customDish2Name: customDishes[1] ? customDishes[1].name : "",
+                ratings: cleanRatings.map((d) => ({
+                    name: d.name,
+                    rating: d.rating,
+                    comment: d.comment,
+                    // Determine custom flag dynamically for backend mapper
+                    isCustom1: customDishes[0] && d.name === customDishes[0].name,
+                    isCustom2: customDishes[1] && d.name === customDishes[1].name
+                }))
             };
 
-            // Map Dish 1
-            if (formData.customDish1Name !== "") {
-                payload.ratings.push({
-                    name: formData.customDish1Name,
-                    rating: formData.customDish1Rating,
-                    comment: formData.customDish1Comment,
-                    isCustom1: true
-                });
-                // Flat keys for absolute schema mapping
-                payload.customDish1Name = formData.customDish1Name;
-            }
-
-            // Map Dish 2
-            if (formData.customDish2Name !== "" && formData.customDish2Rating > 0) {
-                payload.ratings.push({
-                    name: formData.customDish2Name,
-                    rating: formData.customDish2Rating,
-                    comment: formData.customDish2Comment,
-                    isCustom2: true
-                });
-                payload.customDish2Name = formData.customDish2Name;
-            }
+            // Transition UI
+            document.getElementById('action-bar').classList.add('hidden');
+            document.getElementById('view-rating').classList.remove('active');
+            document.getElementById('view-success').classList.add('active');
+            State.view = 'success';
+            updateProgress();
 
             try {
-                // Send the payload securely (text/plain to bypass CORS)
+                // Send securely via text/plain to bypass CORS
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify(payload)
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify(finalPayload)
                 });
                 
                 const result = await response.json();
                 
-                // Show Success Screen regardless of spam/shadowban (Zero-Trust UI)
+                // Show Success Screen
                 setTimeout(() => {
-                    document.getElementById('submit-loader').classList.add('hidden');
-                    document.getElementById('submit-success').classList.remove('hidden');
-                    document.getElementById('submit-success').classList.add('flex');
-                }, 1000); // Artificial delay to make it feel like "heavy processing"
+                    document.getElementById('state-loading').classList.add('hidden');
+                    document.getElementById('state-done').classList.remove('hidden');
+                    document.getElementById('state-done').classList.add('flex');
+                }, 800);
 
             } catch (error) {
-                console.error("Submission error", error);
+                console.error("Transmission Error", error);
                 alert("Network error. Please check your connection and try again.");
-                currentStep = 3; // Kick back to final step
-                updateUI();
-                document.getElementById('nav-footer').classList.remove('hidden');
+                document.getElementById('action-bar').classList.remove('hidden');
+                document.getElementById('view-success').classList.remove('active');
+                document.getElementById('view-rating').classList.add('active');
+                State.view = 'rating';
             }
         }
-
     </script>
 </body>
 </html>
