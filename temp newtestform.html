@@ -25,65 +25,43 @@
     </script>
     <style>
         body { 
-            background-color: #050505; 
-            color: #e5e7eb; 
-            overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent;
+            background-color: #050505; color: #e5e7eb; overflow-x: hidden; -webkit-tap-highlight-color: transparent;
         }
         
-        /* Premium Background Orbs */
         .ambient-orb {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(80px);
-            z-index: -1;
-            opacity: 0.3;
-            pointer-events: none;
+            position: fixed; border-radius: 50%; filter: blur(80px); z-index: -1; opacity: 0.3; pointer-events: none;
         }
         .orb-1 { top: -10%; left: -10%; width: 300px; height: 300px; background: rgba(232, 192, 100, 0.15); }
         .orb-2 { bottom: -10%; right: -10%; width: 400px; height: 400px; background: rgba(232, 192, 100, 0.1); }
 
-        /* Glassmorphism Cards */
         .glass-card {
-            background: rgba(25, 25, 25, 0.65);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+            background: rgba(25, 25, 25, 0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.1);
         }
 
-        /* Form Inputs */
         input[type="text"], input[type="email"], textarea, select {
-            background-color: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: #fff;
-            width: 100%;
-            padding: 16px 20px;
-            border-radius: 16px;
-            font-size: 15px;
-            outline: none;
+            background-color: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #fff; width: 100%; padding: 16px 20px; border-radius: 16px; font-size: 15px; outline: none;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         input:focus, textarea:focus, select:focus {
-            border-color: #e8c064;
-            background-color: rgba(0, 0, 0, 0.7);
-            box-shadow: 0 0 0 4px rgba(232, 192, 100, 0.15);
+            border-color: #e8c064; background-color: rgba(0, 0, 0, 0.7); box-shadow: 0 0 0 4px rgba(232, 192, 100, 0.15);
         }
+
+        /* OTP Specific Styles */
+        .otp-input {
+            width: 50px; height: 60px; font-size: 24px; font-weight: 900; text-align: center;
+            background-color: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #e8c064; border-radius: 12px; transition: all 0.2s;
+        }
+        .otp-input:focus { border-color: #e8c064; box-shadow: 0 0 0 4px rgba(232, 192, 100, 0.15); }
 
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Animated SVG Stars - Fixed Sibling Logic */
         .star-container { display: flex; justify-content: center; gap: 8px; direction: rtl; }
-        .star-svg {
-            width: 48px; height: 48px;
-            cursor: pointer;
-            fill: transparent;
-            stroke: #4b5563;
-            stroke-width: 1.5;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        .star-svg { width: 48px; height: 48px; cursor: pointer; fill: transparent; stroke: #4b5563; stroke-width: 1.5; transition: all 0.25s; }
         
         .star-svg:hover, .star-svg:hover ~ .star-svg,
         .star-container[data-rating="5"] .star-svg:nth-child(n+1),
@@ -91,34 +69,16 @@
         .star-container[data-rating="3"] .star-svg:nth-child(n+3),
         .star-container[data-rating="2"] .star-svg:nth-child(n+4),
         .star-container[data-rating="1"] .star-svg:nth-child(5) {
-            fill: #e8c064;
-            stroke: #e8c064;
-            filter: drop-shadow(0 0 8px rgba(232, 192, 100, 0.6));
-            transform: scale(1.15);
+            fill: #e8c064; stroke: #e8c064; filter: drop-shadow(0 0 8px rgba(232, 192, 100, 0.6)); transform: scale(1.15);
         }
 
-        /* Choice Chips (Yes/No) */
         .choice-btn {
-            flex: 1;
-            padding: 16px;
-            border-radius: 16px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 13px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(255, 255, 255, 0.03);
-            color: #9ca3af;
-            transition: all 0.2s ease;
+            flex: 1; padding: 16px; border-radius: 16px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 1px; font-size: 13px; border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.03); color: #9ca3af; transition: all 0.2s ease;
         }
-        .choice-btn.yes:hover, .choice-btn.yes.active {
-            background: #16a34a; border-color: #16a34a; color: #fff;
-            box-shadow: 0 0 20px rgba(22, 163, 74, 0.3);
-        }
-        .choice-btn.no:hover, .choice-btn.no.active {
-            background: #ef4444; border-color: #ef4444; color: #fff;
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
-        }
+        .choice-btn.yes:hover, .choice-btn.yes.active { background: #16a34a; border-color: #16a34a; color: #fff; box-shadow: 0 0 20px rgba(22, 163, 74, 0.3); }
+        .choice-btn.no:hover, .choice-btn.no.active { background: #ef4444; border-color: #ef4444; color: #fff; box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
 
         .view-section { display: none; opacity: 0; transform: translateY(15px); transition: all 0.4s ease; }
         .view-section.active { display: block; opacity: 1; transform: translateY(0); }
@@ -134,16 +94,11 @@
 </head>
 <body class="antialiased min-h-[100dvh] flex flex-col relative">
 
-    <!-- Security Honeypot -->
     <input type="text" id="website_url" name="website_url" tabindex="-1" autocomplete="off" class="hidden absolute -left-[9999px]">
-
-    <!-- Ambient Background -->
     <div class="ambient-orb orb-1"></div>
     <div class="ambient-orb orb-2"></div>
 
-    <!-- Top Progress & Brand Bar -->
     <div class="w-full px-6 pt-8 pb-4 flex justify-between items-center z-40 relative max-w-xl mx-auto">
-        <!-- Logo Fix: Locked aspect ratio -->
         <div class="w-14 h-14 rounded-full bg-black border border-brand-gold/30 p-1 flex items-center justify-center shadow-lg shrink-0">
             <img src="https://res.cloudinary.com/dr6xhnhor/image/upload/v1781864406/big_size_Logo_without_background_new_ubp9mn.png" alt="Logo" class="w-full h-full object-contain rounded-full">
         </div>
@@ -155,12 +110,8 @@
         </div>
     </div>
 
-    <!-- Main Container -->
     <div class="flex-1 w-full max-w-xl mx-auto relative px-4 sm:px-6 pb-28 pt-2 flex flex-col z-30" id="app-container">
         
-        <!-- ========================================== -->
-        <!-- VIEW 1: IDENTITY & SETUP                   -->
-        <!-- ========================================== -->
         <div id="view-setup" class="view-section active w-full h-full">
             <div class="glass-card rounded-3xl p-6 sm:p-8 mb-6">
                 <h1 class="text-3xl font-black text-white mb-2 leading-tight tracking-tight">Your feedback = <br><span class="text-brand-gold">A Surprise 🎁</span></h1>
@@ -170,10 +121,10 @@
                     <div>
                         <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-1">Location <span class="text-brand-red">*</span></label>
                         <div class="relative">
-                            <!-- Mobile Dropdown Fix: hidden disabled selected -->
                             <select id="setup-resto" class="appearance-none cursor-pointer" onchange="validateSetup()">
                                 <option value="" disabled selected hidden>Select your restaurant...</option>
-                                <option value="Temp New">Temp New</option>
+                                <option value="BurgerHub Downtown">BurgerHub Downtown</option>
+                                <option value="BurgerHub Uptown">BurgerHub Uptown</option>
                             </select>
                             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-brand-gold">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -194,25 +145,45 @@
                 </div>
             </div>
             
-            <button id="btn-start" onclick="startRatingFlow()" disabled class="w-full py-4 rounded-2xl font-black text-black bg-brand-gold/30 cursor-not-allowed uppercase tracking-widest transition-all duration-300">
-                Begin
+            <button id="btn-start" onclick="requestOTP()" disabled class="w-full py-4 rounded-2xl font-black text-black bg-brand-gold/30 cursor-not-allowed uppercase tracking-widest transition-all duration-300">
+                Verify Identity
             </button>
         </div>
 
-        <!-- ========================================== -->
-        <!-- VIEW 2: DYNAMIC RATING ENGINE              -->
-        <!-- ========================================== -->
-        <div id="view-rating" class="view-section w-full h-full">
-            <div id="dynamic-dish-container">
-                <!-- JavaScript injects the Swipe Cards here -->
+        <div id="view-otp" class="view-section w-full h-full">
+            <div class="glass-card rounded-3xl p-6 sm:p-8 mb-6 text-center">
+                <div class="w-16 h-16 bg-blue-500/10 border border-blue-500/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl">🛡️</span>
+                </div>
+                <h2 class="text-2xl font-black text-white mb-2 leading-tight">Integrity Check</h2>
+                
+                <p class="text-sm text-gray-400 mb-6 font-medium leading-relaxed">
+                    To ensure 100% genuine reviews from real guests, we've sent a 4-digit secure code to <br>
+                    <strong class="text-brand-gold block mt-2" id="otp-display-email"></strong>
+                </p>
+                
+                <div class="flex justify-center gap-3 mb-8">
+                    <input type="tel" maxlength="1" class="otp-input" id="otp-1" onkeyup="handleOtpInput(this, 1)" onfocus="this.select()">
+                    <input type="tel" maxlength="1" class="otp-input" id="otp-2" onkeyup="handleOtpInput(this, 2)" onfocus="this.select()">
+                    <input type="tel" maxlength="1" class="otp-input" id="otp-3" onkeyup="handleOtpInput(this, 3)" onfocus="this.select()">
+                    <input type="tel" maxlength="1" class="otp-input" id="otp-4" onkeyup="handleOtpInput(this, 4)" onfocus="this.select()">
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    <a href="mailto:" class="w-full py-3 rounded-xl font-bold text-gray-300 bg-white/5 border border-white/10 hover:bg-white/10 transition-colors text-sm flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        Open Mail App
+                    </a>
+                </div>
+                <p id="otp-error" class="text-brand-red text-xs font-bold mt-4 hidden uppercase tracking-wider">Invalid PIN. Try again.</p>
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- VIEW 3: LOADING & SUCCESS                  -->
-        <!-- ========================================== -->
+        <div id="view-rating" class="view-section w-full h-full">
+            <div id="dynamic-dish-container"></div>
+        </div>
+
         <div id="view-success" class="view-section w-full h-full flex flex-col items-center justify-center text-center mt-10">
-            
             <div id="state-loading" class="flex flex-col items-center">
                 <div class="relative w-20 h-20 mb-8">
                     <div class="absolute inset-0 rounded-full border-t-2 border-brand-gold animate-spin"></div>
@@ -220,7 +191,7 @@
                     <div class="absolute inset-0 flex items-center justify-center text-2xl">🔒</div>
                 </div>
                 <h2 class="text-2xl font-black text-white mb-2 tracking-tight">Securing Reward...</h2>
-                <p class="text-sm text-gray-400 font-medium">Verifying receipt and preparing your code.</p>
+                <p class="text-sm text-gray-400 font-medium">Writing verified data to ledger.</p>
             </div>
 
             <div id="state-done" class="hidden flex-col items-center">
@@ -230,7 +201,6 @@
                 </div>
                 <h2 class="text-4xl font-black text-white mb-3 tracking-tight">You're In!</h2>
                 <p class="text-base text-gray-300 mb-8 leading-relaxed max-w-xs mx-auto">Your secure reward code has been generated and sent to your email.</p>
-                
                 <div class="glass-card p-5 rounded-2xl w-full max-w-xs text-left border-brand-gold/30">
                     <p class="text-[10px] text-brand-gold font-black uppercase tracking-[0.2em] mb-1">Final Step</p>
                     <p class="text-sm text-gray-300 font-medium leading-snug">Open your email and show the code to the staff at the counter to claim your discount.</p>
@@ -240,7 +210,6 @@
 
     </div>
 
-    <!-- Fixed Bottom Action Bar (For Dish Rating Phase) -->
     <div id="action-bar" class="fixed bottom-0 left-0 right-0 p-4 sm:p-6 bg-gradient-to-t from-black via-[#050505] to-transparent z-50 hidden">
         <div class="max-w-xl mx-auto flex flex-col gap-3">
             <button id="btn-next-dish" onclick="advanceDish()" class="w-full py-4 rounded-2xl font-black text-black bg-brand-gold shadow-[0_0_25px_rgba(232,192,100,0.3)] uppercase tracking-widest transition-all duration-300 hidden hover:scale-[1.02]">
@@ -254,9 +223,8 @@
         // ⚙️ CONFIGURATION
         // ==========================================
         // 🔴 CRITICAL: Paste the URL of your Service A (Partner Portal) Web App here!
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwPp92gP4iYeJkfZlGL7H7YzcXgi444cYA3pFqoGQDztyPg2uTEm2Fh4bKMwT8EqDnISA/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwzosTl8sLFUXv0Y81am0VHcs76pACMAIhMJM7gPoyfkrF9GH18dsY6WSVGtZmE0oy6vQ/exec"; 
 
-        // 🟢 The exact columns mapped in your backend Google Sheet
         const MENU_CONFIG = [
             { type: 'signature', name: "Fish mango curry" },
             { type: 'signature', name: "Chicken Biriyani" },
@@ -266,98 +234,118 @@
             { type: 'custom', name: "Custom 2", prompt: "Any other dish you'd like to rate?" }
         ];
 
-        // ==========================================
-        // APP STATE & ENGINE
-        // ==========================================
         const State = {
-            view: 'setup',
-            currentDishIndex: 0, 
-            payload: {
-                restaurant: "", email: "", billNumber: "",
-                ratings: []
-            }
+            view: 'setup', currentDishIndex: 0, 
+            payload: { restaurant: "", email: "", billNumber: "", ratings: [] }
         };
 
-        // Helper to generate correct standard star SVG dynamically
         function getStarHTML(score) {
-            return `<svg class="star-svg" onclick="setRating(${score})" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                    </svg>`;
+            return `<svg class="star-svg" onclick="setRating(${score})" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
         }
 
-        if (!localStorage.getItem("impact_device_id")) {
-            localStorage.setItem("impact_device_id", Math.random().toString(36).substring(2) + Date.now().toString(36));
-        }
+        if (!localStorage.getItem("impact_device_id")) localStorage.setItem("impact_device_id", Math.random().toString(36).substring(2) + Date.now().toString(36));
+        function isValidEmail(e) { return /^[^@]+@[^@]+\.[a-zA-Z]{2,}$/.test(String(e).toLowerCase()); }
+        function getRatedCount() { return State.payload.ratings.filter(r => r.rating > 0 && r.name.length > 2).length; }
 
-        function isValidEmail(email) {
-            return /^[^@]+@[^@]+\.[a-zA-Z]{2,}$/.test(String(email).toLowerCase());
-        }
-
-        // ==========================================
-        // UI CONTROLLERS
-        // ==========================================
-        function updateProgress() {
+        function switchView(newView) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${newView}`).classList.add('active');
+            State.view = newView;
+            
             const bar = document.getElementById('progress-bar');
             const ind = document.getElementById('step-indicator');
-            
-            if (State.view === 'setup') {
-                bar.style.width = '15%';
-                ind.innerText = 'Setup';
-            } else if (State.view === 'rating') {
-                const percent = 15 + ((State.currentDishIndex) / MENU_CONFIG.length) * 85;
-                bar.style.width = `${percent}%`;
-                ind.innerText = `Dish ${State.currentDishIndex + 1} of ${MENU_CONFIG.length}`;
-            } else {
-                bar.style.width = '100%';
-                ind.innerText = 'Done';
-            }
+            if (newView === 'setup') { bar.style.width = '10%'; ind.innerText = 'Setup'; }
+            else if (newView === 'otp') { bar.style.width = '20%'; ind.innerText = 'Verify'; }
+            else if (newView === 'rating') { bar.style.width = `${20 + ((State.currentDishIndex) / MENU_CONFIG.length) * 80}%`; ind.innerText = `Dish ${State.currentDishIndex + 1} of ${MENU_CONFIG.length}`; }
+            else { bar.style.width = '100%'; ind.innerText = 'Done'; }
+            window.scrollTo(0,0);
         }
 
         function validateSetup() {
             const resto = document.getElementById('setup-resto').value;
             const email = document.getElementById('setup-email').value.trim();
             const bill = document.getElementById('setup-bill').value.trim();
-            const emailError = document.getElementById('email-error');
-            const emailInput = document.getElementById('setup-email');
-            const startBtn = document.getElementById('btn-start');
+            const btn = document.getElementById('btn-start');
             
-            let emailValid = false;
-            if (email.length > 0) {
-                if (isValidEmail(email)) {
-                    emailValid = true;
-                    emailError.classList.add('hidden');
-                    emailInput.classList.remove('error-shake', 'border-brand-red');
-                } else {
-                    emailError.classList.remove('hidden');
-                    emailInput.classList.add('border-brand-red');
-                }
-            }
+            let emailValid = email.length > 0 && isValidEmail(email);
+            if(email.length > 0 && !emailValid) { document.getElementById('email-error').classList.remove('hidden'); document.getElementById('setup-email').classList.add('border-brand-red'); }
+            else { document.getElementById('email-error').classList.add('hidden'); document.getElementById('setup-email').classList.remove('border-brand-red'); }
 
             if (resto !== "" && emailValid && bill.length > 0) {
-                startBtn.disabled = false;
-                startBtn.classList.remove('bg-brand-gold/30', 'cursor-not-allowed', 'text-black');
-                startBtn.classList.add('bg-brand-gold', 'text-black', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
-                
-                State.payload.restaurant = resto;
-                State.payload.email = email;
-                State.payload.billNumber = bill;
+                btn.disabled = false; btn.classList.remove('bg-brand-gold/30', 'cursor-not-allowed', 'text-black'); btn.classList.add('bg-brand-gold', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
+                State.payload.restaurant = resto; State.payload.email = email; State.payload.billNumber = bill;
             } else {
-                startBtn.disabled = true;
-                startBtn.classList.add('bg-brand-gold/30', 'cursor-not-allowed', 'text-black');
-                startBtn.classList.remove('bg-brand-gold', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
+                btn.disabled = true; btn.classList.add('bg-brand-gold/30', 'cursor-not-allowed', 'text-black'); btn.classList.remove('bg-brand-gold', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
             }
         }
 
-        function startRatingFlow() {
+        // ==========================================
+        // OTP ENGINE
+        // ==========================================
+        async function requestOTP() {
             if(document.getElementById('setup-email').classList.contains('border-brand-red')) return;
+            const btn = document.getElementById('btn-start');
+            btn.innerText = "Sending Secure Code...";
+            btn.classList.add('animate-pulse');
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: "request_otp", email: State.payload.email })
+                });
+                
+                document.getElementById('otp-display-email').innerText = State.payload.email;
+                switchView('otp');
+                setTimeout(() => document.getElementById('otp-1').focus(), 500); // Auto-focus logic
+            } catch (e) {
+                alert("Network error. Try again.");
+                btn.innerText = "Verify Identity";
+                btn.classList.remove('animate-pulse');
+            }
+        }
+
+        async function handleOtpInput(element, position) {
+            // Auto advance
+            if (element.value.length === 1 && position < 4) {
+                document.getElementById(`otp-${position + 1}`).focus();
+            }
+            // Allow backspace to go backwards
+            if (element.value.length === 0 && position > 1 && event.key === "Backspace") {
+                document.getElementById(`otp-${position - 1}`).focus();
+            }
+
+            // If 4th digit entered, auto submit
+            if (position === 4 && element.value.length === 1) {
+                const pin = document.getElementById('otp-1').value + document.getElementById('otp-2').value + document.getElementById('otp-3').value + document.getElementById('otp-4').value;
+                if (pin.length === 4) verifyOTP(pin);
+            }
+        }
+
+        async function verifyOTP(pin) {
+            document.getElementById('otp-error').classList.add('hidden');
             
-            document.getElementById('view-setup').classList.remove('active');
-            document.getElementById('view-rating').classList.add('active');
-            document.getElementById('action-bar').classList.remove('hidden');
-            
-            State.view = 'rating';
-            renderDishCard();
-            updateProgress();
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: "verify_otp", email: State.payload.email, pinAttempt: pin })
+                });
+                const res = await response.json();
+                
+                if (res.success) {
+                    // Start rating flow
+                    document.getElementById('action-bar').classList.remove('hidden');
+                    renderDishCard();
+                    switchView('rating');
+                } else {
+                    document.getElementById('otp-error').classList.remove('hidden');
+                    document.getElementById('otp-1').value = ''; document.getElementById('otp-2').value = ''; document.getElementById('otp-3').value = ''; document.getElementById('otp-4').value = '';
+                    document.getElementById('otp-1').focus();
+                }
+            } catch (e) {
+                alert("Network error.");
+            }
         }
 
         // ==========================================
@@ -366,95 +354,72 @@
         function renderDishCard() {
             const container = document.getElementById('dynamic-dish-container');
             const item = MENU_CONFIG[State.currentDishIndex];
-            
-            // Hide the next button initially for each card
-            document.getElementById('btn-next-dish').classList.add('hidden');
+            const isLast = State.currentDishIndex === MENU_CONFIG.length - 1;
+            const currentRated = getRatedCount();
+            const nextBtn = document.getElementById('btn-next-dish');
+
+            if (!State.payload.ratings[State.currentDishIndex]) {
+                State.payload.ratings[State.currentDishIndex] = { name: item.type === 'signature' ? item.name : "", rating: 0, comment: "", type: item.type };
+            }
 
             let html = '';
-
             if (item.type === 'signature') {
                 html = `
                 <div class="glass-card rounded-3xl p-6 sm:p-8 w-full animate-in slide-in-from-right-8 duration-300">
                     <p class="text-[10px] text-brand-gold font-black uppercase tracking-widest mb-3">Signature Menu</p>
                     <h2 class="text-2xl font-black text-white mb-6 leading-tight">Did you try our famous <br><span class="text-brand-gold">${item.name}</span>?</h2>
-                    
                     <div class="flex gap-3 mb-6" id="choice-container-${State.currentDishIndex}">
                         <button onclick="handleChoice('no')" class="choice-btn no">No</button>
                         <button onclick="handleChoice('yes')" class="choice-btn yes">Yes</button>
                     </div>
-
                     <div id="evaluation-box-${State.currentDishIndex}" class="hidden opacity-0 transition-opacity duration-500">
                         <div class="w-full h-px bg-white/10 mb-6"></div>
                         <p class="text-center text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Tap to rate</p>
                         <div class="star-container" data-rating="0" id="stars-${State.currentDishIndex}">
-                            ${getStarHTML(5)}
-                            ${getStarHTML(4)}
-                            ${getStarHTML(3)}
-                            ${getStarHTML(2)}
-                            ${getStarHTML(1)}
+                            ${getStarHTML(5)}${getStarHTML(4)}${getStarHTML(3)}${getStarHTML(2)}${getStarHTML(1)}
                         </div>
-
                         <div id="comment-box-${State.currentDishIndex}" class="hidden mt-6 animate-in slide-in-from-bottom-4">
                             <textarea id="dish-comment-${State.currentDishIndex}" rows="2" maxlength="200" placeholder="Any specific thoughts? (Optional)" class="text-sm"></textarea>
                         </div>
                     </div>
                 </div>`;
+                nextBtn.classList.add('hidden');
             } else {
+                let mustRateWarning = (isLast && currentRated === 0) ? `<p class="text-brand-red text-[11px] font-bold uppercase tracking-widest text-center mt-6 animate-pulse">⚠️ Please rate at least one dish to submit</p>` : "";
                 html = `
                 <div class="glass-card rounded-3xl p-6 sm:p-8 w-full animate-in slide-in-from-right-8 duration-300">
                     <p class="text-[10px] text-brand-gold font-black uppercase tracking-widest mb-3">Extras</p>
                     <h2 class="text-2xl font-black text-white mb-6 leading-tight">${item.prompt} <span class="text-gray-500 font-normal text-lg">(Optional)</span></h2>
-                    
                     <input type="text" id="custom-name-${State.currentDishIndex}" placeholder="e.g., Spicy French Fries" maxlength="50" class="font-semibold text-lg mb-6" oninput="checkCustomInput()">
-
                     <div id="evaluation-box-${State.currentDishIndex}" class="opacity-30 pointer-events-none transition-opacity duration-500">
                         <p class="text-center text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Tap to rate</p>
                         <div class="star-container" data-rating="0" id="stars-${State.currentDishIndex}">
-                            ${getStarHTML(5)}
-                            ${getStarHTML(4)}
-                            ${getStarHTML(3)}
-                            ${getStarHTML(2)}
-                            ${getStarHTML(1)}
+                            ${getStarHTML(5)}${getStarHTML(4)}${getStarHTML(3)}${getStarHTML(2)}${getStarHTML(1)}
                         </div>
-
                         <div id="comment-box-${State.currentDishIndex}" class="hidden mt-6 animate-in slide-in-from-bottom-4">
                             <textarea id="dish-comment-${State.currentDishIndex}" rows="2" maxlength="200" placeholder="Any specific thoughts? (Optional)" class="text-sm"></textarea>
                         </div>
                     </div>
+                    ${mustRateWarning}
                 </div>`;
 
-                // If it's a custom slot, they can skip it just by clicking next without typing.
-                const nextBtn = document.getElementById('btn-next-dish');
-                nextBtn.classList.remove('hidden');
-                if (State.currentDishIndex === MENU_CONFIG.length - 1) {
-                    nextBtn.innerText = "Submit Feedback";
-                } else {
-                    nextBtn.innerText = "Next Dish";
-                }
+                if (isLast && currentRated === 0) nextBtn.classList.add('hidden'); 
+                else nextBtn.classList.remove('hidden');
+                nextBtn.innerText = isLast ? "Submit Feedback" : "Skip Dish";
             }
-
             container.innerHTML = html;
-
-            // Initialize payload object for this index
-            State.payload.ratings[State.currentDishIndex] = {
-                name: item.type === 'signature' ? item.name : "",
-                rating: 0, comment: "", type: item.type
-            };
         }
 
-        // --- Interaction Logic ---
         function handleChoice(choice) {
             const evalBox = document.getElementById(`evaluation-box-${State.currentDishIndex}`);
             const container = document.getElementById(`choice-container-${State.currentDishIndex}`);
-            
-            // UI Styling
             container.querySelectorAll('.choice-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
 
             if (choice === 'no') {
                 evalBox.classList.add('hidden');
-                State.payload.ratings[State.currentDishIndex].rating = 0; // Clear it out
-                setTimeout(advanceDish, 300); // Auto advance on NO
+                State.payload.ratings[State.currentDishIndex].rating = 0;
+                setTimeout(advanceDish, 300);
             } else {
                 evalBox.classList.remove('hidden');
                 setTimeout(() => evalBox.classList.remove('opacity-0'), 10);
@@ -467,46 +432,36 @@
             const nextBtn = document.getElementById('btn-next-dish');
             
             State.payload.ratings[State.currentDishIndex].name = inputVal;
+            const isLast = State.currentDishIndex === MENU_CONFIG.length - 1;
+            const currentRated = getRatedCount();
 
             if (inputVal.length > 2) {
                 evalBox.classList.remove('opacity-30', 'pointer-events-none');
-                nextBtn.classList.add('hidden'); // Hide next until rated
+                nextBtn.classList.add('hidden');
             } else {
                 evalBox.classList.add('opacity-30', 'pointer-events-none');
-                State.payload.ratings[State.currentDishIndex].rating = 0; // Clear
-                nextBtn.classList.remove('hidden'); // Allow skip
-                if (State.currentDishIndex === MENU_CONFIG.length - 1) {
-                    nextBtn.innerText = "Submit Feedback";
-                } else {
-                    nextBtn.innerText = "Next Dish";
+                State.payload.ratings[State.currentDishIndex].rating = 0;
+                if (isLast && currentRated === 0) nextBtn.classList.add('hidden');
+                else {
+                    nextBtn.classList.remove('hidden');
+                    nextBtn.innerText = isLast ? "Submit Feedback" : "Skip Dish";
                 }
             }
         }
 
         function setRating(score) {
             State.payload.ratings[State.currentDishIndex].rating = score;
-            const container = document.getElementById(`stars-${State.currentDishIndex}`);
-            container.setAttribute('data-rating', score);
+            document.getElementById(`stars-${State.currentDishIndex}`).setAttribute('data-rating', score);
             document.getElementById(`comment-box-${State.currentDishIndex}`).classList.remove('hidden');
             
-            // Enable Next Button
             const nextBtn = document.getElementById('btn-next-dish');
             nextBtn.classList.remove('hidden');
-            
-            // If it's the last dish, change Next button to Submit
-            if (State.currentDishIndex === MENU_CONFIG.length - 1) {
-                nextBtn.innerText = "Submit Feedback";
-            } else {
-                nextBtn.innerText = "Next Dish";
-            }
+            nextBtn.innerText = (State.currentDishIndex === MENU_CONFIG.length - 1) ? "Submit Feedback" : "Next Dish";
         }
 
         function advanceDish() {
-            // Save comment if they typed one
             const commentEl = document.getElementById(`dish-comment-${State.currentDishIndex}`);
-            if (commentEl) {
-                State.payload.ratings[State.currentDishIndex].comment = commentEl.value.trim();
-            }
+            if (commentEl) State.payload.ratings[State.currentDishIndex].comment = commentEl.value.trim();
 
             if (State.currentDishIndex < MENU_CONFIG.length - 1) {
                 State.currentDishIndex++;
@@ -517,22 +472,14 @@
             }
         }
 
-        // ==========================================
-        // API SUBMISSION
-        // ==========================================
         async function submitPayload() {
-            // Save final comment on current screen just in case
             const commentEl = document.getElementById(`dish-comment-${State.currentDishIndex}`);
-            if (commentEl) {
-                State.payload.ratings[State.currentDishIndex].comment = commentEl.value.trim();
-            }
+            if (commentEl) State.payload.ratings[State.currentDishIndex].comment = commentEl.value.trim();
 
-            // Clean payload: Remove unrated/skipped dishes
             const cleanRatings = State.payload.ratings.filter(r => r.rating > 0 && r.name.length > 2);
-            
-            // Extract Custom Dishes for Backend Schema Mapping
-            const customDishes = cleanRatings.filter(r => r.type === 'custom');
+            if (cleanRatings.length === 0) { alert("Please rate at least one dish to claim your reward."); return; }
 
+            const customDishes = cleanRatings.filter(r => r.type === 'custom');
             const finalPayload = {
                 action: "submit_feedback",
                 deviceId: localStorage.getItem("impact_device_id"),
@@ -544,46 +491,26 @@
                 customDish1Name: customDishes[0] ? customDishes[0].name : "",
                 customDish2Name: customDishes[1] ? customDishes[1].name : "",
                 ratings: cleanRatings.map((d) => ({
-                    name: d.name,
-                    rating: d.rating,
-                    comment: d.comment,
-                    // Determine custom flag dynamically for backend mapper
+                    name: d.name, rating: d.rating, comment: d.comment,
                     isCustom1: customDishes[0] && d.name === customDishes[0].name,
                     isCustom2: customDishes[1] && d.name === customDishes[1].name
                 }))
             };
 
-            // Transition UI
             document.getElementById('action-bar').classList.add('hidden');
-            document.getElementById('view-rating').classList.remove('active');
-            document.getElementById('view-success').classList.add('active');
-            State.view = 'success';
-            updateProgress();
+            switchView('success');
 
             try {
-                // Send securely via text/plain to bypass CORS
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify(finalPayload)
-                });
-                
-                const result = await response.json();
-                
-                // Show Success Screen
+                await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(finalPayload) });
                 setTimeout(() => {
                     document.getElementById('state-loading').classList.add('hidden');
                     document.getElementById('state-done').classList.remove('hidden');
                     document.getElementById('state-done').classList.add('flex');
                 }, 800);
-
             } catch (error) {
-                console.error("Transmission Error", error);
-                alert("Network error. Please check your connection and try again.");
+                alert("Network error.");
                 document.getElementById('action-bar').classList.remove('hidden');
-                document.getElementById('view-success').classList.remove('active');
-                document.getElementById('view-rating').classList.add('active');
-                State.view = 'rating';
+                switchView('rating');
             }
         }
     </script>
