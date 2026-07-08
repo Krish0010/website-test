@@ -351,28 +351,41 @@
                     btn.classList.remove('animate-pulse');
                     document.getElementById('otp-display-email').innerText = State.payload.email;
                     
-                    // 🟢 SMART DEEP LINKING: Open Inbox instead of Compose
+                    // 🟢 NATIVE OS DEEP LINKING: Forces the physical app to launch
                     const mailBtn = document.getElementById('btn-mail-app');
-                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+                    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+                    const isAndroid = /android/i.test(userAgent);
                     const emailDomain = State.payload.email.split('@')[1].toLowerCase();
 
                     mailBtn.onclick = null; // Reset click handlers
 
                     if (isIOS) {
-                        mailBtn.href = "message://"; // Native Apple Mail Deep Link
-                    } else if (emailDomain === "gmail.com" || emailDomain === "googlemail.com") {
-                        mailBtn.href = "https://mail.google.com/"; // Intercepted by Gmail App on Android
-                    } else if (emailDomain === "yahoo.com" || emailDomain === "ymail.com") {
-                        mailBtn.href = "https://mail.yahoo.com/";
-                    } else if (emailDomain === "outlook.com" || emailDomain === "hotmail.com" || emailDomain === "live.com") {
-                        mailBtn.href = "https://outlook.live.com/mail/0/inbox";
+                        // Native Apple Mail OS Command
+                        mailBtn.href = "message://"; 
+                    } else if (isAndroid) {
+                        if (emailDomain === "gmail.com" || emailDomain === "googlemail.com") {
+                            // Native Android OS Command: Force open the exact Gmail App package
+                            mailBtn.href = "intent://#Intent;package=com.google.android.gm;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;end;";
+                        } else {
+                            // Native Android OS Command: Force open the default generic Email App
+                            mailBtn.href = "intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.APP_EMAIL;end;";
+                        }
                     } else {
-                        // Fallback: Remove link and prompt manual open for unknown Android domains
-                        mailBtn.removeAttribute('href');
-                        mailBtn.onclick = (e) => { 
-                            e.preventDefault(); 
-                            alert("Please return to your home screen and open your email app manually to view the code."); 
-                        };
+                        // Desktop/Web Fallbacks
+                        if (emailDomain === "gmail.com" || emailDomain === "googlemail.com") {
+                            mailBtn.href = "https://mail.google.com/"; 
+                        } else if (emailDomain === "yahoo.com" || emailDomain === "ymail.com") {
+                            mailBtn.href = "https://mail.yahoo.com/";
+                        } else if (emailDomain === "outlook.com" || emailDomain === "hotmail.com" || emailDomain === "live.com") {
+                            mailBtn.href = "https://outlook.live.com/mail/0/inbox";
+                        } else {
+                            mailBtn.removeAttribute('href');
+                            mailBtn.onclick = (e) => { 
+                                e.preventDefault(); 
+                                alert("Please return to your home screen and open your email app manually to view the code."); 
+                            };
+                        }
                     }
                     
                     // Only switch views if we are on the first screen
