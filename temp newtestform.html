@@ -392,20 +392,12 @@
                     }
                 }
             } catch (e) {
-                // 🟢 DIAGNOSTIC ERROR HANDLER
-                console.error("Full Error:", e);
-                let errorMsg = e.message;
-                
-                if (errorMsg.includes("Unexpected token '<'")) {
-                    alert("DEPLOYMENT ERROR: Google returned an HTML page instead of JSON. You must go to Google Apps Script, click Manage Deployments -> Edit -> New Version -> Deploy.");
-                } else {
-                    alert("System Error: " + errorMsg + "\n\nTry turning off Brave Shields/Adblockers.");
-                }
-
+                alert("Network error. Try again.");
                 btn.innerText = "Verify Identity";
                 btn.classList.remove('animate-pulse');
                 if(btnResend) btnResend.innerText = "Resend Code";
             }
+        }
 
         function triggerManualVerify() {
             const pin = document.getElementById('otp-1').value + document.getElementById('otp-2').value + document.getElementById('otp-3').value + document.getElementById('otp-4').value;
