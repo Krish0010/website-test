@@ -285,7 +285,7 @@
         }
 
         // ==========================================
-        // OTP ENGINE (UPGRADED WITH RESEND & MORPHING BUTTON)
+        // OTP ENGINE (UPGRADED UI & DIAGNOSTICS)
         // ==========================================
         let cooldownTimer = null;
 
@@ -294,7 +294,6 @@
             const btnResend = document.getElementById('btn-resend-otp');
             let timeLeft = seconds;
             
-            // Lock both buttons
             btnStart.disabled = true;
             if(btnResend) btnResend.disabled = true;
             
@@ -309,13 +308,11 @@
                 
                 if (timeLeft <= 0) {
                     clearInterval(cooldownTimer);
-                    // Unlock Start Button
                     btnStart.innerText = "Verify Identity";
                     btnStart.disabled = false;
                     btnStart.classList.remove('bg-brand-gold/30', 'cursor-not-allowed', 'text-black');
                     btnStart.classList.add('bg-brand-gold', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
                     
-                    // Unlock Resend Button
                     if(btnResend) {
                         btnResend.innerText = "Resend Code";
                         btnResend.disabled = false;
@@ -346,34 +343,6 @@
                     btn.classList.remove('animate-pulse');
                     document.getElementById('otp-display-email').innerText = State.payload.email;
                     
-                    // 🟢 BULLETPROOF DEEP LINKING: Prioritizing 100% Reliability
-                    const mailBtn = document.getElementById('btn-mail-app');
-                    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-                    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
-                    const emailDomain = State.payload.email.split('@')[1].toLowerCase();
-
-                    mailBtn.onclick = null; // Reset click handlers
-
-                    if (isIOS) {
-                        // Native Apple Mail OS Command (Works flawlessly on iOS)
-                        mailBtn.href = "message://"; 
-                    } else if (emailDomain === "gmail.com" || emailDomain === "googlemail.com") {
-                        // Android Fix: Secure Web Route
-                        mailBtn.href = "https://mail.google.com/"; 
-                    } else if (emailDomain === "yahoo.com" || emailDomain === "ymail.com") {
-                        mailBtn.href = "https://mail.yahoo.com/";
-                    } else if (emailDomain === "outlook.com" || emailDomain === "hotmail.com" || emailDomain === "live.com") {
-                        mailBtn.href = "https://outlook.live.com/mail/0/inbox";
-                    } else {
-                        // Universal Fallback for unknown email domains
-                        mailBtn.removeAttribute('href');
-                        mailBtn.onclick = (e) => { 
-                            e.preventDefault(); 
-                            alert("Code sent! Please return to your home screen and open your email app."); 
-                        };
-                    }
-                    
-                    // Only switch views if we are on the first screen
                     if (State.view !== 'otp') {
                         switchView('otp');
                         setTimeout(() => document.getElementById('otp-1').focus(), 500); 
@@ -392,7 +361,16 @@
                     }
                 }
             } catch (e) {
-                alert("Network error. Try again.");
+                // 🟢 DIAGNOSTIC ERROR HANDLER
+                console.error("Full Error:", e);
+                let errorMsg = e.message;
+                
+                if (errorMsg.includes("Unexpected token '<'") || errorMsg.includes("Unexpected token <")) {
+                    alert("DEPLOYMENT ERROR: Google returned an HTML page instead of JSON. You must go to Google Apps Script, click Manage Deployments -> Edit -> New Version -> Deploy.");
+                } else {
+                    alert("System Error: " + errorMsg + "\n\nTry turning off Brave Shields/Adblockers.");
+                }
+
                 btn.innerText = "Verify Identity";
                 btn.classList.remove('animate-pulse');
                 if(btnResend) btnResend.innerText = "Resend Code";
@@ -405,27 +383,25 @@
         }
 
         async function handleOtpInput(element, position) {
-            // 🟢 The Morphing Button Logic
             const hasInput = document.getElementById('otp-1').value || document.getElementById('otp-2').value || document.getElementById('otp-3').value || document.getElementById('otp-4').value;
+            const submitBtn = document.getElementById('btn-submit-otp');
             
             if (hasInput) {
-                document.getElementById('btn-mail-app').classList.add('hidden');
-                document.getElementById('btn-submit-otp').classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('bg-white/10', 'text-gray-500', 'cursor-not-allowed');
+                submitBtn.classList.add('bg-brand-gold', 'text-black', 'shadow-[0_0_15px_rgba(232,192,100,0.2)]', 'hover:bg-brand-gold-hover');
             } else {
-                document.getElementById('btn-mail-app').classList.remove('hidden');
-                document.getElementById('btn-submit-otp').classList.add('hidden');
+                submitBtn.disabled = true;
+                submitBtn.classList.add('bg-white/10', 'text-gray-500', 'cursor-not-allowed');
+                submitBtn.classList.remove('bg-brand-gold', 'text-black', 'shadow-[0_0_15px_rgba(232,192,100,0.2)]', 'hover:bg-brand-gold-hover');
             }
 
-            // Auto advance
             if (element.value.length === 1 && position < 4) {
                 document.getElementById(`otp-${position + 1}`).focus();
             }
-            // Allow backspace to go backwards
             if (element.value.length === 0 && position > 1 && event.key === "Backspace") {
                 document.getElementById(`otp-${position - 1}`).focus();
             }
-
-            // If 4th digit entered, auto submit
             if (position === 4 && element.value.length === 1) {
                 triggerManualVerify();
             }
@@ -433,10 +409,11 @@
 
         async function verifyOTP(pin) {
             document.getElementById('otp-error').classList.add('hidden');
+            const submitBtn = document.getElementById('btn-submit-otp');
             
             const otpInputs = document.querySelectorAll('.otp-input');
             otpInputs.forEach(input => input.classList.add('opacity-50', 'pointer-events-none'));
-            document.getElementById('btn-submit-otp').innerText = "Verifying...";
+            submitBtn.innerText = "Verifying...";
             
             try {
                 const response = await fetch(SCRIPT_URL, {
@@ -451,21 +428,20 @@
                     renderDishCard();
                     switchView('rating');
                 } else {
-                    // Invalid PIN - Reset everything
                     otpInputs.forEach(input => input.classList.remove('opacity-50', 'pointer-events-none'));
                     document.getElementById('otp-error').classList.remove('hidden');
                     document.getElementById('otp-1').value = ''; document.getElementById('otp-2').value = ''; document.getElementById('otp-3').value = ''; document.getElementById('otp-4').value = '';
                     
-                    // Revert the morphing button back to the Mail app
-                    document.getElementById('btn-mail-app').classList.remove('hidden');
-                    document.getElementById('btn-submit-otp').classList.add('hidden');
-                    document.getElementById('btn-submit-otp').innerText = "Verify Code";
+                    submitBtn.innerText = "Verify Code";
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('bg-white/10', 'text-gray-500', 'cursor-not-allowed');
+                    submitBtn.classList.remove('bg-brand-gold', 'text-black', 'shadow-[0_0_15px_rgba(232,192,100,0.2)]', 'hover:bg-brand-gold-hover');
                     
                     document.getElementById('otp-1').focus();
                 }
             } catch (e) {
                 otpInputs.forEach(input => input.classList.remove('opacity-50', 'pointer-events-none'));
-                document.getElementById('btn-submit-otp').innerText = "Verify Code";
+                submitBtn.innerText = "Verify Code";
                 alert("Network error processing PIN.");
             }
         }
