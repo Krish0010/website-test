@@ -279,8 +279,33 @@
         }
 
         // ==========================================
-        // OTP ENGINE
+        // OTP ENGINE (UPGRADED WITH COOLDOWN & ERROR HANDLING)
         // ==========================================
+        let cooldownTimer = null;
+
+        function startOtpCooldown(seconds) {
+            const btn = document.getElementById('btn-start');
+            let timeLeft = seconds;
+            
+            btn.disabled = true;
+            btn.classList.add('bg-brand-gold/30', 'cursor-not-allowed', 'text-black');
+            btn.classList.remove('bg-brand-gold', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
+            
+            clearInterval(cooldownTimer);
+            cooldownTimer = setInterval(() => {
+                timeLeft--;
+                btn.innerText = `Wait ${timeLeft}s`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(cooldownTimer);
+                    btn.innerText = "Verify Identity";
+                    btn.disabled = false;
+                    btn.classList.remove('bg-brand-gold/30', 'cursor-not-allowed', 'text-black');
+                    btn.classList.add('bg-brand-gold', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
+                }
+            }, 1000);
+        }
+
         async function requestOTP() {
             if(document.getElementById('setup-email').classList.contains('border-brand-red')) return;
             const btn = document.getElementById('btn-start');
@@ -288,15 +313,34 @@
             btn.classList.add('animate-pulse');
 
             try {
-                await fetch(SCRIPT_URL, {
+                const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({ action: "request_otp", email: State.payload.email })
                 });
                 
-                document.getElementById('otp-display-email').innerText = State.payload.email;
-                switchView('otp');
-                setTimeout(() => document.getElementById('otp-1').focus(), 500); // Auto-focus logic
+                const res = await response.json();
+
+                if (res.success) {
+                    // Success: Slide to the OTP entry screen
+                    btn.classList.remove('animate-pulse');
+                    document.getElementById('otp-display-email').innerText = State.payload.email;
+                    switchView('otp');
+                    setTimeout(() => document.getElementById('otp-1').focus(), 500); 
+                    
+                    // Start the cooldown in the background just in case they go back
+                    startOtpCooldown(60); 
+                } else {
+                    // Backend blocked the request (e.g., 60s cooldown or 10 max daily limit hit)
+                    btn.classList.remove('animate-pulse');
+                    alert(res.message); // Displays the backend reason (e.g., "Maximum verification attempts reached")
+                    
+                    if (res.message.includes("60 seconds")) {
+                        startOtpCooldown(60);
+                    } else {
+                        btn.innerText = "Limit Reached";
+                    }
+                }
             } catch (e) {
                 alert("Network error. Try again.");
                 btn.innerText = "Verify Identity";
@@ -324,6 +368,10 @@
         async function verifyOTP(pin) {
             document.getElementById('otp-error').classList.add('hidden');
             
+            // Visual feedback that it is processing
+            const otpInputs = document.querySelectorAll('.otp-input');
+            otpInputs.forEach(input => input.classList.add('opacity-50', 'pointer-events-none'));
+            
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
@@ -338,12 +386,15 @@
                     renderDishCard();
                     switchView('rating');
                 } else {
+                    // Invalid PIN
+                    otpInputs.forEach(input => input.classList.remove('opacity-50', 'pointer-events-none'));
                     document.getElementById('otp-error').classList.remove('hidden');
                     document.getElementById('otp-1').value = ''; document.getElementById('otp-2').value = ''; document.getElementById('otp-3').value = ''; document.getElementById('otp-4').value = '';
                     document.getElementById('otp-1').focus();
                 }
             } catch (e) {
-                alert("Network error.");
+                otpInputs.forEach(input => input.classList.remove('opacity-50', 'pointer-events-none'));
+                alert("Network error processing PIN.");
             }
         }
 
