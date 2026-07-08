@@ -351,37 +351,31 @@
                     btn.classList.remove('animate-pulse');
                     document.getElementById('otp-display-email').innerText = State.payload.email;
                     
-                    // 🟢 NATIVE OS DEEP LINKING: Forces the physical app to launch (Play Store Bypass)
+                    // 🟢 BULLETPROOF DEEP LINKING: Prioritizing 100% Reliability
                     const mailBtn = document.getElementById('btn-mail-app');
                     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
                     const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
-                    const isAndroid = /android/i.test(userAgent);
                     const emailDomain = State.payload.email.split('@')[1].toLowerCase();
 
                     mailBtn.onclick = null; // Reset click handlers
 
                     if (isIOS) {
-                        // Native Apple Mail OS Command
+                        // Native Apple Mail OS Command (Works flawlessly on iOS)
                         mailBtn.href = "message://"; 
-                    } else if (isAndroid) {
-                        // 🟢 FIX: Generic Android Email Intent. 
-                        // By removing the "package" parameter, we stop the browser from redirecting to the Play Store.
-                        mailBtn.href = "intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.APP_EMAIL;end;";
+                    } else if (emailDomain === "gmail.com" || emailDomain === "googlemail.com") {
+                        // Android Fix: Secure Web Route (Android intercepts this to open the Gmail app safely)
+                        mailBtn.href = "https://mail.google.com/"; 
+                    } else if (emailDomain === "yahoo.com" || emailDomain === "ymail.com") {
+                        mailBtn.href = "https://mail.yahoo.com/";
+                    } else if (emailDomain === "outlook.com" || emailDomain === "hotmail.com" || emailDomain === "live.com") {
+                        mailBtn.href = "https://outlook.live.com/mail/0/inbox";
                     } else {
-                        // Desktop/Web Fallbacks
-                        if (emailDomain === "gmail.com" || emailDomain === "googlemail.com") {
-                            mailBtn.href = "https://mail.google.com/"; 
-                        } else if (emailDomain === "yahoo.com" || emailDomain === "ymail.com") {
-                            mailBtn.href = "https://mail.yahoo.com/";
-                        } else if (emailDomain === "outlook.com" || emailDomain === "hotmail.com" || emailDomain === "live.com") {
-                            mailBtn.href = "https://outlook.live.com/mail/0/inbox";
-                        } else {
-                            mailBtn.removeAttribute('href');
-                            mailBtn.onclick = (e) => { 
-                                e.preventDefault(); 
-                                alert("Please return to your home screen and open your email app manually to view the code."); 
-                            };
-                        }
+                        // Universal Fallback for unknown email domains
+                        mailBtn.removeAttribute('href');
+                        mailBtn.onclick = (e) => { 
+                            e.preventDefault(); 
+                            alert("Code sent! Please return to your home screen and open your email app."); 
+                        };
                     }
                     
                     // Only switch views if we are on the first screen
