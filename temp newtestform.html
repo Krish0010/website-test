@@ -358,7 +358,7 @@
                         // Native Apple Mail OS Command (Works flawlessly on iOS)
                         mailBtn.href = "message://"; 
                     } else if (emailDomain === "gmail.com" || emailDomain === "googlemail.com") {
-                        // Android Fix: Secure Web Route (Android intercepts this to open the Gmail app safely)
+                        // Android Fix: Secure Web Route
                         mailBtn.href = "https://mail.google.com/"; 
                     } else if (emailDomain === "yahoo.com" || emailDomain === "ymail.com") {
                         mailBtn.href = "https://mail.yahoo.com/";
@@ -407,18 +407,13 @@
         async function handleOtpInput(element, position) {
             // 🟢 The Morphing Button Logic
             const hasInput = document.getElementById('otp-1').value || document.getElementById('otp-2').value || document.getElementById('otp-3').value || document.getElementById('otp-4').value;
-            const submitBtn = document.getElementById('btn-submit-otp');
             
             if (hasInput) {
-                // Light up the button
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('bg-white/10', 'text-gray-500', 'cursor-not-allowed');
-                submitBtn.classList.add('bg-brand-gold', 'text-black', 'shadow-[0_0_15px_rgba(232,192,100,0.2)]', 'hover:bg-brand-gold-hover');
+                document.getElementById('btn-mail-app').classList.add('hidden');
+                document.getElementById('btn-submit-otp').classList.remove('hidden');
             } else {
-                // Grey out the button
-                submitBtn.disabled = true;
-                submitBtn.classList.add('bg-white/10', 'text-gray-500', 'cursor-not-allowed');
-                submitBtn.classList.remove('bg-brand-gold', 'text-black', 'shadow-[0_0_15px_rgba(232,192,100,0.2)]', 'hover:bg-brand-gold-hover');
+                document.getElementById('btn-mail-app').classList.remove('hidden');
+                document.getElementById('btn-submit-otp').classList.add('hidden');
             }
 
             // Auto advance
@@ -438,11 +433,10 @@
 
         async function verifyOTP(pin) {
             document.getElementById('otp-error').classList.add('hidden');
-            const submitBtn = document.getElementById('btn-submit-otp');
             
             const otpInputs = document.querySelectorAll('.otp-input');
             otpInputs.forEach(input => input.classList.add('opacity-50', 'pointer-events-none'));
-            submitBtn.innerText = "Verifying...";
+            document.getElementById('btn-submit-otp').innerText = "Verifying...";
             
             try {
                 const response = await fetch(SCRIPT_URL, {
@@ -462,17 +456,16 @@
                     document.getElementById('otp-error').classList.remove('hidden');
                     document.getElementById('otp-1').value = ''; document.getElementById('otp-2').value = ''; document.getElementById('otp-3').value = ''; document.getElementById('otp-4').value = '';
                     
-                    // Revert the button back to the greyed-out state
-                    submitBtn.innerText = "Verify Code";
-                    submitBtn.disabled = true;
-                    submitBtn.classList.add('bg-white/10', 'text-gray-500', 'cursor-not-allowed');
-                    submitBtn.classList.remove('bg-brand-gold', 'text-black', 'shadow-[0_0_15px_rgba(232,192,100,0.2)]', 'hover:bg-brand-gold-hover');
+                    // Revert the morphing button back to the Mail app
+                    document.getElementById('btn-mail-app').classList.remove('hidden');
+                    document.getElementById('btn-submit-otp').classList.add('hidden');
+                    document.getElementById('btn-submit-otp').innerText = "Verify Code";
                     
                     document.getElementById('otp-1').focus();
                 }
             } catch (e) {
                 otpInputs.forEach(input => input.classList.remove('opacity-50', 'pointer-events-none'));
-                submitBtn.innerText = "Verify Code";
+                document.getElementById('btn-submit-otp').innerText = "Verify Code";
                 alert("Network error processing PIN.");
             }
         }
