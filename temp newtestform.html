@@ -351,7 +351,7 @@
                     btn.classList.remove('animate-pulse');
                     document.getElementById('otp-display-email').innerText = State.payload.email;
                     
-                    // 🟢 NATIVE OS DEEP LINKING: Forces the physical app to launch
+                    // 🟢 NATIVE OS DEEP LINKING: Forces the physical app to launch (Play Store Bypass)
                     const mailBtn = document.getElementById('btn-mail-app');
                     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
                     const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
@@ -364,13 +364,9 @@
                         // Native Apple Mail OS Command
                         mailBtn.href = "message://"; 
                     } else if (isAndroid) {
-                        if (emailDomain === "gmail.com" || emailDomain === "googlemail.com") {
-                            // Native Android OS Command: Force open the exact Gmail App package
-                            mailBtn.href = "intent://#Intent;package=com.google.android.gm;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;end;";
-                        } else {
-                            // Native Android OS Command: Force open the default generic Email App
-                            mailBtn.href = "intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.APP_EMAIL;end;";
-                        }
+                        // 🟢 FIX: Generic Android Email Intent. 
+                        // By removing the "package" parameter, we stop the browser from redirecting to the Play Store.
+                        mailBtn.href = "intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.APP_EMAIL;end;";
                     } else {
                         // Desktop/Web Fallbacks
                         if (emailDomain === "gmail.com" || emailDomain === "googlemail.com") {
