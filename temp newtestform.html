@@ -82,14 +82,6 @@
 
         .view-section { display: none; opacity: 0; transform: translateY(15px); transition: all 0.4s ease; }
         .view-section.active { display: block; opacity: 1; transform: translateY(0); }
-        
-        .error-shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; border-color: #ef4444 !important; }
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
-        }
     </style>
 </head>
 <body class="antialiased min-h-[100dvh] flex flex-col relative">
@@ -227,7 +219,6 @@
         // ==========================================
         // ⚙️ CONFIGURATION
         // ==========================================
-        // 🔴 CRITICAL: Paste the URL of your Service A (Partner Portal) Web App here!
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwzosTl8sLFUXv0Y81am0VHcs76pACMAIhMJM7gPoyfkrF9GH18dsY6WSVGtZmE0oy6vQ/exec"; 
 
         const MENU_CONFIG = [
@@ -363,7 +354,7 @@
             } catch (e) {
                 // 🟢 DIAGNOSTIC ERROR HANDLER
                 console.error("Full Error:", e);
-                let errorMsg = e.message;
+                let errorMsg = e.message || String(e);
                 
                 if (errorMsg.includes("Unexpected token '<'") || errorMsg.includes("Unexpected token <")) {
                     alert("DEPLOYMENT ERROR: Google returned an HTML page instead of JSON. You must go to Google Apps Script, click Manage Deployments -> Edit -> New Version -> Deploy.");
@@ -564,7 +555,7 @@
             if (State.currentDishIndex < MENU_CONFIG.length - 1) {
                 State.currentDishIndex++;
                 renderDishCard();
-                updateProgress();
+                switchView('rating'); // Fixes the missing updateProgress UI bug
             } else {
                 submitPayload();
             }
