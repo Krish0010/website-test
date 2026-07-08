@@ -168,13 +168,24 @@
                     <input type="tel" maxlength="1" class="otp-input" id="otp-4" onkeyup="handleOtpInput(this, 4)" onfocus="this.select()">
                 </div>
 
-                <div class="flex flex-col gap-3">
-                    <a href="mailto:" class="w-full py-3 rounded-xl font-bold text-gray-300 bg-white/5 border border-white/10 hover:bg-white/10 transition-colors text-sm flex items-center justify-center gap-2">
+                <div class="flex flex-col gap-3 relative">
+                    <a href="mailto:" id="btn-mail-app" class="w-full py-3 rounded-xl font-bold text-gray-300 bg-white/5 border border-white/10 hover:bg-white/10 transition-colors text-sm flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                         Open Mail App
                     </a>
+                    
+                    <button id="btn-submit-otp" onclick="triggerManualVerify()" class="w-full py-3 rounded-xl font-black text-black bg-brand-gold shadow-[0_0_15px_rgba(232,192,100,0.2)] hover:bg-brand-gold-hover transition-colors text-sm hidden uppercase tracking-widest">
+                        Verify Code
+                    </button>
                 </div>
+                
                 <p id="otp-error" class="text-brand-red text-xs font-bold mt-4 hidden uppercase tracking-wider">Invalid PIN. Try again.</p>
+
+                <div class="mt-6 text-center">
+                    <button id="btn-resend-otp" onclick="requestOTP()" class="text-[11px] font-bold text-gray-500 uppercase tracking-widest hover:text-brand-gold transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        Resend Code
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -279,29 +290,41 @@
         }
 
         // ==========================================
-        // OTP ENGINE (UPGRADED WITH COOLDOWN & ERROR HANDLING)
+        // OTP ENGINE (UPGRADED WITH RESEND & MORPHING BUTTON)
         // ==========================================
         let cooldownTimer = null;
 
         function startOtpCooldown(seconds) {
-            const btn = document.getElementById('btn-start');
+            const btnStart = document.getElementById('btn-start');
+            const btnResend = document.getElementById('btn-resend-otp');
             let timeLeft = seconds;
             
-            btn.disabled = true;
-            btn.classList.add('bg-brand-gold/30', 'cursor-not-allowed', 'text-black');
-            btn.classList.remove('bg-brand-gold', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
+            // Lock both buttons
+            btnStart.disabled = true;
+            if(btnResend) btnResend.disabled = true;
+            
+            btnStart.classList.add('bg-brand-gold/30', 'cursor-not-allowed', 'text-black');
+            btnStart.classList.remove('bg-brand-gold', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
             
             clearInterval(cooldownTimer);
             cooldownTimer = setInterval(() => {
                 timeLeft--;
-                btn.innerText = `Wait ${timeLeft}s`;
+                btnStart.innerText = `Wait ${timeLeft}s`;
+                if(btnResend) btnResend.innerText = `Resend available in ${timeLeft}s`;
                 
                 if (timeLeft <= 0) {
                     clearInterval(cooldownTimer);
-                    btn.innerText = "Verify Identity";
-                    btn.disabled = false;
-                    btn.classList.remove('bg-brand-gold/30', 'cursor-not-allowed', 'text-black');
-                    btn.classList.add('bg-brand-gold', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
+                    // Unlock Start Button
+                    btnStart.innerText = "Verify Identity";
+                    btnStart.disabled = false;
+                    btnStart.classList.remove('bg-brand-gold/30', 'cursor-not-allowed', 'text-black');
+                    btnStart.classList.add('bg-brand-gold', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
+                    
+                    // Unlock Resend Button
+                    if(btnResend) {
+                        btnResend.innerText = "Resend Code";
+                        btnResend.disabled = false;
+                    }
                 }
             }, 1000);
         }
@@ -309,8 +332,11 @@
         async function requestOTP() {
             if(document.getElementById('setup-email').classList.contains('border-brand-red')) return;
             const btn = document.getElementById('btn-start');
+            const btnResend = document.getElementById('btn-resend-otp');
+            
             btn.innerText = "Sending Secure Code...";
             btn.classList.add('animate-pulse');
+            if(btnResend) btnResend.innerText = "Sending...";
 
             try {
                 const response = await fetch(SCRIPT_URL, {
@@ -322,33 +348,52 @@
                 const res = await response.json();
 
                 if (res.success) {
-                    // Success: Slide to the OTP entry screen
                     btn.classList.remove('animate-pulse');
                     document.getElementById('otp-display-email').innerText = State.payload.email;
-                    switchView('otp');
-                    setTimeout(() => document.getElementById('otp-1').focus(), 500); 
                     
-                    // Start the cooldown in the background just in case they go back
+                    // Only switch views if we are on the first screen
+                    if (State.view !== 'otp') {
+                        switchView('otp');
+                        setTimeout(() => document.getElementById('otp-1').focus(), 500); 
+                    }
+                    
                     startOtpCooldown(60); 
                 } else {
-                    // Backend blocked the request (e.g., 60s cooldown or 10 max daily limit hit)
                     btn.classList.remove('animate-pulse');
-                    alert(res.message); // Displays the backend reason (e.g., "Maximum verification attempts reached")
+                    alert(res.message); 
                     
                     if (res.message.includes("60 seconds")) {
                         startOtpCooldown(60);
                     } else {
                         btn.innerText = "Limit Reached";
+                        if(btnResend) btnResend.innerText = "Limit Reached";
                     }
                 }
             } catch (e) {
                 alert("Network error. Try again.");
                 btn.innerText = "Verify Identity";
                 btn.classList.remove('animate-pulse');
+                if(btnResend) btnResend.innerText = "Resend Code";
             }
         }
 
+        function triggerManualVerify() {
+            const pin = document.getElementById('otp-1').value + document.getElementById('otp-2').value + document.getElementById('otp-3').value + document.getElementById('otp-4').value;
+            if (pin.length === 4) verifyOTP(pin);
+        }
+
         async function handleOtpInput(element, position) {
+            // 🟢 The Morphing Button Logic
+            const hasInput = document.getElementById('otp-1').value || document.getElementById('otp-2').value || document.getElementById('otp-3').value || document.getElementById('otp-4').value;
+            
+            if (hasInput) {
+                document.getElementById('btn-mail-app').classList.add('hidden');
+                document.getElementById('btn-submit-otp').classList.remove('hidden');
+            } else {
+                document.getElementById('btn-mail-app').classList.remove('hidden');
+                document.getElementById('btn-submit-otp').classList.add('hidden');
+            }
+
             // Auto advance
             if (element.value.length === 1 && position < 4) {
                 document.getElementById(`otp-${position + 1}`).focus();
@@ -360,17 +405,16 @@
 
             // If 4th digit entered, auto submit
             if (position === 4 && element.value.length === 1) {
-                const pin = document.getElementById('otp-1').value + document.getElementById('otp-2').value + document.getElementById('otp-3').value + document.getElementById('otp-4').value;
-                if (pin.length === 4) verifyOTP(pin);
+                triggerManualVerify();
             }
         }
 
         async function verifyOTP(pin) {
             document.getElementById('otp-error').classList.add('hidden');
             
-            // Visual feedback that it is processing
             const otpInputs = document.querySelectorAll('.otp-input');
             otpInputs.forEach(input => input.classList.add('opacity-50', 'pointer-events-none'));
+            document.getElementById('btn-submit-otp').innerText = "Verifying...";
             
             try {
                 const response = await fetch(SCRIPT_URL, {
@@ -381,19 +425,25 @@
                 const res = await response.json();
                 
                 if (res.success) {
-                    // Start rating flow
                     document.getElementById('action-bar').classList.remove('hidden');
                     renderDishCard();
                     switchView('rating');
                 } else {
-                    // Invalid PIN
+                    // Invalid PIN - Reset everything
                     otpInputs.forEach(input => input.classList.remove('opacity-50', 'pointer-events-none'));
                     document.getElementById('otp-error').classList.remove('hidden');
                     document.getElementById('otp-1').value = ''; document.getElementById('otp-2').value = ''; document.getElementById('otp-3').value = ''; document.getElementById('otp-4').value = '';
+                    
+                    // Revert the morphing button back to the Mail app
+                    document.getElementById('btn-mail-app').classList.remove('hidden');
+                    document.getElementById('btn-submit-otp').classList.add('hidden');
+                    document.getElementById('btn-submit-otp').innerText = "Verify Code";
+                    
                     document.getElementById('otp-1').focus();
                 }
             } catch (e) {
                 otpInputs.forEach(input => input.classList.remove('opacity-50', 'pointer-events-none'));
+                document.getElementById('btn-submit-otp').innerText = "Verify Code";
                 alert("Network error processing PIN.");
             }
         }
