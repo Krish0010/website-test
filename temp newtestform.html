@@ -39,25 +39,13 @@
             border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.1);
         }
 
-        /* 🟢 UPGRADE 1: Standard inputs remain perfectly centered */
+        /* 🟢 Standard inputs remain perfectly centered */
         input[type="text"], input[type="email"], select {
             background-color: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.12);
             color: #fff; width: 100%; padding: 16px 20px; border-radius: 16px; font-size: 15px; outline: none;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-align: center; 
             text-align-last: center; 
-        }
-
-        /* 🟢 UPGRADE 2: Textarea gets Left-Alignment and Heavy Safe-Zone Padding */
-        textarea {
-            background-color: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.12);
-            color: #fff; width: 100%; 
-            padding: 16px 20px 32px 20px; /* Top:16px, Right:20px, Bottom:32px (Room for counter), Left:20px */
-            border-radius: 16px; font-size: 14px; outline: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-align: left; /* Left alignment is critical for reading paragraphs */
-            resize: none; 
-            line-height: 1.5; /* Adds breathing room between sentences */
         }
 
         input:focus, textarea:focus, select:focus {
@@ -106,9 +94,12 @@
     <div class="ambient-orb orb-2"></div>
 
     <div class="w-full px-6 pt-8 pb-4 flex justify-between items-center z-40 relative max-w-xl mx-auto">
-        <!-- 🟢 UPGRADED LOGO: Tight golden ring, transparent inner, scaled perfectly -->
-        <div class="w-14 h-14 rounded-full border-2 border-brand-gold flex items-center justify-center overflow-hidden shadow-[0_0_15px_rgba(232,192,100,0.3)] shrink-0 bg-transparent">
-            <img src="https://res.cloudinary.com/dr6xhnhor/image/upload/v1781864406/big_size_Logo_without_background_new_ubp9mn.png" alt="Logo" class="w-full h-full object-cover scale-[1.15]">
+        <!-- 🟢 PREMIUM 3D LOGO: Image breaks out of the frame -->
+        <div class="relative w-14 h-14 shrink-0 flex items-end justify-center">
+            <!-- The glowing golden ring (sits behind) -->
+            <div class="absolute inset-0 rounded-full border-2 border-brand-gold shadow-[0_0_15px_rgba(232,192,100,0.3)] bg-black"></div>
+            <!-- The avatar (scaled up, shifted up, bottom-rounded to fit the ring) -->
+            <img src="https://res.cloudinary.com/dr6xhnhor/image/upload/v1781864406/big_size_Logo_without_background_new_ubp9mn.png" alt="Logo" class="w-full h-full object-cover scale-[1.3] -translate-y-2 relative z-10 rounded-b-full">
         </div>
         <div class="flex flex-col items-end">
             <div id="step-indicator" class="text-[10px] font-black text-brand-gold uppercase tracking-[0.2em] mb-1">Setup</div>
@@ -602,7 +593,7 @@
                             </div>
                             <!-- 🟢 UPGRADED COMMENT BOX -->
                             <div id="comment-box-${State.currentDishIndex}" class="hidden mt-6 animate-in slide-in-from-bottom-4 relative">
-                                <textarea id="dish-comment-${State.currentDishIndex}" rows="3" maxlength="200" placeholder="Any specific thoughts? (Optional)" oninput="updateCharCount(${State.currentDishIndex})"></textarea>
+                                <textarea id="dish-comment-${State.currentDishIndex}" rows="3" maxlength="200" placeholder="Any specific thoughts? (Optional)" oninput="updateCharCount(${State.currentDishIndex})" class="w-full bg-black/40 border border-white/10 text-white rounded-2xl text-[13px] sm:text-sm pt-4 px-5 pb-10 text-left resize-none focus:border-brand-gold focus:ring-4 focus:ring-brand-gold/15 outline-none transition-all duration-300 leading-relaxed block box-border"></textarea>
                                 <span id="char-count-${State.currentDishIndex}" class="absolute bottom-3 right-5 text-[10px] font-black text-gray-500 transition-colors duration-300 pointer-events-none">200 left</span>
                             </div>
                         </div>
@@ -632,7 +623,7 @@
                         </div>
                         <!-- 🟢 UPGRADED COMMENT BOX -->
                         <div id="comment-box-${State.currentDishIndex}" class="hidden mt-6 animate-in slide-in-from-bottom-4 relative">
-                            <textarea id="dish-comment-${State.currentDishIndex}" rows="3" maxlength="200" placeholder="Any specific thoughts? (Optional)" oninput="updateCharCount(${State.currentDishIndex})"></textarea>
+                            <textarea id="dish-comment-${State.currentDishIndex}" rows="3" maxlength="200" placeholder="Any specific thoughts? (Optional)" oninput="updateCharCount(${State.currentDishIndex})" class="w-full bg-black/40 border border-white/10 text-white rounded-2xl text-[13px] sm:text-sm pt-4 px-5 pb-10 text-left resize-none focus:border-brand-gold focus:ring-4 focus:ring-brand-gold/15 outline-none transition-all duration-300 leading-relaxed block box-border"></textarea>
                             <span id="char-count-${State.currentDishIndex}" class="absolute bottom-3 right-5 text-[10px] font-black text-gray-500 transition-colors duration-300 pointer-events-none">200 left</span>
                         </div>
                     </div>
