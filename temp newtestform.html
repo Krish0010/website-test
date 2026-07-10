@@ -97,8 +97,9 @@
     <div class="ambient-orb orb-2"></div>
 
     <div class="w-full px-6 pt-8 pb-4 flex justify-between items-center z-40 relative max-w-xl mx-auto">
-        <div class="w-14 h-14 rounded-full bg-black border border-brand-gold/30 p-1 flex items-center justify-center shadow-lg shrink-0">
-            <img src="https://res.cloudinary.com/dr6xhnhor/image/upload/v1781864406/big_size_Logo_without_background_new_ubp9mn.png" alt="Logo" class="w-full h-full object-contain rounded-full">
+        <!-- 🟢 UPGRADED LOGO: Tight golden ring, transparent inner, scaled perfectly -->
+        <div class="w-14 h-14 rounded-full border-2 border-brand-gold flex items-center justify-center overflow-hidden shadow-[0_0_15px_rgba(232,192,100,0.3)] shrink-0 bg-transparent">
+            <img src="https://res.cloudinary.com/dr6xhnhor/image/upload/v1781864406/big_size_Logo_without_background_new_ubp9mn.png" alt="Logo" class="w-full h-full object-cover scale-[1.15]">
         </div>
         <div class="flex flex-col items-end">
             <div id="step-indicator" class="text-[10px] font-black text-brand-gold uppercase tracking-[0.2em] mb-1">Setup</div>
@@ -107,24 +108,26 @@
             </div>
         </div>
     </div>
+    </div>
 
     <div class="flex-1 w-full max-w-xl mx-auto relative px-4 sm:px-6 pb-28 pt-2 flex flex-col z-30" id="app-container">
         
         <!-- VIEW 1: SETUP -->
         <div id="view-setup" class="view-section active w-full h-full">
             <div class="glass-card rounded-3xl p-6 sm:p-8 mb-6">
-                <h1 class="text-3xl font-black text-white mb-2 leading-tight tracking-tight">Your feedback = <br><span class="text-brand-gold">A Surprise 🎁</span></h1>
+                <!-- 🟢 UPGRADED HEADING -->
+                <h1 class="text-3xl font-black text-white mb-2 leading-tight tracking-tight">Quick Feedback.<br><span class="text-brand-gold">Secret Reward 🎁</span></h1>
                 <p class="text-sm text-gray-400 mb-8 font-medium">Help us improve, and we'll send a secret reward straight to your inbox.</p>
                 
                 <div class="space-y-5">
                     <div>
-                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center w-full">Location <span class="text-brand-red">*</span></label>
+                        <!-- 🟢 ADDED id="location-asterisk" -->
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center w-full">Location <span id="location-asterisk" class="text-brand-red">*</span></label>
                         <div class="relative">
                             <select id="setup-resto" class="appearance-none cursor-pointer" onchange="validateSetup()">
                                 <option value="" disabled selected hidden>Select your restaurant...</option>
                                 <option value="Temp New">Temp New</option>
                             </select>
-                            <!-- 🟢 ADDED id="resto-arrow" SO JAVASCRIPT CAN HIDE IT -->
                             <div id="resto-arrow" class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-brand-gold">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                             </div>
@@ -145,7 +148,8 @@
                 </div>
             </div>
             
-            <button id="btn-start" onclick="requestOTP()" disabled class="w-full py-4 rounded-2xl font-black text-black bg-brand-gold/30 cursor-not-allowed uppercase tracking-widest transition-all duration-300">
+            <!-- 🟢 UPGRADED BUTTON: Starts as muted glass, ignites to solid gold -->
+            <button id="btn-start" onclick="requestOTP()" disabled class="w-full py-4 rounded-2xl font-black text-gray-500 bg-white/5 border border-white/10 cursor-not-allowed uppercase tracking-widest transition-all duration-300">
                 Verify Identity
             </button>
         </div>
@@ -289,9 +293,12 @@
                 restoSelect.classList.add('opacity-50', 'pointer-events-none');
                 State.payload.restaurant = validOptions[0].value;
                 
-                // 🟢 NEW: Hide the dropdown arrow if only 1 location exists
                 const arrow = document.getElementById('resto-arrow');
                 if (arrow) arrow.classList.add('hidden');
+                
+                // 🟢 NEW: Hide the red asterisk if location is locked
+                const asterisk = document.getElementById('location-asterisk');
+                if (asterisk) asterisk.classList.add('hidden');
             }
 
             const savedDraft = sessionStorage.getItem('impact_draft');
@@ -344,11 +351,10 @@
 
         function validateSetup() {
             const resto = document.getElementById('setup-resto').value;
-            const email = document.getElementById('setup-email').value; // Trim removed because auto-scrubber handles it
+            const email = document.getElementById('setup-email').value; 
             const bill = document.getElementById('setup-bill').value;
             const btn = document.getElementById('btn-start');
             
-            // Validate Email
             let emailValid = email.length > 0 && isValidEmail(email);
             if(email.length > 0 && !emailValid) { 
                 document.getElementById('email-error').classList.remove('hidden'); 
@@ -358,7 +364,6 @@
                 document.getElementById('setup-email').classList.remove('border-brand-red'); 
             }
 
-            // 🟢 UPGRADE: Validate Bill Number (Exactly 4 Digits)
             let billValid = bill.length === 4;
             if(bill.length > 0 && !billValid) { 
                 document.getElementById('bill-error').classList.remove('hidden'); 
@@ -368,18 +373,18 @@
                 document.getElementById('setup-bill').classList.remove('border-brand-red'); 
             }
 
-            // Unlock button ONLY if all conditions are perfectly met
+            // 🟢 UPGRADED BUTTON CLASSES: Perfectly matches the "Next Dish" button UI
             if (resto !== "" && emailValid && billValid) {
                 btn.disabled = false; 
-                btn.classList.remove('bg-brand-gold/30', 'cursor-not-allowed', 'text-black'); 
-                btn.classList.add('bg-brand-gold', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
+                btn.classList.remove('bg-white/5', 'text-gray-500', 'cursor-not-allowed', 'border', 'border-white/10'); 
+                btn.classList.add('bg-brand-gold', 'text-black', 'shadow-[0_0_25px_rgba(232,192,100,0.3)]', 'hover:scale-[1.02]', 'active:scale-95');
                 State.payload.restaurant = resto; 
                 State.payload.email = email; 
                 State.payload.billNumber = bill;
             } else {
                 btn.disabled = true; 
-                btn.classList.add('bg-brand-gold/30', 'cursor-not-allowed', 'text-black'); 
-                btn.classList.remove('bg-brand-gold', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
+                btn.classList.add('bg-white/5', 'text-gray-500', 'cursor-not-allowed', 'border', 'border-white/10'); 
+                btn.classList.remove('bg-brand-gold', 'text-black', 'shadow-[0_0_25px_rgba(232,192,100,0.3)]', 'hover:scale-[1.02]', 'active:scale-95');
             }
             saveDraft();
         }
@@ -397,8 +402,8 @@
             btnStart.disabled = true;
             if(btnResend) btnResend.disabled = true;
             
-            btnStart.classList.add('bg-brand-gold/30', 'cursor-not-allowed', 'text-black');
-            btnStart.classList.remove('bg-brand-gold', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
+            btnStart.classList.add('bg-white/5', 'text-gray-500', 'cursor-not-allowed', 'border', 'border-white/10');
+            btnStart.classList.remove('bg-brand-gold', 'text-black', 'shadow-[0_0_25px_rgba(232,192,100,0.3)]', 'hover:scale-[1.02]', 'active:scale-95');
             
             clearInterval(cooldownTimer);
             cooldownTimer = setInterval(() => {
@@ -410,8 +415,8 @@
                     clearInterval(cooldownTimer);
                     btnStart.innerText = "Verify Identity";
                     btnStart.disabled = false;
-                    btnStart.classList.remove('bg-brand-gold/30', 'cursor-not-allowed', 'text-black');
-                    btnStart.classList.add('bg-brand-gold', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
+                    btnStart.classList.remove('bg-white/5', 'text-gray-500', 'cursor-not-allowed', 'border', 'border-white/10');
+                    btnStart.classList.add('bg-brand-gold', 'text-black', 'shadow-[0_0_25px_rgba(232,192,100,0.3)]', 'hover:scale-[1.02]', 'active:scale-95');
                     
                     if(btnResend) {
                         btnResend.innerText = "Resend Code";
