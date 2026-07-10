@@ -39,16 +39,25 @@
             border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.1);
         }
 
-        input[type="text"], input[type="email"], textarea, select {
+        /* 🟢 UPGRADE 1: Standard inputs remain perfectly centered */
+        input[type="text"], input[type="email"], select {
             background-color: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.12);
             color: #fff; width: 100%; padding: 16px 20px; border-radius: 16px; font-size: 15px; outline: none;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-align: center; /* 🟢 Centers all input text for a premium symmetrical look */
-            text-align-last: center; /* 🟢 Ensures select dropdowns center properly on mobile */
+            text-align: center; 
+            text-align-last: center; 
         }
-        
+
+        /* 🟢 UPGRADE 2: Textarea gets Left-Alignment and Heavy Safe-Zone Padding */
         textarea {
-            resize: none; /* 🟢 Removes the ugly corner drag handle from comment boxes */
+            background-color: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #fff; width: 100%; 
+            padding: 16px 20px 32px 20px; /* Top:16px, Right:20px, Bottom:32px (Room for counter), Left:20px */
+            border-radius: 16px; font-size: 14px; outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: left; /* Left alignment is critical for reading paragraphs */
+            resize: none; 
+            line-height: 1.5; /* Adds breathing room between sentences */
         }
 
         input:focus, textarea:focus, select:focus {
@@ -554,7 +563,8 @@
         // ==========================================
         // DYNAMIC WIZARD RENDERER & NAVIGATION
         // ==========================================
-        function renderDishCard() {
+
+         function renderDishCard() {
             const container = document.getElementById('dynamic-dish-container');
             const item = MENU_CONFIG[State.currentDishIndex];
             const isLast = State.currentDishIndex === MENU_CONFIG.length - 1;
@@ -566,7 +576,6 @@
                 State.payload.ratings[State.currentDishIndex] = { name: item.type === 'signature' ? item.name : "", rating: 0, comment: "", type: item.type };
             }
 
-            // Action Bar Back/Next Config (Flexbox handles widths automatically)
             if (State.currentDishIndex > 0) {
                 prevBtn.classList.remove('hidden');
             } else {
@@ -584,7 +593,6 @@
                         <button onclick="handleChoice('yes')" class="choice-btn yes">Yes</button>
                     </div>
                     
-                    <!-- 🟢 NEW: Smooth Max-Height Animation Box -->
                     <div id="evaluation-box-${State.currentDishIndex}" class="overflow-hidden max-h-0 opacity-0 transition-all duration-500 ease-in-out">
                         <div class="pt-2 pb-2">
                             <div class="w-full h-px bg-white/10 mb-6"></div>
@@ -592,8 +600,10 @@
                             <div class="star-container" data-rating="0" id="stars-${State.currentDishIndex}">
                                 ${getStarHTML(5)}${getStarHTML(4)}${getStarHTML(3)}${getStarHTML(2)}${getStarHTML(1)}
                             </div>
-                            <div id="comment-box-${State.currentDishIndex}" class="hidden mt-6 animate-in slide-in-from-bottom-4">
-                                <textarea id="dish-comment-${State.currentDishIndex}" rows="2" maxlength="200" placeholder="Any specific thoughts? (Optional)" class="text-sm"></textarea>
+                            <!-- 🟢 UPGRADED COMMENT BOX -->
+                            <div id="comment-box-${State.currentDishIndex}" class="hidden mt-6 animate-in slide-in-from-bottom-4 relative">
+                                <textarea id="dish-comment-${State.currentDishIndex}" rows="3" maxlength="200" placeholder="Any specific thoughts? (Optional)" oninput="updateCharCount(${State.currentDishIndex})"></textarea>
+                                <span id="char-count-${State.currentDishIndex}" class="absolute bottom-3 right-5 text-[10px] font-black text-gray-500 transition-colors duration-300 pointer-events-none">200 left</span>
                             </div>
                         </div>
                     </div>
@@ -602,7 +612,6 @@
             } else {
                 let mustRateWarning = (isLast && currentRated === 0) ? `<p class="text-brand-red text-[11px] font-bold uppercase tracking-widest text-center mt-6 animate-pulse">⚠️ Please rate at least one dish to submit</p>` : "";
                 
-                // 🟢 NEW: Generate the <datalist> HTML from our fetched array
                 let menuOptions = State.globalMenu.map(dish => `<option value="${dish}">`).join('');
                 
                 html = `
@@ -621,8 +630,10 @@
                         <div class="star-container" data-rating="0" id="stars-${State.currentDishIndex}">
                             ${getStarHTML(5)}${getStarHTML(4)}${getStarHTML(3)}${getStarHTML(2)}${getStarHTML(1)}
                         </div>
-                        <div id="comment-box-${State.currentDishIndex}" class="hidden mt-6 animate-in slide-in-from-bottom-4">
-                            <textarea id="dish-comment-${State.currentDishIndex}" rows="2" maxlength="200" placeholder="Any specific thoughts? (Optional)" class="text-sm"></textarea>
+                        <!-- 🟢 UPGRADED COMMENT BOX -->
+                        <div id="comment-box-${State.currentDishIndex}" class="hidden mt-6 animate-in slide-in-from-bottom-4 relative">
+                            <textarea id="dish-comment-${State.currentDishIndex}" rows="3" maxlength="200" placeholder="Any specific thoughts? (Optional)" oninput="updateCharCount(${State.currentDishIndex})"></textarea>
+                            <span id="char-count-${State.currentDishIndex}" class="absolute bottom-3 right-5 text-[10px] font-black text-gray-500 transition-colors duration-300 pointer-events-none">200 left</span>
                         </div>
                     </div>
                     ${mustRateWarning}
@@ -634,7 +645,6 @@
             }
             container.innerHTML = html;
 
-            // 🟢 NEW: Draft State Hydration (Re-populates UI if user clicks Back button or Refreshes)
             const currentDraft = State.payload.ratings[State.currentDishIndex];
             if (currentDraft && currentDraft.rating > 0) {
                 if (item.type === 'signature') {
@@ -649,7 +659,10 @@
                 
                 document.getElementById(`stars-${State.currentDishIndex}`).setAttribute('data-rating', currentDraft.rating);
                 document.getElementById(`comment-box-${State.currentDishIndex}`).classList.remove('hidden');
-                if(currentDraft.comment) document.getElementById(`dish-comment-${State.currentDishIndex}`).value = currentDraft.comment;
+                if(currentDraft.comment) {
+                    document.getElementById(`dish-comment-${State.currentDishIndex}`).value = currentDraft.comment;
+                    updateCharCount(State.currentDishIndex); // 🟢 Auto-updates counter if draft exists
+                }
                 
                 nextBtn.classList.remove('hidden');
                 nextBtn.innerText = isLast ? "Submit Feedback" : "Next Dish";
@@ -783,6 +796,23 @@
                 alert("Network error.");
                 document.getElementById('action-bar').classList.remove('hidden');
                 switchView('rating');
+            }
+        }
+// 🟢 NEW: Character Counter Logic
+        function updateCharCount(index) {
+            const textarea = document.getElementById(`dish-comment-${index}`);
+            const counter = document.getElementById(`char-count-${index}`);
+            
+            if (textarea && counter) {
+                const remaining = 200 - textarea.value.length;
+                counter.innerText = remaining + " left";
+                
+                // Turns red when they have 20 characters or less remaining
+                if (remaining <= 20) {
+                    counter.classList.replace('text-gray-500', 'text-brand-red');
+                } else {
+                    counter.classList.replace('text-brand-red', 'text-gray-500');
+                }
             }
         }
     </script>
