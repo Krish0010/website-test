@@ -231,7 +231,7 @@
         // ==========================================
         // ⚙️ CONFIGURATION
         // ==========================================
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyg9_0VhalGf88T-qHKT2utSU8oUarO8nZY9_gIUm_rvE4pmWbVofE2T-BEdis8MkldXw/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8GuBuZ1RhDoHG_PM9oRegPE9ZcIhffqVkz01UoKi8uwRscYKHbOZ_i9oc59Fx1_bxcQ/exec"; 
 
         const MENU_CONFIG = [
             { type: 'signature', name: "Fish mango curry" },
@@ -244,7 +244,8 @@
 
         const State = {
             view: 'setup', currentDishIndex: 0, 
-            payload: { restaurant: "", email: "", billNumber: "", ratings: [] }
+            payload: { restaurant: "", email: "", billNumber: "", ratings: [] },
+            globalMenu: [] // 🟢 NEW: Stores the fetched menu in RAM
         };
 
         // 🟢 NEW: DRAFT SAVING ENGINE
@@ -252,7 +253,25 @@
             sessionStorage.setItem('impact_draft', JSON.stringify(State));
         }
 
-        // 🟢 NEW: APP INITIALIZATION
+        // 🟢 NEW: BACKGROUND MENU FETCHER
+        async function fetchMenuData() {
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: "get_menu" })
+                });
+                const res = await response.json();
+                if (res.success && res.menu) {
+                    State.globalMenu = res.menu;
+                    saveDraft();
+                }
+            } catch (e) {
+                console.log("Menu pre-fetch failed silently.");
+            }
+        }
+
+        // 🟢 APP INITIALIZATION
         window.onload = () => {
             // Auto-Lock Location if only one option exists
             const restoSelect = document.getElementById('setup-resto');
@@ -273,6 +292,7 @@
                         State.payload = parsed.payload;
                         State.currentDishIndex = parsed.currentDishIndex || 0;
                         State.view = parsed.view || 'setup';
+                        State.globalMenu = parsed.globalMenu || [];
 
                         if(State.payload.email) document.getElementById('setup-email').value = State.payload.email;
                         if(State.payload.billNumber) document.getElementById('setup-bill').value = State.payload.billNumber;
@@ -286,6 +306,9 @@
                 } catch(e) {}
             }
             validateSetup();
+            
+            // 🟢 Trigger the silent fetch if we don't already have the menu
+            if (State.globalMenu.length === 0) fetchMenuData();
         };
 
         function getStarHTML(score) {
@@ -541,11 +564,21 @@
                 nextBtn.classList.add('hidden');
             } else {
                 let mustRateWarning = (isLast && currentRated === 0) ? `<p class="text-brand-red text-[11px] font-bold uppercase tracking-widest text-center mt-6 animate-pulse">⚠️ Please rate at least one dish to submit</p>` : "";
+                
+                // 🟢 NEW: Generate the <datalist> HTML from our fetched array
+                let menuOptions = State.globalMenu.map(dish => `<option value="${dish}">`).join('');
+                
                 html = `
                 <div class="glass-card rounded-3xl p-6 sm:p-8 w-full animate-in slide-in-from-right-8 duration-300">
                     <p class="text-[10px] text-brand-gold font-black uppercase tracking-widest mb-3">Extras</p>
                     <h2 class="text-2xl font-black text-white mb-6 leading-tight">${item.prompt} <span class="text-gray-500 font-normal text-lg">(Optional)</span></h2>
-                    <input type="text" id="custom-name-${State.currentDishIndex}" placeholder="e.g., Spicy French Fries" maxlength="50" class="font-semibold text-lg mb-6" oninput="checkCustomInput()">
+                    
+                    <input type="text" id="custom-name-${State.currentDishIndex}" list="restaurant-menu-list" placeholder="e.g., Spicy French Fries" maxlength="50" class="font-semibold text-lg mb-6" oninput="checkCustomInput()">
+                    
+                    <datalist id="restaurant-menu-list">
+                        ${menuOptions}
+                    </datalist>
+
                     <div id="evaluation-box-${State.currentDishIndex}" class="opacity-30 pointer-events-none transition-all duration-500 ease-in-out">
                         <p class="text-center text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Tap to rate</p>
                         <div class="star-container" data-rating="0" id="stars-${State.currentDishIndex}">
