@@ -126,13 +126,14 @@
 
                     <div>
                         <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-1">Your Email <span class="text-brand-red">*</span></label>
-                        <input type="email" id="setup-email" placeholder="Where should we send the reward?" maxlength="100" oninput="validateSetup()" autocomplete="email">
+                        <input type="email" id="setup-email" placeholder="Where should we send the reward?" maxlength="100" oninput="this.value = this.value.toLowerCase().replace(/\s/g, ''); validateSetup();" autocomplete="email">
                         <p id="email-error" class="text-brand-red text-[10px] font-bold mt-2 ml-1 hidden uppercase tracking-wider">Valid email required.</p>
                     </div>
 
                     <div>
                         <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-1">Receipt Number <span class="text-brand-red">*</span></label>
-                        <input type="text" id="setup-bill" placeholder="Last 4 digits of your bill" inputmode="numeric" maxlength="10" oninput="validateSetup()">
+                        <input type="text" id="setup-bill" placeholder="Last 4 digits of your bill" inputmode="numeric" pattern="[0-9]*" maxlength="4" oninput="this.value = this.value.replace(/[^0-9]/g, ''); validateSetup();">
+                        <p id="bill-error" class="text-brand-red text-[10px] font-bold mt-2 ml-1 hidden uppercase tracking-wider">Must be exactly 4 digits.</p>
                     </div>
                 </div>
             </div>
@@ -335,19 +336,42 @@
 
         function validateSetup() {
             const resto = document.getElementById('setup-resto').value;
-            const email = document.getElementById('setup-email').value.trim();
-            const bill = document.getElementById('setup-bill').value.trim();
+            const email = document.getElementById('setup-email').value; // Trim removed because auto-scrubber handles it
+            const bill = document.getElementById('setup-bill').value;
             const btn = document.getElementById('btn-start');
             
+            // Validate Email
             let emailValid = email.length > 0 && isValidEmail(email);
-            if(email.length > 0 && !emailValid) { document.getElementById('email-error').classList.remove('hidden'); document.getElementById('setup-email').classList.add('border-brand-red'); }
-            else { document.getElementById('email-error').classList.add('hidden'); document.getElementById('setup-email').classList.remove('border-brand-red'); }
+            if(email.length > 0 && !emailValid) { 
+                document.getElementById('email-error').classList.remove('hidden'); 
+                document.getElementById('setup-email').classList.add('border-brand-red'); 
+            } else { 
+                document.getElementById('email-error').classList.add('hidden'); 
+                document.getElementById('setup-email').classList.remove('border-brand-red'); 
+            }
 
-            if (resto !== "" && emailValid && bill.length > 0) {
-                btn.disabled = false; btn.classList.remove('bg-brand-gold/30', 'cursor-not-allowed', 'text-black'); btn.classList.add('bg-brand-gold', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
-                State.payload.restaurant = resto; State.payload.email = email; State.payload.billNumber = bill;
+            // 🟢 UPGRADE: Validate Bill Number (Exactly 4 Digits)
+            let billValid = bill.length === 4;
+            if(bill.length > 0 && !billValid) { 
+                document.getElementById('bill-error').classList.remove('hidden'); 
+                document.getElementById('setup-bill').classList.add('border-brand-red'); 
+            } else { 
+                document.getElementById('bill-error').classList.add('hidden'); 
+                document.getElementById('setup-bill').classList.remove('border-brand-red'); 
+            }
+
+            // Unlock button ONLY if all conditions are perfectly met
+            if (resto !== "" && emailValid && billValid) {
+                btn.disabled = false; 
+                btn.classList.remove('bg-brand-gold/30', 'cursor-not-allowed', 'text-black'); 
+                btn.classList.add('bg-brand-gold', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
+                State.payload.restaurant = resto; 
+                State.payload.email = email; 
+                State.payload.billNumber = bill;
             } else {
-                btn.disabled = true; btn.classList.add('bg-brand-gold/30', 'cursor-not-allowed', 'text-black'); btn.classList.remove('bg-brand-gold', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
+                btn.disabled = true; 
+                btn.classList.add('bg-brand-gold/30', 'cursor-not-allowed', 'text-black'); 
+                btn.classList.remove('bg-brand-gold', 'shadow-[0_0_20px_rgba(232,192,100,0.3)]', 'hover:bg-brand-gold-hover');
             }
             saveDraft();
         }
