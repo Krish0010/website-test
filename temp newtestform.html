@@ -43,6 +43,12 @@
             background-color: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.12);
             color: #fff; width: 100%; padding: 16px 20px; border-radius: 16px; font-size: 15px; outline: none;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center; /* 🟢 Centers all input text for a premium symmetrical look */
+            text-align-last: center; /* 🟢 Ensures select dropdowns center properly on mobile */
+        }
+        
+        textarea {
+            resize: none; /* 🟢 Removes the ugly corner drag handle from comment boxes */
         }
 
         input:focus, textarea:focus, select:focus {
@@ -112,28 +118,29 @@
                 
                 <div class="space-y-5">
                     <div>
-                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-1">Location <span class="text-brand-red">*</span></label>
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center w-full">Location <span class="text-brand-red">*</span></label>
                         <div class="relative">
                             <select id="setup-resto" class="appearance-none cursor-pointer" onchange="validateSetup()">
                                 <option value="" disabled selected hidden>Select your restaurant...</option>
                                 <option value="Temp New">Temp New</option>
                             </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-brand-gold">
+                            <!-- 🟢 ADDED id="resto-arrow" SO JAVASCRIPT CAN HIDE IT -->
+                            <div id="resto-arrow" class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-brand-gold">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-1">Your Email <span class="text-brand-red">*</span></label>
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center w-full">Your Email <span class="text-brand-red">*</span></label>
                         <input type="email" id="setup-email" placeholder="Where should we send the reward?" maxlength="100" oninput="this.value = this.value.toLowerCase().replace(/\s/g, ''); validateSetup();" autocomplete="email">
-                        <p id="email-error" class="text-brand-red text-[10px] font-bold mt-2 ml-1 hidden uppercase tracking-wider">Valid email required.</p>
+                        <p id="email-error" class="text-brand-red text-[10px] font-bold mt-2 hidden uppercase tracking-wider text-center w-full">Valid email required.</p>
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-1">Receipt Number <span class="text-brand-red">*</span></label>
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center w-full">Receipt Number <span class="text-brand-red">*</span></label>
                         <input type="text" id="setup-bill" placeholder="Last 4 digits of your bill" inputmode="numeric" pattern="[0-9]*" maxlength="4" oninput="this.value = this.value.replace(/[^0-9]/g, ''); validateSetup();">
-                        <p id="bill-error" class="text-brand-red text-[10px] font-bold mt-2 ml-1 hidden uppercase tracking-wider">Must be exactly 4 digits.</p>
+                        <p id="bill-error" class="text-brand-red text-[10px] font-bold mt-2 hidden uppercase tracking-wider text-center w-full">Must be exactly 4 digits.</p>
                     </div>
                 </div>
             </div>
@@ -274,7 +281,6 @@
 
         // 🟢 APP INITIALIZATION
         window.onload = () => {
-            // Auto-Lock Location if only one option exists
             const restoSelect = document.getElementById('setup-resto');
             const validOptions = Array.from(restoSelect.options).filter(opt => !opt.disabled && opt.value !== "");
             
@@ -282,9 +288,12 @@
                 restoSelect.value = validOptions[0].value;
                 restoSelect.classList.add('opacity-50', 'pointer-events-none');
                 State.payload.restaurant = validOptions[0].value;
+                
+                // 🟢 NEW: Hide the dropdown arrow if only 1 location exists
+                const arrow = document.getElementById('resto-arrow');
+                if (arrow) arrow.classList.add('hidden');
             }
 
-            // Session Draft Recovery
             const savedDraft = sessionStorage.getItem('impact_draft');
             if (savedDraft) {
                 try {
@@ -308,7 +317,6 @@
             }
             validateSetup();
             
-            // 🟢 Trigger the silent fetch if we don't already have the menu
             if (State.globalMenu.length === 0) fetchMenuData();
         };
 
