@@ -24,7 +24,6 @@
         }
     </script>
     <style>
-        /* 🟢 UPGRADE: Removed overflow-x-hidden from body, shifted scrolling strategy */
         body { 
             background-color: #050505; color: #e5e7eb; -webkit-tap-highlight-color: transparent;
         }
@@ -40,30 +39,20 @@
             border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.1);
         }
 
+        /* 🟢 Standard inputs remain perfectly centered */
         input[type="text"], input[type="email"], select {
             background-color: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.12);
-            color: #fff; width: 100%; padding: 14px 20px; border-radius: 16px; font-size: 15px; outline: none;
+            color: #fff; width: 100%; padding: 16px 20px; border-radius: 16px; font-size: 15px; outline: none;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-align: center; 
             text-align-last: center; 
-        }
-
-        /* Textarea safe-zone padding */
-        textarea {
-            background-color: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.12);
-            color: #fff; width: 100%; 
-            padding: 16px 20px 32px 20px;
-            border-radius: 16px; font-size: 14px; outline: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-align: left; 
-            resize: none; 
-            line-height: 1.5; 
         }
 
         input:focus, textarea:focus, select:focus {
             border-color: #e8c064; background-color: rgba(0, 0, 0, 0.7); box-shadow: 0 0 0 4px rgba(232, 192, 100, 0.15);
         }
 
+        /* OTP Specific Styles */
         .otp-input {
             width: 50px; height: 60px; font-size: 24px; font-weight: 900; text-align: center;
             background-color: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.12);
@@ -75,7 +64,7 @@
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
 
         .star-container { display: flex; justify-content: center; gap: 8px; direction: rtl; }
-        .star-svg { width: 44px; height: 44px; cursor: pointer; fill: transparent; stroke: #4b5563; stroke-width: 1.5; transition: all 0.25s; }
+        .star-svg { width: 48px; height: 48px; cursor: pointer; fill: transparent; stroke: #4b5563; stroke-width: 1.5; transition: all 0.25s; }
         
         .star-svg:hover, .star-svg:hover ~ .star-svg,
         .star-container[data-rating="5"] .star-svg:nth-child(n+1),
@@ -87,7 +76,7 @@
         }
 
         .choice-btn {
-            flex: 1; padding: 14px; border-radius: 16px; font-weight: 800; text-transform: uppercase;
+            flex: 1; padding: 16px; border-radius: 16px; font-weight: 800; text-transform: uppercase;
             letter-spacing: 1px; font-size: 13px; border: 1px solid rgba(255, 255, 255, 0.1);
             background: rgba(255, 255, 255, 0.03); color: #9ca3af; transition: all 0.2s ease;
         }
@@ -98,7 +87,6 @@
         .view-section.active { display: block; opacity: 1; transform: translateY(0); }
     </style>
 </head>
-
 <body class="antialiased h-[100dvh] w-screen overflow-hidden flex flex-col relative">
 
     <input type="text" id="website_url" name="website_url" tabindex="-1" autocomplete="off" class="hidden absolute -left-[9999px]">
@@ -106,8 +94,11 @@
     <div class="ambient-orb orb-2"></div>
 
     <div class="w-full px-6 pt-5 pb-2 flex justify-between items-center z-40 relative max-w-xl mx-auto shrink-0">
+        <!-- 🟢 PREMIUM 3D LOGO: Image breaks out of the frame -->
         <div class="relative w-14 h-14 shrink-0 flex items-end justify-center">
+            <!-- The glowing golden ring (sits behind) -->
             <div class="absolute inset-0 rounded-full border-2 border-brand-gold shadow-[0_0_15px_rgba(232,192,100,0.3)] bg-black"></div>
+            <!-- The avatar (scaled up, shifted up, bottom-rounded to fit the ring) -->
             <img src="https://res.cloudinary.com/dr6xhnhor/image/upload/v1781864406/big_size_Logo_without_background_new_ubp9mn.png" alt="Logo" class="w-full h-full object-cover scale-[1.3] -translate-y-2 relative z-10 rounded-b-full">
         </div>
         <div class="flex flex-col items-end">
@@ -117,16 +108,20 @@
             </div>
         </div>
     </div>
+    </div>
 
     <div class="flex-1 w-full max-w-xl mx-auto relative px-4 sm:px-6 flex flex-col justify-center overflow-y-auto hide-scroll pb-[100px] z-30" id="app-container">
         
-        <div id="view-setup" class="view-section active w-full">
-            <div class="glass-card rounded-3xl p-5 sm:p-7 mb-4">
-                <h1 class="text-3xl font-black text-white mb-1 leading-tight tracking-tight">Quick Feedback.<br><span class="text-brand-gold">Secret Reward 🎁</span></h1>
-                <p class="text-xs text-gray-400 mb-6 font-medium">Help us improve, and we'll send a secret reward straight to your inbox.</p>
+        <!-- VIEW 1: SETUP -->
+        <div id="view-setup" class="view-section active w-full h-full">
+            <div class="glass-card rounded-3xl p-6 sm:p-8 mb-6">
+                <!-- 🟢 UPGRADED HEADING -->
+                <h1 class="text-3xl font-black text-white mb-2 leading-tight tracking-tight">Quick Feedback.<br><span class="text-brand-gold">Secret Reward 🎁</span></h1>
+                <p class="text-sm text-gray-400 mb-8 font-medium">Help us improve, and we'll send a secret reward straight to your inbox.</p>
                 
-                <div class="space-y-4">
+                <div class="space-y-5">
                     <div>
+                        <!-- 🟢 ADDED id="location-asterisk" -->
                         <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center w-full">Location <span id="location-asterisk" class="text-brand-red">*</span></label>
                         <div class="relative">
                             <select id="setup-resto" class="appearance-none cursor-pointer" onchange="validateSetup()">
@@ -153,13 +148,15 @@
                 </div>
             </div>
             
-            <button id="btn-start" onclick="requestOTP()" disabled class="w-full py-4 rounded-2xl font-black text-gray-500 bg-white/5 border border-white/10 cursor-not-allowed uppercase tracking-widest transition-all duration-300 shrink-0">
+            <!-- 🟢 UPGRADED BUTTON: Starts as muted glass, ignites to solid gold -->
+            <button id="btn-start" onclick="requestOTP()" disabled class="w-full py-4 rounded-2xl font-black text-gray-500 bg-white/5 border border-white/10 cursor-not-allowed uppercase tracking-widest transition-all duration-300">
                 Verify Identity
             </button>
         </div>
 
-        <div id="view-otp" class="view-section w-full">
-            <div class="glass-card rounded-3xl p-6 sm:p-8 text-center shrink-0">
+        <!-- VIEW 2: OTP VERIFICATION -->
+        <div id="view-otp" class="view-section w-full h-full">
+            <div class="glass-card rounded-3xl p-6 sm:p-8 mb-6 text-center">
                 <div class="w-16 h-16 bg-blue-500/10 border border-blue-500/30 rounded-full flex items-center justify-center mx-auto mb-4">
                     <span class="text-2xl">🛡️</span>
                 </div>
@@ -170,22 +167,22 @@
                     <strong class="text-brand-gold block mt-2" id="otp-display-email"></strong>
                 </p>
                 
-                <div class="flex justify-center gap-3 mb-6">
+                <div class="flex justify-center gap-3 mb-8">
                     <input type="tel" maxlength="1" class="otp-input" id="otp-1" onkeyup="handleOtpInput(this, 1)" onfocus="this.select()">
                     <input type="tel" maxlength="1" class="otp-input" id="otp-2" onkeyup="handleOtpInput(this, 2)" onfocus="this.select()">
                     <input type="tel" maxlength="1" class="otp-input" id="otp-3" onkeyup="handleOtpInput(this, 3)" onfocus="this.select()">
                     <input type="tel" maxlength="1" class="otp-input" id="otp-4" onkeyup="handleOtpInput(this, 4)" onfocus="this.select()">
                 </div>
 
-                <div class="flex flex-col gap-3 relative mb-4">
+                <div class="flex flex-col gap-3 relative">
                     <button id="btn-submit-otp" onclick="triggerManualVerify()" disabled class="w-full py-3 rounded-xl font-black text-gray-500 bg-white/10 cursor-not-allowed uppercase tracking-widest transition-all duration-300">
                         Verify Code
                     </button>
                 </div>
                 
-                <p id="otp-error" class="text-brand-red text-xs font-bold mt-2 mb-4 hidden uppercase tracking-wider">Invalid Code. Try again.</p>
+                <p id="otp-error" class="text-brand-red text-xs font-bold mt-4 hidden uppercase tracking-wider">Invalid Code. Try again.</p>
 
-                <div class="text-center">
+                <div class="mt-6 text-center">
                     <button id="btn-resend-otp" onclick="requestOTP()" class="text-[11px] font-bold text-gray-500 uppercase tracking-widest hover:text-brand-gold transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                         Resend Code
                     </button>
@@ -193,12 +190,14 @@
             </div>
         </div>
 
-        <div id="view-rating" class="view-section w-full">
-            <div id="dynamic-dish-container" class="shrink-0"></div>
+        <!-- VIEW 3: RATINGS -->
+        <div id="view-rating" class="view-section w-full h-full">
+            <div id="dynamic-dish-container"></div>
         </div>
 
-        <div id="view-success" class="view-section w-full flex flex-col items-center justify-center text-center">
-            <div id="state-loading" class="flex flex-col items-center shrink-0">
+        <!-- VIEW 4: SUCCESS -->
+        <div id="view-success" class="view-section w-full h-full flex flex-col items-center justify-center text-center mt-10">
+            <div id="state-loading" class="flex flex-col items-center">
                 <div class="relative w-20 h-20 mb-8">
                     <div class="absolute inset-0 rounded-full border-t-2 border-brand-gold animate-spin"></div>
                     <div class="absolute inset-2 rounded-full border-r-2 border-white/20 animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
@@ -208,7 +207,7 @@
                 <p class="text-sm text-gray-400 font-medium">Writing verified data to ledger.</p>
             </div>
 
-            <div id="state-done" class="hidden flex-col items-center shrink-0">
+            <div id="state-done" class="hidden flex-col items-center">
                 <div class="w-24 h-24 bg-green-500/10 rounded-full flex items-center justify-center mb-6 border border-green-500/30 relative">
                     <div class="absolute inset-0 rounded-full bg-green-500/20 animate-ping opacity-20"></div>
                     <span class="text-5xl relative z-10">✨</span>
@@ -224,6 +223,7 @@
 
     </div>
 
+    <!-- ACTION BAR -->
     <div id="action-bar" class="fixed bottom-0 left-0 right-0 p-4 sm:p-6 bg-gradient-to-t from-black via-[#050505] to-transparent z-50 hidden pointer-events-none">
         <div class="max-w-xl mx-auto flex gap-3 pointer-events-auto items-center">
             
@@ -231,14 +231,18 @@
                 <svg class="w-6 h-6 pr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
             </button>
 
-            <button id="btn-next-dish" onclick="navigateDish(1)" class="flex-1 h-14 rounded-2xl font-black text-black bg-brand-gold shadow-[0_0_25px_rgba(232,192,100,0.3)] uppercase tracking-widest transition-all duration-300 hidden hover:scale-[1.02] active:scale-95 shrink-0">
+            <button id="btn-next-dish" onclick="navigateDish(1)" class="flex-1 h-14 rounded-2xl font-black text-black bg-brand-gold shadow-[0_0_25px_rgba(232,192,100,0.3)] uppercase tracking-widest transition-all duration-300 hidden hover:scale-[1.02] active:scale-95">
                 Next Dish
             </button>
             
         </div>
     </div>
 
+    <!-- JAVASCRIPT ENGINE -->
     <script>
+        // ==========================================
+        // ⚙️ CONFIGURATION
+        // ==========================================
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8GuBuZ1RhDoHG_PM9oRegPE9ZcIhffqVkz01UoKi8uwRscYKHbOZ_i9oc59Fx1_bxcQ/exec"; 
 
         const MENU_CONFIG = [
@@ -253,13 +257,15 @@
         const State = {
             view: 'setup', currentDishIndex: 0, 
             payload: { restaurant: "", email: "", billNumber: "", ratings: [] },
-            globalMenu: [] 
+            globalMenu: [] // 🟢 NEW: Stores the fetched menu in RAM
         };
 
+        // 🟢 NEW: DRAFT SAVING ENGINE
         function saveDraft() {
             sessionStorage.setItem('impact_draft', JSON.stringify(State));
         }
 
+        // 🟢 NEW: BACKGROUND MENU FETCHER
         async function fetchMenuData() {
             try {
                 const response = await fetch(SCRIPT_URL, {
@@ -277,6 +283,7 @@
             }
         }
 
+        // 🟢 APP INITIALIZATION
         window.onload = () => {
             const restoSelect = document.getElementById('setup-resto');
             const validOptions = Array.from(restoSelect.options).filter(opt => !opt.disabled && opt.value !== "");
@@ -289,6 +296,7 @@
                 const arrow = document.getElementById('resto-arrow');
                 if (arrow) arrow.classList.add('hidden');
                 
+                // 🟢 NEW: Hide the red asterisk if location is locked
                 const asterisk = document.getElementById('location-asterisk');
                 if (asterisk) asterisk.classList.add('hidden');
             }
@@ -338,8 +346,6 @@
             else if (newView === 'otp') { bar.style.width = '20%'; ind.innerText = 'Verify'; }
             else if (newView === 'rating') { bar.style.width = `${20 + ((State.currentDishIndex) / MENU_CONFIG.length) * 80}%`; ind.innerText = `Dish ${State.currentDishIndex + 1} of ${MENU_CONFIG.length}`; }
             else { bar.style.width = '100%'; ind.innerText = 'Done'; }
-            
-            // Auto-scroll the middle container to the top when switching views
             document.getElementById('app-container').scrollTo(0,0);
         }
 
@@ -367,6 +373,7 @@
                 document.getElementById('setup-bill').classList.remove('border-brand-red'); 
             }
 
+            // 🟢 UPGRADED BUTTON CLASSES: Perfectly matches the "Next Dish" button UI
             if (resto !== "" && emailValid && billValid) {
                 btn.disabled = false; 
                 btn.classList.remove('bg-white/5', 'text-gray-500', 'cursor-not-allowed', 'border', 'border-white/10'); 
@@ -382,6 +389,9 @@
             saveDraft();
         }
 
+        // ==========================================
+        // OTP ENGINE 
+        // ==========================================
         let cooldownTimer = null;
 
         function startOtpCooldown(seconds) {
@@ -460,9 +470,9 @@
                 let errorMsg = e.message || String(e);
                 
                 if (errorMsg.includes("Unexpected token '<'") || errorMsg.includes("Unexpected token <")) {
-                    alert("DEPLOYMENT ERROR: Google Apps Script needs a New Version deployed.");
+                    alert("DEPLOYMENT ERROR: Google returned an HTML page instead of JSON. You must go to Google Apps Script, click Manage Deployments -> Edit -> New Version -> Deploy.");
                 } else {
-                    alert("System Error: " + errorMsg + "\n\nCheck Adblockers/Shields.");
+                    alert("System Error: " + errorMsg + "\n\nTry turning off Brave Shields/Adblockers.");
                 }
 
                 btn.innerText = "Verify Identity";
@@ -541,7 +551,11 @@
             }
         }
 
-        function renderDishCard() {
+        // ==========================================
+        // DYNAMIC WIZARD RENDERER & NAVIGATION
+        // ==========================================
+
+         function renderDishCard() {
             const container = document.getElementById('dynamic-dish-container');
             const item = MENU_CONFIG[State.currentDishIndex];
             const isLast = State.currentDishIndex === MENU_CONFIG.length - 1;
@@ -562,24 +576,25 @@
             let html = '';
             if (item.type === 'signature') {
                 html = `
-                <div class="glass-card rounded-3xl p-5 sm:p-7 w-full animate-in slide-in-from-right-8 duration-300 mb-4">
-                    <p class="text-[10px] text-brand-gold font-black uppercase tracking-widest mb-2">Signature Menu</p>
-                    <h2 class="text-2xl font-black text-white mb-5 leading-tight">Did you try our famous <br><span class="text-brand-gold">${item.name}</span>?</h2>
-                    <div class="flex gap-3 mb-4" id="choice-container-${State.currentDishIndex}">
+                <div class="glass-card rounded-3xl p-6 sm:p-8 w-full animate-in slide-in-from-right-8 duration-300">
+                    <p class="text-[10px] text-brand-gold font-black uppercase tracking-widest mb-3">Signature Menu</p>
+                    <h2 class="text-2xl font-black text-white mb-6 leading-tight">Did you try our famous <br><span class="text-brand-gold">${item.name}</span>?</h2>
+                    <div class="flex gap-3 mb-6" id="choice-container-${State.currentDishIndex}">
                         <button onclick="handleChoice('no')" class="choice-btn no">No</button>
                         <button onclick="handleChoice('yes')" class="choice-btn yes">Yes</button>
                     </div>
                     
                     <div id="evaluation-box-${State.currentDishIndex}" class="overflow-hidden max-h-0 opacity-0 transition-all duration-500 ease-in-out">
-                        <div class="pt-2 pb-1">
-                            <div class="w-full h-px bg-white/10 mb-5"></div>
-                            <p class="text-center text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Tap to rate</p>
+                        <div class="pt-2 pb-2">
+                            <div class="w-full h-px bg-white/10 mb-6"></div>
+                            <p class="text-center text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Tap to rate</p>
                             <div class="star-container" data-rating="0" id="stars-${State.currentDishIndex}">
                                 ${getStarHTML(5)}${getStarHTML(4)}${getStarHTML(3)}${getStarHTML(2)}${getStarHTML(1)}
                             </div>
-                            <div id="comment-box-${State.currentDishIndex}" class="hidden mt-5 animate-in slide-in-from-bottom-4 relative">
-                                <textarea id="dish-comment-${State.currentDishIndex}" rows="2" maxlength="200" placeholder="Any specific thoughts? (Optional)" oninput="updateCharCount(${State.currentDishIndex})"></textarea>
-                                <span id="char-count-${State.currentDishIndex}" class="absolute bottom-2 right-4 text-[10px] font-black text-gray-500 transition-colors duration-300 pointer-events-none">200 left</span>
+                            <!-- 🟢 UPGRADED COMMENT BOX -->
+                            <div id="comment-box-${State.currentDishIndex}" class="hidden mt-6 animate-in slide-in-from-bottom-4 relative">
+                                <textarea id="dish-comment-${State.currentDishIndex}" rows="3" maxlength="200" placeholder="Any specific thoughts? (Optional)" oninput="updateCharCount(${State.currentDishIndex})" class="w-full bg-black/40 border border-white/10 text-white rounded-2xl text-[13px] sm:text-sm pt-4 px-5 pb-10 text-left resize-none focus:border-brand-gold focus:ring-4 focus:ring-brand-gold/15 outline-none transition-all duration-300 leading-relaxed block box-border"></textarea>
+                                <span id="char-count-${State.currentDishIndex}" class="absolute bottom-3 right-5 text-[10px] font-black text-gray-500 transition-colors duration-300 pointer-events-none">200 left</span>
                             </div>
                         </div>
                     </div>
@@ -591,24 +606,25 @@
                 let menuOptions = State.globalMenu.map(dish => `<option value="${dish}">`).join('');
                 
                 html = `
-                <div class="glass-card rounded-3xl p-5 sm:p-7 w-full animate-in slide-in-from-right-8 duration-300 mb-4">
-                    <p class="text-[10px] text-brand-gold font-black uppercase tracking-widest mb-2">Extras</p>
-                    <h2 class="text-2xl font-black text-white mb-5 leading-tight">${item.prompt} <span class="text-gray-500 font-normal text-lg">(Optional)</span></h2>
+                <div class="glass-card rounded-3xl p-6 sm:p-8 w-full animate-in slide-in-from-right-8 duration-300">
+                    <p class="text-[10px] text-brand-gold font-black uppercase tracking-widest mb-3">Extras</p>
+                    <h2 class="text-2xl font-black text-white mb-6 leading-tight">${item.prompt} <span class="text-gray-500 font-normal text-lg">(Optional)</span></h2>
                     
-                    <input type="text" id="custom-name-${State.currentDishIndex}" list="restaurant-menu-list" placeholder="e.g., Spicy French Fries" maxlength="50" class="font-semibold text-lg mb-5" oninput="checkCustomInput()">
+                    <input type="text" id="custom-name-${State.currentDishIndex}" list="restaurant-menu-list" placeholder="e.g., Spicy French Fries" maxlength="50" class="font-semibold text-lg mb-6" oninput="checkCustomInput()">
                     
                     <datalist id="restaurant-menu-list">
                         ${menuOptions}
                     </datalist>
 
                     <div id="evaluation-box-${State.currentDishIndex}" class="opacity-30 pointer-events-none transition-all duration-500 ease-in-out">
-                        <p class="text-center text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Tap to rate</p>
+                        <p class="text-center text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Tap to rate</p>
                         <div class="star-container" data-rating="0" id="stars-${State.currentDishIndex}">
                             ${getStarHTML(5)}${getStarHTML(4)}${getStarHTML(3)}${getStarHTML(2)}${getStarHTML(1)}
                         </div>
-                        <div id="comment-box-${State.currentDishIndex}" class="hidden mt-5 animate-in slide-in-from-bottom-4 relative">
-                            <textarea id="dish-comment-${State.currentDishIndex}" rows="2" maxlength="200" placeholder="Any specific thoughts? (Optional)" oninput="updateCharCount(${State.currentDishIndex})"></textarea>
-                            <span id="char-count-${State.currentDishIndex}" class="absolute bottom-2 right-4 text-[10px] font-black text-gray-500 transition-colors duration-300 pointer-events-none">200 left</span>
+                        <!-- 🟢 UPGRADED COMMENT BOX -->
+                        <div id="comment-box-${State.currentDishIndex}" class="hidden mt-6 animate-in slide-in-from-bottom-4 relative">
+                            <textarea id="dish-comment-${State.currentDishIndex}" rows="3" maxlength="200" placeholder="Any specific thoughts? (Optional)" oninput="updateCharCount(${State.currentDishIndex})" class="w-full bg-black/40 border border-white/10 text-white rounded-2xl text-[13px] sm:text-sm pt-4 px-5 pb-10 text-left resize-none focus:border-brand-gold focus:ring-4 focus:ring-brand-gold/15 outline-none transition-all duration-300 leading-relaxed block box-border"></textarea>
+                            <span id="char-count-${State.currentDishIndex}" class="absolute bottom-3 right-5 text-[10px] font-black text-gray-500 transition-colors duration-300 pointer-events-none">200 left</span>
                         </div>
                     </div>
                     ${mustRateWarning}
@@ -636,7 +652,7 @@
                 document.getElementById(`comment-box-${State.currentDishIndex}`).classList.remove('hidden');
                 if(currentDraft.comment) {
                     document.getElementById(`dish-comment-${State.currentDishIndex}`).value = currentDraft.comment;
-                    updateCharCount(State.currentDishIndex); 
+                    updateCharCount(State.currentDishIndex); // 🟢 Auto-updates counter if draft exists
                 }
                 
                 nextBtn.classList.remove('hidden');
@@ -660,14 +676,13 @@
                 State.payload.ratings[State.currentDishIndex].rating = 0;
                 saveDraft();
                 
+                // Add tiny delay before auto-advancing so user feels the visual click
                 setTimeout(() => navigateDish(1), 350); 
             } else {
                 evalBox.style.maxHeight = '400px';
                 evalBox.classList.remove('opacity-0');
                 evalBox.classList.add('opacity-100');
                 saveDraft();
-                
-                // Auto-scroll slightly to show the stars when expanded on small screens
                 setTimeout(() => document.getElementById('app-container').scrollBy({ top: 100, behavior: 'smooth' }), 100);
             }
         }
@@ -705,16 +720,15 @@
             nextBtn.classList.remove('hidden');
             nextBtn.innerText = (State.currentDishIndex === MENU_CONFIG.length - 1) ? "Submit Feedback" : "Next Dish";
             saveDraft();
-            
-            // Auto-scroll slightly to show the comment box when stars are tapped
             setTimeout(() => document.getElementById('app-container').scrollBy({ top: 150, behavior: 'smooth' }), 100);
         }
 
+        // 🟢 NEW: Omni-Directional Navigation System
         function navigateDish(direction) {
             const commentEl = document.getElementById(`dish-comment-${State.currentDishIndex}`);
             if (commentEl) State.payload.ratings[State.currentDishIndex].comment = commentEl.value.trim();
 
-            if (direction === 1) { 
+            if (direction === 1) { // Forward
                 if (State.currentDishIndex < MENU_CONFIG.length - 1) {
                     State.currentDishIndex++;
                     renderDishCard();
@@ -722,7 +736,7 @@
                 } else {
                     submitPayload();
                 }
-            } else if (direction === -1) { 
+            } else if (direction === -1) { // Backward
                 if (State.currentDishIndex > 0) {
                     State.currentDishIndex--;
                     renderDishCard();
@@ -763,6 +777,7 @@
             try {
                 await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(finalPayload) });
                 
+                // 🟢 NEW: Securely vaporize the draft once Google has received the data
                 sessionStorage.removeItem('impact_draft');
                 
                 setTimeout(() => {
@@ -776,7 +791,7 @@
                 switchView('rating');
             }
         }
-
+// 🟢 NEW: Character Counter Logic
         function updateCharCount(index) {
             const textarea = document.getElementById(`dish-comment-${index}`);
             const counter = document.getElementById(`char-count-${index}`);
@@ -785,6 +800,7 @@
                 const remaining = 200 - textarea.value.length;
                 counter.innerText = remaining + " left";
                 
+                // Turns red when they have 20 characters or less remaining
                 if (remaining <= 20) {
                     counter.classList.replace('text-gray-500', 'text-brand-red');
                 } else {
