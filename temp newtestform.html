@@ -39,13 +39,11 @@
             border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.1);
         }
 
-        /* 🟢 Standard inputs remain perfectly centered */
+        /* 🟢 Standard inputs: Left-aligned for premium readability */
         input[type="text"], input[type="email"], select {
             background-color: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.12);
             color: #fff; width: 100%; padding: 16px 20px; border-radius: 16px; font-size: 15px; outline: none;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-align: center; 
-            text-align-last: center; 
         }
 
         input:focus, textarea:focus, select:focus {
@@ -110,7 +108,7 @@
     </div>
     </div>
 
-    <div class="flex-1 w-full max-w-xl mx-auto relative px-4 sm:px-6 flex flex-col justify-center overflow-y-auto hide-scroll pb-[100px] z-30" id="app-container">
+    <div class="flex-1 w-full max-w-xl mx-auto relative px-4 sm:px-6 flex flex-col overflow-y-auto hide-scroll pt-2 sm:pt-8 pb-[100px] z-30" id="app-container">
         
         <!-- VIEW 1: SETUP -->
         <div id="view-setup" class="view-section active w-full h-full">
@@ -119,10 +117,9 @@
                 <h1 class="text-3xl font-black text-white mb-2 leading-tight tracking-tight">Quick Feedback.<br><span class="text-brand-gold">Secret Reward 🎁</span></h1>
                 <p class="text-sm text-gray-400 mb-8 font-medium">Help us improve, and we'll send a secret reward straight to your inbox.</p>
                 
-                <div class="space-y-5">
+                <div class="space-y-4">
                     <div>
-                        <!-- 🟢 ADDED id="location-asterisk" -->
-                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center w-full">Location <span id="location-asterisk" class="text-brand-red">*</span></label>
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-1">Location <span id="location-asterisk" class="text-brand-red">*</span></label>
                         <div class="relative">
                             <select id="setup-resto" class="appearance-none cursor-pointer" onchange="validateSetup()">
                                 <option value="" disabled selected hidden>Select your restaurant...</option>
@@ -135,15 +132,15 @@
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center w-full">Your Email <span class="text-brand-red">*</span></label>
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-1">Your Email <span class="text-brand-red">*</span></label>
                         <input type="email" id="setup-email" placeholder="Where should we send the reward?" maxlength="100" oninput="this.value = this.value.toLowerCase().replace(/\s/g, ''); validateSetup();" autocomplete="email">
-                        <p id="email-error" class="text-brand-red text-[10px] font-bold mt-2 hidden uppercase tracking-wider text-center w-full">Valid email required.</p>
+                        <p id="email-error" class="text-brand-red text-[10px] font-bold mt-2 hidden uppercase tracking-wider pl-1">Valid email required.</p>
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center w-full">Receipt Number <span class="text-brand-red">*</span></label>
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-1">Receipt Number <span class="text-brand-red">*</span></label>
                         <input type="text" id="setup-bill" placeholder="Last 4 digits of your bill" inputmode="numeric" pattern="[0-9]*" maxlength="4" oninput="this.value = this.value.replace(/[^0-9]/g, ''); validateSetup();">
-                        <p id="bill-error" class="text-brand-red text-[10px] font-bold mt-2 hidden uppercase tracking-wider text-center w-full">Must be exactly 4 digits.</p>
+                        <p id="bill-error" class="text-brand-red text-[10px] font-bold mt-2 hidden uppercase tracking-wider pl-1">Must be exactly 4 digits.</p>
                     </div>
                 </div>
             </div>
@@ -290,7 +287,10 @@
             
             if (validOptions.length === 1) {
                 restoSelect.value = validOptions[0].value;
+                // 🟢 ADDED: Dynamically centers ONLY the single-location lock
                 restoSelect.classList.add('opacity-50', 'pointer-events-none');
+                restoSelect.style.textAlign = 'center';
+                restoSelect.style.textAlignLast = 'center';
                 State.payload.restaurant = validOptions[0].value;
                 
                 const arrow = document.getElementById('resto-arrow');
