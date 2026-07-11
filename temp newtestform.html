@@ -28,11 +28,24 @@
             background-color: #050505; color: #e5e7eb; -webkit-tap-highlight-color: transparent;
         }
         
+        /* 🟢 UPGRADE: Cinematic Breathing Background Orbs */
+        @keyframes float-orb {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(15px, 20px) scale(1.1); }
+        }
         .ambient-orb {
             position: fixed; border-radius: 50%; filter: blur(80px); z-index: -1; opacity: 0.3; pointer-events: none;
         }
-        .orb-1 { top: -10%; left: -10%; width: 300px; height: 300px; background: rgba(232, 192, 100, 0.15); }
-        .orb-2 { bottom: -10%; right: -10%; width: 400px; height: 400px; background: rgba(232, 192, 100, 0.1); }
+        .orb-1 { top: -10%; left: -10%; width: 300px; height: 300px; background: rgba(232, 192, 100, 0.15); animation: float-orb 8s ease-in-out infinite; }
+        .orb-2 { bottom: -10%; right: -10%; width: 400px; height: 400px; background: rgba(232, 192, 100, 0.1); animation: float-orb 12s ease-in-out infinite reverse; }
+
+        /* 🟢 UPGRADE: Apple-Style Error Shake */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        .animate-shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
 
         .glass-card {
             background: rgba(25, 25, 25, 0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -164,7 +177,7 @@
                     <strong class="text-brand-gold block mt-2" id="otp-display-email"></strong>
                 </p>
                 
-                <div class="flex justify-center gap-3 mb-8">
+                <div id="otp-input-wrapper" class="flex justify-center gap-3 mb-6">
                     <input type="tel" maxlength="1" class="otp-input" id="otp-1" onkeyup="handleOtpInput(this, 1)" onfocus="this.select()">
                     <input type="tel" maxlength="1" class="otp-input" id="otp-2" onkeyup="handleOtpInput(this, 2)" onfocus="this.select()">
                     <input type="tel" maxlength="1" class="otp-input" id="otp-3" onkeyup="handleOtpInput(this, 3)" onfocus="this.select()">
@@ -533,6 +546,11 @@
                     switchView('rating');
                     saveDraft();
                 } else {
+                    triggerHaptic('heavy'); // 🟢 Heavy error buzz
+                    const otpWrapper = document.getElementById('otp-input-wrapper');
+                    otpWrapper.classList.add('animate-shake'); // 🟢 Apple error shake
+                    setTimeout(() => otpWrapper.classList.remove('animate-shake'), 400);
+
                     otpInputs.forEach(input => input.classList.remove('opacity-50', 'pointer-events-none'));
                     document.getElementById('otp-error').classList.remove('hidden');
                     document.getElementById('otp-1').value = ''; document.getElementById('otp-2').value = ''; document.getElementById('otp-3').value = ''; document.getElementById('otp-4').value = '';
@@ -664,6 +682,7 @@
         }
 
         function handleChoice(choice) {
+            triggerHaptic('light'); // 🟢 Haptic feedback on choice
             const evalBox = document.getElementById(`evaluation-box-${State.currentDishIndex}`);
             const container = document.getElementById(`choice-container-${State.currentDishIndex}`);
             container.querySelectorAll('.choice-btn').forEach(btn => btn.classList.remove('active'));
@@ -712,6 +731,7 @@
         }
 
         function setRating(score) {
+            triggerHaptic('light'); // 🟢 Haptic feedback on star tap
             State.payload.ratings[State.currentDishIndex].rating = score;
             document.getElementById(`stars-${State.currentDishIndex}`).setAttribute('data-rating', score);
             document.getElementById(`comment-box-${State.currentDishIndex}`).classList.remove('hidden');
@@ -806,6 +826,13 @@
                 } else {
                     counter.classList.replace('text-brand-red', 'text-gray-500');
                 }
+            }
+        }
+// 🟢 NEW: Premium Haptic Engine
+        function triggerHaptic(intensity = 'light') {
+            if (navigator.vibrate) {
+                if (intensity === 'light') navigator.vibrate(10); // Tiny crisp buzz
+                if (intensity === 'heavy') navigator.vibrate([30, 50, 30]); // Error buzz
             }
         }
     </script>
