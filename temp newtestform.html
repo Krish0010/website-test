@@ -766,11 +766,26 @@
         }
 
         async function submitPayload() {
+            // 🟢 SECURITY FIX: Prevent Double-Submissions on slow networks
+            const nextBtn = document.getElementById('btn-next-dish');
+            const prevBtn = document.getElementById('btn-prev-dish');
+            if (nextBtn.disabled) return; // If already submitting, abort.
+            
+            nextBtn.disabled = true;
+            prevBtn.disabled = true;
+            nextBtn.innerText = "Processing...";
+
             const commentEl = document.getElementById(`dish-comment-${State.currentDishIndex}`);
             if (commentEl) State.payload.ratings[State.currentDishIndex].comment = commentEl.value.trim();
 
             const cleanRatings = State.payload.ratings.filter(r => r.rating > 0 && r.name.length > 2);
-            if (cleanRatings.length === 0) { alert("Please rate at least one dish to claim your reward."); return; }
+            if (cleanRatings.length === 0) { 
+                alert("Please rate at least one dish to claim your reward."); 
+                nextBtn.disabled = false;
+                prevBtn.disabled = false;
+                nextBtn.innerText = "Submit Feedback";
+                return; 
+            }
 
             const customDishes = cleanRatings.filter(r => r.type === 'custom');
             const finalPayload = {
@@ -796,7 +811,6 @@
             try {
                 await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(finalPayload) });
                 
-                // 🟢 NEW: Securely vaporize the draft once Google has received the data
                 sessionStorage.removeItem('impact_draft');
                 
                 setTimeout(() => {
@@ -808,6 +822,11 @@
                 alert("Network error.");
                 document.getElementById('action-bar').classList.remove('hidden');
                 switchView('rating');
+                
+                // Re-enable buttons if network fails
+                nextBtn.disabled = false;
+                prevBtn.disabled = false;
+                nextBtn.innerText = "Submit Feedback";
             }
         }
 // 🟢 NEW: Character Counter Logic
