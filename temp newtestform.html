@@ -638,7 +638,7 @@
                             </div>
                             <!-- 🟢 UPGRADED COMMENT BOX -->
                             <div id="comment-box-${State.currentDishIndex}" class="hidden mt-6 animate-in slide-in-from-bottom-4 relative">
-                                <textarea id="dish-comment-${State.currentDishIndex}" rows="3" maxlength="200" placeholder="Any specific thoughts? (Optional)" oninput="updateCharCount(${State.currentDishIndex})" class="w-full bg-black/40 border border-white/10 text-white rounded-2xl text-[13px] sm:text-sm pt-4 px-5 pb-10 text-left resize-none focus:border-brand-gold focus:ring-4 focus:ring-brand-gold/15 outline-none transition-all duration-300 leading-relaxed block box-border"></textarea>
+                                <textarea id="dish-comment-${State.currentDishIndex}" rows="3" maxlength="200" placeholder="Any specific thoughts? (Optional)" oninput="updateCharCount(${State.currentDishIndex})" class="w-full bg-black/40 border border-white/10 text-white rounded-2xl text-[13px] sm:text-sm pt-4 px-5 pb-10 text-left resize-none focus:border-brand-gold focus:ring-4 focus:ring-brand-gold/15 outline-none transition-all duration-300 leading-relaxed block box-border" maxlength="200"></textarea>
                                 <span id="char-count-${State.currentDishIndex}" class="absolute bottom-3 right-5 text-[10px] font-black text-gray-500 transition-colors duration-300 pointer-events-none">200 left</span>
                             </div>
                         </div>
@@ -664,7 +664,7 @@
                             ${getStarHTML(5)}${getStarHTML(4)}${getStarHTML(3)}${getStarHTML(2)}${getStarHTML(1)}
                         </div>
                         <div id="comment-box-${State.currentDishIndex}" class="hidden mt-6 animate-in slide-in-from-bottom-4 relative">
-                            <textarea id="dish-comment-${State.currentDishIndex}" rows="3" maxlength="200" placeholder="Any specific thoughts? (Optional)" oninput="updateCharCount(${State.currentDishIndex})" class="w-full bg-black/40 border border-white/10 text-white rounded-2xl text-[13px] sm:text-sm pt-4 px-5 pb-10 text-left resize-none focus:border-brand-gold focus:ring-4 focus:ring-brand-gold/15 outline-none transition-all duration-300 leading-relaxed block box-border"></textarea>
+                            <textarea id="dish-comment-${State.currentDishIndex}" rows="3" maxlength="200" placeholder="Any specific thoughts? (Optional)" oninput="updateCharCount(${State.currentDishIndex})" class="w-full bg-black/40 border border-white/10 text-white rounded-2xl text-[13px] sm:text-sm pt-4 px-5 pb-10 text-left resize-none focus:border-brand-gold focus:ring-4 focus:ring-brand-gold/15 outline-none transition-all duration-300 leading-relaxed block box-border" maxlength="200"></textarea>
                             <span id="char-count-${State.currentDishIndex}" class="absolute bottom-3 right-5 text-[10px] font-black text-gray-500 transition-colors duration-300 pointer-events-none">200 left</span>
                         </div>
                     </div>
@@ -766,10 +766,14 @@
             setTimeout(() => document.getElementById('app-container').scrollBy({ top: 150, behavior: 'smooth' }), 100);
         }
 
-        // 🟢 NEW: Omni-Directional Navigation System
+        // 🟢 FIXED: Omni-Directional Navigation with strict deep string sanitization bounds
         function navigateDish(direction) {
             const commentEl = document.getElementById(`dish-comment-${State.currentDishIndex}`);
-            if (commentEl) State.payload.ratings[State.currentDishIndex].comment = commentEl.value.trim();
+            if (commentEl) {
+                // Hard sanitization sweep execution boundary mapping
+                let rawComment = commentEl.value.trim();
+                State.payload.ratings[State.currentDishIndex].comment = rawComment.slice(0, 200);
+            }
 
             if (direction === 1) { // Forward
                 if (State.currentDishIndex < MENU_CONFIG.length - 1) {
@@ -853,20 +857,29 @@
                 nextBtn.innerText = "Submit Feedback";
             }
         }
-// 🟢 NEW: Character Counter Logic
+// 🟢 UPGRADE: Haptic "Bumper" Character Counter Logic
         function updateCharCount(index) {
             const textarea = document.getElementById(`dish-comment-${index}`);
             const counter = document.getElementById(`char-count-${index}`);
             
             if (textarea && counter) {
+                if (textarea.value.length > 200) {
+                    textarea.value = textarea.value.slice(0, 200);
+                }
                 const remaining = 200 - textarea.value.length;
                 counter.innerText = remaining + " left";
                 
-                // Turns red when they have 20 characters or less remaining
                 if (remaining <= 20) {
                     counter.classList.replace('text-gray-500', 'text-brand-red');
                 } else {
                     counter.classList.replace('text-brand-red', 'text-gray-500');
+                }
+
+                // 🟢 NEW: Physical and Visual Feedback when the wall is hit
+                if (remaining === 0) {
+                    triggerHaptic('heavy');
+                    counter.classList.add('animate-shake');
+                    setTimeout(() => counter.classList.remove('animate-shake'), 400);
                 }
             }
         }
@@ -877,12 +890,24 @@
                 if (intensity === 'heavy') navigator.vibrate([30, 50, 30]); // Error buzz
             }
         }
-// 🟢 NEW: Cross-Browser Autocomplete Text-Filtering Layer
+// 🟢 FIXED: Cross-Browser Autocomplete with hard parameter validation limits
         function filterCustomMenu(index) {
             const input = document.getElementById(`custom-name-${index}`);
             const dropdown = document.getElementById(`custom-dropdown-${index}`);
-            const query = input.value.toLowerCase().trim();
             
+            // Hard data truncation gate down to max 50 configuration
+            if (input.value.length > 50) {
+                input.value = input.value.slice(0, 50);
+            }
+
+            // 🟢 NEW: Physical UI lock alert for the Dish Name input
+            if (input.value.length === 50) {
+                triggerHaptic('heavy');
+                input.classList.add('border-brand-red', 'animate-shake');
+                setTimeout(() => input.classList.remove('border-brand-red', 'animate-shake'), 400);
+            }
+            
+            const query = input.value.toLowerCase().trim();
             State.payload.ratings[index].name = input.value.trim();
             saveDraft();
 
