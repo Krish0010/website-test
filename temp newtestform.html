@@ -989,13 +989,14 @@
                 borderClass = 'border-brand-gold/30 shadow-[0_10px_30px_rgba(232,192,100,0.15)]';
             }
 
-            // Standard centered positioning on desktop, responsive padded boundaries on mobile screens
-            toast.className = `fixed top-5 left-4 right-4 sm:left-1/2 sm:right-auto sm:w-[420px] glass-card p-4 rounded-2xl border ${borderClass} flex items-center gap-3 z-[9999] animate-toast pointer-events-auto`;
+            // 🟢 UPGRADE: Refined padding, gap spacing, and flex alignments
+            toast.className = `fixed top-5 left-4 right-4 sm:left-1/2 sm:right-auto sm:w-[420px] glass-card p-4 sm:p-5 rounded-2xl border ${borderClass} flex items-center z-[9999] animate-toast pointer-events-auto`;
             
+            // 🟢 UPGRADE: Typography adjustments (font-medium), explicit text-left, and shrink-0 on the button
             toast.innerHTML = `
-                <div class="text-xl shrink-0">${icon}</div>
-                <div class="text-[13px] font-semibold text-gray-200 leading-relaxed flex-1">${message}</div>
-                <button onclick="this.parentElement.remove()" class="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors ml-2 px-3 py-2 bg-white/5 hover:bg-white/10 rounded-xl">Dismiss</button>
+                <div class="text-2xl shrink-0 mr-3.5">${icon}</div>
+                <div class="text-[13px] font-medium text-gray-200 leading-relaxed flex-1 text-left pr-2">${message}</div>
+                <button onclick="this.parentElement.remove()" class="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white transition-colors px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl shrink-0 whitespace-nowrap active:scale-95">Dismiss</button>
             `;
 
             document.body.appendChild(toast);
