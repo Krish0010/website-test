@@ -28,16 +28,17 @@
             background-color: #050505; color: #e5e7eb; -webkit-tap-highlight-color: transparent;
         }
         
-        /* 🟢 UPGRADE: Cinematic Breathing Background Orbs */
+        /* 🟢 FIXED: High-visibility cinematic breathing background orbs */
         @keyframes float-orb {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(15px, 20px) scale(1.1); }
+            0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.25; }
+            50% { transform: translate(40px, 30px) scale(1.3); opacity: 0.45; }
         }
         .ambient-orb {
-            position: fixed; border-radius: 50%; filter: blur(80px); z-index: -1; opacity: 0.3; pointer-events: none;
+            position: fixed; border-radius: 50%; filter: blur(60px); z-index: -1; pointer-events: none;
+            transition: all 0.5s ease;
         }
-        .orb-1 { top: -10%; left: -10%; width: 300px; height: 300px; background: rgba(232, 192, 100, 0.15); animation: float-orb 8s ease-in-out infinite; }
-        .orb-2 { bottom: -10%; right: -10%; width: 400px; height: 400px; background: rgba(232, 192, 100, 0.1); animation: float-orb 12s ease-in-out infinite reverse; }
+        .orb-1 { top: -5%; left: -10%; width: 320px; height: 320px; background: radial-gradient(circle, rgba(232, 192, 100, 0.3) 0%, rgba(0,0,0,0) 70%); animation: float-orb 10s ease-in-out infinite; }
+        .orb-2 { bottom: -5%; right: -10%; width: 420px; height: 420px; background: radial-gradient(circle, rgba(232, 192, 100, 0.2) 0%, rgba(0,0,0,0) 70%); animation: float-orb 14s ease-in-out infinite reverse; }
 
         /* 🟢 UPGRADE: Apple-Style Error Shake */
         @keyframes shake {
@@ -620,25 +621,21 @@
             } else {
                 let mustRateWarning = (isLast && currentRated === 0) ? `<p class="text-brand-red text-[11px] font-bold uppercase tracking-widest text-center mt-6 animate-pulse">⚠️ Please rate at least one dish to submit</p>` : "";
                 
-                let menuOptions = State.globalMenu.map(dish => `<option value="${dish}">`).join('');
-                
                 html = `
-                <div class="glass-card rounded-3xl p-6 sm:p-8 w-full animate-in slide-in-from-right-8 duration-300">
+                <div class="glass-card rounded-3xl p-6 sm:p-8 w-full animate-in slide-in-from-right-8 duration-300 relative">
                     <p class="text-[10px] text-brand-gold font-black uppercase tracking-widest mb-3">Extras</p>
                     <h2 class="text-2xl font-black text-white mb-6 leading-tight">${item.prompt} <span class="text-gray-500 font-normal text-lg">(Optional)</span></h2>
                     
-                    <input type="text" id="custom-name-${State.currentDishIndex}" list="restaurant-menu-list" placeholder="e.g., Spicy French Fries" maxlength="50" class="font-semibold text-lg mb-6" oninput="checkCustomInput()">
-                    
-                    <datalist id="restaurant-menu-list">
-                        ${menuOptions}
-                    </datalist>
+                    <div class="relative w-full mb-6 z-50">
+                        <input type="text" id="custom-name-${State.currentDishIndex}" placeholder="e.g., Spicy French Fries" autocomplete="off" maxlength="50" class="font-semibold text-lg" oninput="filterCustomMenu(${State.currentDishIndex})">
+                        <div id="custom-dropdown-${State.currentDishIndex}" class="absolute left-0 right-0 top-[110%] max-h-[160px] overflow-y-auto rounded-xl border border-white/10 bg-[#0c0c0c]/95 backdrop-blur-xl hidden hide-scroll shadow-2xl z-50"></div>
+                    </div>
 
                     <div id="evaluation-box-${State.currentDishIndex}" class="opacity-30 pointer-events-none transition-all duration-500 ease-in-out">
                         <p class="text-center text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Tap to rate</p>
                         <div class="star-container" data-rating="0" id="stars-${State.currentDishIndex}">
                             ${getStarHTML(5)}${getStarHTML(4)}${getStarHTML(3)}${getStarHTML(2)}${getStarHTML(1)}
                         </div>
-                        <!-- 🟢 UPGRADED COMMENT BOX -->
                         <div id="comment-box-${State.currentDishIndex}" class="hidden mt-6 animate-in slide-in-from-bottom-4 relative">
                             <textarea id="dish-comment-${State.currentDishIndex}" rows="3" maxlength="200" placeholder="Any specific thoughts? (Optional)" oninput="updateCharCount(${State.currentDishIndex})" class="w-full bg-black/40 border border-white/10 text-white rounded-2xl text-[13px] sm:text-sm pt-4 px-5 pb-10 text-left resize-none focus:border-brand-gold focus:ring-4 focus:ring-brand-gold/15 outline-none transition-all duration-300 leading-relaxed block box-border"></textarea>
                             <span id="char-count-${State.currentDishIndex}" class="absolute bottom-3 right-5 text-[10px] font-black text-gray-500 transition-colors duration-300 pointer-events-none">200 left</span>
@@ -852,6 +849,51 @@
                 if (intensity === 'light') navigator.vibrate(10); // Tiny crisp buzz
                 if (intensity === 'heavy') navigator.vibrate([30, 50, 30]); // Error buzz
             }
+        }
+// 🟢 NEW: Cross-Browser Autocomplete Text-Filtering Layer
+        function filterCustomMenu(index) {
+            const input = document.getElementById(`custom-name-${index}`);
+            const dropdown = document.getElementById(`custom-dropdown-${index}`);
+            const query = input.value.toLowerCase().trim();
+            
+            State.payload.ratings[index].name = input.value.trim();
+            saveDraft();
+
+            if (query.length < 1) {
+                dropdown.innerHTML = "";
+                dropdown.classList.add('hidden');
+                checkCustomInput();
+                return;
+            }
+
+            // Search matches containing the characters typed
+            const matches = State.globalMenu.filter(dish => dish.toLowerCase().includes(query));
+
+            if (matches.length === 0) {
+                dropdown.classList.add('hidden');
+                checkCustomInput();
+                return;
+            }
+
+            dropdown.innerHTML = matches.map(dish => `
+                <div onclick="selectCustomDish(${index}, '${dish.replace(/'/g, "\\'")}')" class="px-5 py-3 text-sm font-semibold text-left text-gray-300 hover:bg-brand-gold/10 hover:text-white cursor-pointer transition-colors border-b border-white/5 last:border-0">${dish}</div>
+            `).join('');
+
+            dropdown.classList.remove('hidden');
+            checkCustomInput();
+        }
+
+        // 🟢 NEW: Handles choosing a suggestion item smoothly
+        function selectCustomDish(index, name) {
+            triggerHaptic('light');
+            const input = document.getElementById(`custom-name-${index}`);
+            const dropdown = document.getElementById(`custom-dropdown-${index}`);
+            
+            input.value = name;
+            dropdown.classList.add('hidden');
+            
+            // Re-run standard card logic now that value is filled
+            checkCustomInput();
         }
     </script>
 </body>
