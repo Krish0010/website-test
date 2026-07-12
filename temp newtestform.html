@@ -97,6 +97,20 @@
 
         .view-section { display: none; opacity: 0; transform: translateY(15px); transition: all 0.4s ease; }
         .view-section.active { display: block; opacity: 1; transform: translateY(0); }
+     /* 🟢 UPGRADE: Premium Notification Animation Profiles */
+        @keyframes toast-drop {
+            0% { transform: translate(-50%, -30px); opacity: 0; scale: 0.95; }
+            100% { transform: translate(-50%, 0); opacity: 1; scale: 1; }
+        }
+        @media (max-width: 640px) {
+            @keyframes toast-drop {
+                0% { transform: translateY(-30px); opacity: 0; scale: 0.95; }
+                100% { transform: translateY(0); opacity: 1; scale: 1; }
+            }
+        }
+        .animate-toast {
+            animation: toast-drop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
     </style>
 </head>
 <body class="antialiased h-[100dvh] w-screen overflow-hidden flex flex-col relative">
@@ -496,7 +510,7 @@
                     startOtpCooldown(60); 
                 } else {
                     btn.classList.remove('animate-pulse');
-                    alert(res.message); 
+                    showNotification(res.message, 'error'); // 🟢 Upgraded to Custom Toast
                     
                     if (res.message.includes("60 seconds")) {
                         startOtpCooldown(60);
@@ -510,9 +524,9 @@
                 let errorMsg = e.message || String(e);
                 
                 if (errorMsg.includes("Unexpected token '<'") || errorMsg.includes("Unexpected token <")) {
-                    alert("DEPLOYMENT ERROR: Google returned an HTML page instead of JSON. You must go to Google Apps Script, click Manage Deployments -> Edit -> New Version -> Deploy.");
+                    showNotification("Deployment configuration mismatch detected. Please re-deploy backend container.", "error");
                 } else {
-                    alert("System Error: " + errorMsg + "\n\nTry turning off Brave Shields/Adblockers.");
+                    showNotification("System Connection Error. Please verify your internet connection or network filters.", "error");
                 }
 
                 btn.innerText = "Verify Identity";
@@ -592,7 +606,7 @@
             } catch (e) {
                 otpInputs.forEach(input => input.classList.remove('opacity-50', 'pointer-events-none'));
                 submitBtn.innerText = "Verify Code";
-                alert("Network error processing PIN.");
+                showNotification("Network timeout encountered while authenticating validation key.", "error");
             }
         }
 
@@ -808,7 +822,7 @@
 
             const cleanRatings = State.payload.ratings.filter(r => r.rating > 0 && r.name.length > 2);
             if (cleanRatings.length === 0) { 
-                alert("Please rate at least one dish to claim your reward."); 
+                showNotification("Please select and rate at least one item to claim your secret reward.", "gold"); // 🟢 Custom Premium Gold Accent Toast
                 nextBtn.disabled = false;
                 prevBtn.disabled = false;
                 nextBtn.innerText = "Submit Feedback";
@@ -846,8 +860,8 @@
                     document.getElementById('state-done').classList.remove('hidden');
                     document.getElementById('state-done').classList.add('flex');
                 }, 800);
-            } catch (error) {
-                alert("Network error.");
+           } catch (error) {
+                showNotification("Transmission error. Unable to securely log details to ledger.", "error");
                 document.getElementById('action-bar').classList.remove('hidden');
                 switchView('rating');
                 
@@ -946,6 +960,48 @@
             
             // Re-run standard card logic now that value is filled
             checkCustomInput();
+        }
+ // 🟢 NEW: Enterprise-Grade Custom Notification Engine
+        function showNotification(message, type = 'error') {
+            triggerHaptic(type === 'error' ? 'heavy' : 'light');
+            
+            const existing = document.getElementById('custom-notification');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.id = 'custom-notification';
+            
+            let icon = '⚠️';
+            let borderClass = 'border-brand-red/30 shadow-[0_10px_30px_rgba(239,68,68,0.15)]';
+            
+            if (type === 'success') {
+                icon = '✨';
+                borderClass = 'border-green-500/30 shadow-[0_10px_30px_rgba(34,197,94,0.15)]';
+            } else if (type === 'gold') {
+                icon = '🎁';
+                borderClass = 'border-brand-gold/30 shadow-[0_10px_30px_rgba(232,192,100,0.15)]';
+            }
+
+            // Standard centered positioning on desktop, responsive padded boundaries on mobile screens
+            toast.className = `fixed top-5 left-4 right-4 sm:left-1/2 sm:right-auto sm:w-[420px] glass-card p-4 rounded-2xl border ${borderClass} flex items-center gap-3 z-[9999] animate-toast pointer-events-auto`;
+            
+            toast.innerHTML = `
+                <div class="text-xl shrink-0">${icon}</div>
+                <div class="text-[13px] font-semibold text-gray-200 leading-relaxed flex-1">${message}</div>
+                <button onclick="this.parentElement.remove()" class="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors ml-2 px-3 py-2 bg-white/5 hover:bg-white/10 rounded-xl">Dismiss</button>
+            `;
+
+            document.body.appendChild(toast);
+
+            // High-retention clean dismiss routine after 5 seconds
+            setTimeout(() => {
+                if (toast && toast.parentElement) {
+                    toast.style.opacity = '0';
+                    toast.style.transform = window.innerWidth > 640 ? 'translate(-50%, -20px)' : 'translateY(-20px)';
+                    toast.style.transition = 'all 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 5000);
         }
     </script>
 </body>
