@@ -207,7 +207,9 @@
         </div>
 
         <!-- VIEW 4: SUCCESS -->
-        <div id="view-success" class="view-section w-full min-h-[60vh] flex flex-col items-center justify-center text-center shrink-0">
+        <!-- 🟢 UPGRADE: flex-1 ensures it perfectly calculates the dead-center of any screen -->
+        <div id="view-success" class="view-section w-full flex-1 flex flex-col items-center justify-center text-center pb-8 sm:pb-12 shrink-0">
+            
             <div id="state-loading" class="flex flex-col items-center">
                 <div class="relative w-20 h-20 mb-8">
                     <div class="absolute inset-0 rounded-full border-t-2 border-brand-gold animate-spin"></div>
@@ -218,21 +220,34 @@
                 <p class="text-sm text-gray-400 font-medium">Writing verified data to ledger.</p>
             </div>
 
-            <div id="state-done" class="hidden flex-col items-center">
-                <div class="w-24 h-24 bg-green-500/10 rounded-full flex items-center justify-center mb-6 border border-green-500/30 relative">
-                    <div class="absolute inset-0 rounded-full bg-green-500/20 animate-ping opacity-20"></div>
-                    <span class="text-5xl relative z-10">✨</span>
+            <div id="state-done" class="hidden flex-col items-center w-full">
+                <!-- 🟢 UPGRADE: Enhanced glow and drop-shadow on the success icon -->
+                <div class="w-24 h-24 bg-green-500/10 rounded-full flex items-center justify-center mb-8 border border-green-500/40 relative shadow-[0_0_30px_rgba(34,197,94,0.15)]">
+                    <div class="absolute inset-0 rounded-full bg-green-500/20 animate-ping opacity-30" style="animation-duration: 2s;"></div>
+                    <span class="text-5xl relative z-10 drop-shadow-lg">✨</span>
                 </div>
+                
                 <h2 class="text-4xl font-black text-white mb-3 tracking-tight">You're In!</h2>
-                <p class="text-base text-gray-300 mb-8 leading-relaxed max-w-xs mx-auto">Your secure reward code has been generated and sent to your email.</p>
-                <div class="glass-card p-5 rounded-2xl w-full max-w-xs text-left border-brand-gold/30">
-                    <p class="text-[10px] text-brand-gold font-black uppercase tracking-[0.2em] mb-1">Final Step</p>
-                    <p class="text-sm text-gray-300 font-medium leading-snug">Open your email and show the code to the staff at the counter to claim your discount.</p>
+                <p class="text-[15px] text-gray-400 mb-10 leading-relaxed max-w-[280px] mx-auto">Your secure reward code has been generated and sent to your email.</p>
+                
+                <!-- 🟢 UPGRADE: Premium card layout with wider padding, relaxed line-height, and visual anchors -->
+                <div class="glass-card p-7 rounded-3xl w-full max-w-sm text-left border-brand-gold/40 shadow-[0_0_25px_rgba(232,192,100,0.08)] relative overflow-hidden">
+                    <!-- Subtle background gradient accent -->
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand-gold to-transparent opacity-50"></div>
+                    
+                    <!-- 🟢 UPGRADE: Active pulsing indicator next to the label -->
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-2 h-2 rounded-full bg-brand-gold animate-pulse shadow-[0_0_10px_rgba(232,192,100,0.8)]"></span>
+                        <p class="text-[10px] text-brand-gold font-black uppercase tracking-[0.2em] pt-0.5">Final Step</p>
+                    </div>
+                    
+                    <p class="text-[15px] text-gray-200 font-medium leading-relaxed">
+                        Open your email and show the code to the staff at the counter to claim your discount.
+                    </p>
                 </div>
             </div>
+            
         </div>
-
-    </div>
 
     <!-- ACTION BAR -->
     <div id="action-bar" class="fixed bottom-0 left-0 right-0 p-4 sm:p-6 bg-gradient-to-t from-black via-[#050505] to-transparent z-50 hidden pointer-events-none">
