@@ -510,7 +510,14 @@
                     startOtpCooldown(60); 
                 } else {
                     btn.classList.remove('animate-pulse');
-                    showNotification(res.message, 'error'); // 🟢 Upgraded to Custom Toast
+                    
+                    // 🟢 UPGRADE: Make backend limit errors customer-friendly
+                    let displayMessage = res.message;
+                    if (displayMessage.toLowerCase().includes("maximum") || displayMessage.toLowerCase().includes("limit")) {
+                        displayMessage = "Too many attempts. Please wait a while or use a different email address.";
+                    }
+                    
+                    showNotification(displayMessage, 'error');
                     
                     if (res.message.includes("60 seconds")) {
                         startOtpCooldown(60);
@@ -861,7 +868,7 @@
                     document.getElementById('state-done').classList.add('flex');
                 }, 800);
            } catch (error) {
-                showNotification("Transmission error. Unable to securely log details to ledger.", "error");
+                showNotification("Connection lost. Please check your internet connection and try submitting again.", "error");
                 document.getElementById('action-bar').classList.remove('hidden');
                 switchView('rating');
                 
