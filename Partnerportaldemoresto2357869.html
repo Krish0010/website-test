@@ -31,20 +31,27 @@
             <h1 class="text-xl sm:text-2xl font-extrabold tracking-widest mb-1 mt-2">FOODSTORYTVC</h1>
             <p class="text-[10px] sm:text-xs text-green-500 font-bold tracking-[0.2em] uppercase">IMPACT Partner Portal</p>
             
-            <!-- 🟢 UPGRADE: Dynamic Dual-Pill Header (Restaurant & Live Clock) -->
+            <!-- 🟢 UPGRADE: Symmetrical Tri-Pill Header (Location | Date | Time) -->
             <div class="mt-5 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
                 
+                <!-- Location Pill -->
                 <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800/80 border border-gray-700 shadow-inner">
                     <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z"></path></svg>
                     <p id="restaurant-name-display" class="text-gray-200 text-[11px] font-bold uppercase tracking-wider"></p>
                 </div>
                 
+                <!-- Date Pill -->
+                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800/80 border border-gray-700 shadow-inner">
+                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <p id="live-date" class="text-gray-200 text-[11px] font-bold uppercase tracking-wider"></p>
+                </div>
+
+                <!-- Time Pill (No Seconds) -->
                 <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800/80 border border-gray-700 shadow-inner">
                     <svg class="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     <p class="text-[11px] font-bold tracking-wider uppercase flex items-center">
-                        <span id="live-date" class="text-gray-300"></span> 
-                        <span class="text-gray-600 mx-1.5">|</span> 
-                        <span id="live-time" class="text-green-400 font-black"></span>
+                        <span id="live-time-main" class="text-green-400 font-black"></span>
+                        <span id="live-time-ampm" class="text-green-600 ml-1"></span>
                     </p>
                 </div>
 
@@ -396,18 +403,29 @@
             }
         }
 
-        // 🟢 NEW: Live Clock Engine for Staff Verification
+        // 🟢 NEW: Tri-Pill Live Clock Engine (Seconds Removed for UX Clarity)
         function updateLiveClock() {
             const now = new Date();
-            // Format to explicitly match your backend output (e.g., 24-Jul-26)
-            const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }).replace(/ /g, '-');
-            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+            const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }).replace(/ /g, '-').toUpperCase();
             
+            // Extract Time and AM/PM cleanly
+            let hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            
+            hours = hours % 12;
+            hours = hours ? hours : 12; // Handle midnight (0) as 12
+            
+            const timeMainStr = `${hours}:${minutes}`;
+            
+            // Inject into the DOM
             const dateEl = document.getElementById('live-date');
-            const timeEl = document.getElementById('live-time');
+            const timeMainEl = document.getElementById('live-time-main');
+            const timeAmPmEl = document.getElementById('live-time-ampm');
             
             if (dateEl) dateEl.innerText = dateStr;
-            if (timeEl) timeEl.innerText = timeStr;
+            if (timeMainEl) timeMainEl.innerText = timeMainStr;
+            if (timeAmPmEl) timeAmPmEl.innerText = ampm;
         }
 
         document.addEventListener("DOMContentLoaded", () => {
