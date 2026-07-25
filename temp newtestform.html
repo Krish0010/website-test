@@ -161,7 +161,7 @@
 
                     <div>
                         <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-1">Your Email <span class="text-brand-red">*</span></label>
-                        <input type="email" id="setup-email" placeholder="Where should we send the reward?" maxlength="100" oninput="this.value = this.value.toLowerCase().replace(/\s/g, ''); validateSetup();" autocomplete="email">
+                        <input type="email" id="setup-email" placeholder="Where should we send the reward?" maxlength="100" oninput="this.value = this.value.toLowerCase().replace(/\s/g, '').replace(/\+/g, ''); validateSetup();" autocomplete="email">
                         <p id="email-error" class="text-brand-red text-[10px] font-bold mt-2 hidden uppercase tracking-wider pl-1">Valid email required.</p>
                     </div>
 
