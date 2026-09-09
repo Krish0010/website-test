@@ -523,9 +523,15 @@
             </div>
     </div>
 
-    <div id="comment-modal" class="fixed inset-0 bg-black/80 z-[200] hidden flex flex-col items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300 opacity-0" style="transition: opacity 0.3s ease;">
-        <div class="bg-brand-card-black border border-brand-gold/50 rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-2xl relative transform transition-transform duration-300 scale-95" id="comment-modal-content">
-            <button onclick="closeCommentModal()" class="absolute top-3 right-4 text-gray-500 hover:text-white text-2xl font-bold">&times;</button>
+    <!-- 🟢 UX FIX: Added 'onclick' to the dark background so tapping outside closes it -->
+    <div id="comment-modal" onclick="closeCommentModal()" class="fixed inset-0 bg-black/80 z-[200] hidden flex flex-col items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300 opacity-0" style="transition: opacity 0.3s ease;">
+        
+        <!-- 🟢 UX FIX: Added 'event.stopPropagation()' so tapping the text inside doesn't close it -->
+        <div class="bg-brand-card-black border border-brand-gold/50 rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-2xl relative transform transition-transform duration-300 scale-95" id="comment-modal-content" onclick="event.stopPropagation()">
+            
+            <!-- 🟢 UX FIX: Added 'z-50' so the button is never blocked by text, and 'p-2' for a bigger touch target -->
+            <button onclick="closeCommentModal()" class="absolute top-2 right-2 p-2 text-gray-500 hover:text-white text-3xl font-bold leading-none z-50 focus:outline-none">&times;</button>
+            
             <div class="text-brand-gold/40 text-4xl sm:text-5xl font-serif leading-none absolute -top-1 left-3">"</div>
             <!-- 🟢 UX FIX: 'break-words' prevents long text from breaking out of the modal -->
             <p id="comment-modal-text" class="text-gray-200 text-sm sm:text-base leading-relaxed pt-6 pb-2 relative z-10 font-medium break-words"></p>
