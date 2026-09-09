@@ -302,10 +302,29 @@
             <div id="heatmap-container" class="min-w-[600px] flex flex-col gap-1.5">
                 </div>
             
-            <div class="flex justify-center items-center gap-4 mt-6 text-[9px] uppercase tracking-widest font-bold text-gray-400">
-                <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded shadow-sm" style="background-color: #ef4444"></div> Needs Attention (≤ 3.0)</div>
-                <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded shadow-sm" style="background-color: #e8c064"></div> Acceptable (3.1 - 4.0)</div>
-                <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded shadow-sm" style="background-color: #4ade80"></div> Excellent (> 4.0)</div>
+            <!-- 🟢 UX FIX: Structured mobile wrapping so legends stack cleanly without breaking ranges -->
+            <div class="flex flex-wrap justify-center gap-x-4 gap-y-3 mt-6 text-[9px] uppercase tracking-widest font-bold text-gray-400 w-full px-1">
+                <div class="flex items-start sm:items-center gap-1.5">
+                    <div class="w-3 h-3 rounded shadow-sm shrink-0 mt-[1px] sm:mt-0" style="background-color: #ef4444"></div>
+                    <div class="flex flex-col sm:flex-row sm:gap-1 text-left leading-tight">
+                        <span>Needs Attention</span>
+                        <span class="whitespace-nowrap text-gray-500">(≤ 3.0)</span>
+                    </div>
+                </div>
+                <div class="flex items-start sm:items-center gap-1.5">
+                    <div class="w-3 h-3 rounded shadow-sm shrink-0 mt-[1px] sm:mt-0" style="background-color: #e8c064"></div>
+                    <div class="flex flex-col sm:flex-row sm:gap-1 text-left leading-tight">
+                        <span>Acceptable</span>
+                        <span class="whitespace-nowrap text-gray-500">(3.1 - 4.0)</span>
+                    </div>
+                </div>
+                <div class="flex items-start sm:items-center gap-1.5">
+                    <div class="w-3 h-3 rounded shadow-sm shrink-0 mt-[1px] sm:mt-0" style="background-color: #4ade80"></div>
+                    <div class="flex flex-col sm:flex-row sm:gap-1 text-left leading-tight">
+                        <span>Excellent</span>
+                        <span class="whitespace-nowrap text-gray-500">(> 4.0)</span>
+                    </div>
+                </div>
             </div>
         </div>
 
