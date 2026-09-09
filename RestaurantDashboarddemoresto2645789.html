@@ -1918,20 +1918,38 @@
                 // --- PROCEED WITH RENDER ---
                 const data = result.data;
                 
-                // 🟢 UX FIX: Bind the autoSearchComment function dynamically to the metrics
+                // 🟢 UX FIX: Scroll directly to the pre-rendered comment boxes with a visual glow
                 const topName = data.topDishName || data.topDish || "--";
                 const lowName = data.underperformingDishName || data.underperformingDish || "--";
                 
                 const topEl = document.getElementById('metric-top-dish');
                 topEl.innerText = topName;
                 if (topName !== "--") {
-                    topEl.onclick = () => window.autoSearchComment(topName);
+                    topEl.onclick = () => {
+                        const target = document.getElementById('comment-top-name');
+                        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        
+                        // Briefly glow green to draw the user's eye to the exact card
+                        const card = target.parentElement;
+                        card.style.transition = 'box-shadow 0.4s ease';
+                        card.style.boxShadow = '0 0 30px rgba(74,222,128,0.4)';
+                        setTimeout(() => card.style.boxShadow = '', 1200);
+                    };
                 }
                 
                 const lowEl = document.getElementById('metric-low-dish');
                 lowEl.innerText = lowName;
                 if (lowName !== "--") {
-                    lowEl.onclick = () => window.autoSearchComment(lowName);
+                    lowEl.onclick = () => {
+                        const target = document.getElementById('comment-low-name');
+                        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        
+                        // Briefly glow red to draw the user's eye to the exact card
+                        const card = target.parentElement;
+                        card.style.transition = 'box-shadow 0.4s ease';
+                        card.style.boxShadow = '0 0 30px rgba(239,68,68,0.4)';
+                        setTimeout(() => card.style.boxShadow = '', 1200);
+                    };
                 }
 
                 document.getElementById('metric-customers').innerText = data.totalCustomers;
