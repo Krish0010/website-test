@@ -178,15 +178,17 @@
             </div>
 
         <div class="bg-brand-card-black border border-brand-gold/30 rounded-2xl p-5 sm:p-6 shadow-xl sm:col-span-2 lg:col-span-3 flex flex-col justify-center relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-brand-gold/5 rounded-full blur-3xl -mr-8 -mt-8 sm:-mr-10 sm:-mt-10"></div>
+            <div class="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-brand-gold/5 rounded-full blur-3xl -mr-8 -mt-8 sm:-mr-10 sm:-mt-10 pointer-events-none"></div>
             <div class="text-gray-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-2 sm:mb-3">🏆 Top Performing Dish</div>
-            <div id="metric-top-dish" class="text-xl sm:text-2xl md:text-4xl font-black text-brand-gold">--</div>
+            <!-- 🟢 UX FIX: Added click affordances (cursor, scale tap effect, and underline on hover) -->
+            <div id="metric-top-dish" title="Click to read customer comments" class="text-xl sm:text-2xl md:text-4xl font-black text-brand-gold w-fit cursor-pointer hover:underline decoration-brand-gold/50 underline-offset-4 active:scale-95 transition-all">--</div>
         </div>
 
         <div class="bg-brand-card-black border border-danger-red/30 rounded-2xl p-5 sm:p-6 shadow-xl sm:col-span-2 lg:col-span-3 flex flex-col justify-center relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-danger-red/5 rounded-full blur-3xl -mr-8 -mt-8 sm:-mr-10 sm:-mt-10"></div>
+            <div class="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-danger-red/5 rounded-full blur-3xl -mr-8 -mt-8 sm:-mr-10 sm:-mt-10 pointer-events-none"></div>
             <div class="text-gray-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-2 sm:mb-3">🚩 Action Required</div>
-            <div id="metric-low-dish" class="text-xl sm:text-2xl md:text-4xl font-black text-danger-red">--</div>
+            <!-- 🟢 UX FIX: Added click affordances (cursor, scale tap effect, and underline on hover) -->
+            <div id="metric-low-dish" title="Click to read customer comments" class="text-xl sm:text-2xl md:text-4xl font-black text-danger-red w-fit cursor-pointer hover:underline decoration-danger-red/50 underline-offset-4 active:scale-95 transition-all">--</div>
         </div>
 
         <div class="col-span-1 sm:col-span-2 lg:col-span-6 grid grid-cols-3 gap-2 sm:gap-6">
@@ -1916,8 +1918,22 @@
                 // --- PROCEED WITH RENDER ---
                 const data = result.data;
                 
-                document.getElementById('metric-top-dish').innerText = data.topDishName || data.topDish;
-                document.getElementById('metric-low-dish').innerText = data.underperformingDishName || data.underperformingDish;
+                // 🟢 UX FIX: Bind the autoSearchComment function dynamically to the metrics
+                const topName = data.topDishName || data.topDish || "--";
+                const lowName = data.underperformingDishName || data.underperformingDish || "--";
+                
+                const topEl = document.getElementById('metric-top-dish');
+                topEl.innerText = topName;
+                if (topName !== "--") {
+                    topEl.onclick = () => window.autoSearchComment(topName);
+                }
+                
+                const lowEl = document.getElementById('metric-low-dish');
+                lowEl.innerText = lowName;
+                if (lowName !== "--") {
+                    lowEl.onclick = () => window.autoSearchComment(lowName);
+                }
+
                 document.getElementById('metric-customers').innerText = data.totalCustomers;
                 document.getElementById('metric-entries').innerText = data.totalSubmissions;
                 document.getElementById('metric-votes').innerText = data.totalVotes;
