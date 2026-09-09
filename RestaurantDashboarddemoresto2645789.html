@@ -1608,9 +1608,14 @@
         function renderHeatmap(data) {
             const container = document.getElementById('heatmap-container');
             if(!data || data.length === 0) {
-                container.innerHTML = '<div class="text-center text-gray-500 text-xs py-8">Not enough time-based data available yet.</div>';
+                // 🟢 UX FIX: Remove the forced 600px width so the empty state text centers perfectly on mobile
+                container.classList.remove('min-w-[600px]');
+                container.innerHTML = '<div class="text-center text-gray-500 text-xs py-8 w-full">Not enough time-based data available yet.</div>';
                 return;
             }
+            
+            // 🟢 UX FIX: Restore the 600px width so the actual grid remains swipeable and doesn't squish
+            container.classList.add('min-w-[600px]');
 
             const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
             const startHour = 10; // 10 AM (Assumed Opening time, change if needed)
