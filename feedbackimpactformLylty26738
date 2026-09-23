@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Feedback | Foodstorytvc</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-black': '#050505', 
+                        'brand-card': 'rgba(20, 20, 20, 0.7)',
+                        'brand-gold': '#e8c064',
+                        'brand-gold-hover': '#f3d382',
+                        'brand-red': '#ef4444'
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            background-color: #050505; color: #e5e7eb; -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* 🟢 FIXED: High-visibility cinematic breathing background orbs */
+        @keyframes float-orb {
+            0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.25; }
+            50% { transform: translate(40px, 30px) scale(1.3); opacity: 0.45; }
+        }
+        .ambient-orb {
+            position: fixed; border-radius: 50%; filter: blur(60px); z-index: -1; pointer-events: none;
+            transition: all 0.5s ease;
+        }
+        .orb-1 { top: -5%; left: -10%; width: 320px; height: 320px; background: radial-gradient(circle, rgba(232, 192, 100, 0.3) 0%, rgba(0,0,0,0) 70%); animation: float-orb 10s ease-in-out infinite; }
+        .orb-2 { bottom: -5%; right: -10%; width: 420px; height: 420px; background: radial-gradient(circle, rgba(232, 192, 100, 0.2) 0%, rgba(0,0,0,0) 70%); animation: float-orb 14s ease-in-out infinite reverse; }
+
+        /* 🟢 UPGRADE: Apple-Style Error Shake */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        .animate-shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+
+        .glass-card {
+            background: rgba(25, 25, 25, 0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        /* 🟢 Standard inputs: Left-aligned for premium readability */
+        input[type="text"], input[type="email"], select {
+            background-color: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #fff; width: 100%; padding: 16px 20px; border-radius: 16px; font-size: 15px; outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #e8c064; background-color: rgba(0, 0, 0, 0.7); box-shadow: 0 0 0 4px rgba(232, 192, 100, 0.15);
+        }
+
+        /* OTP Specific Styles */
+        .otp-input {
+            width: 50px; height: 60px; font-size: 24px; font-weight: 900; text-align: center;
+            background-color: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #e8c064; border-radius: 12px; transition: all 0.2s;
+        }
+        .otp-input:focus { border-color: #e8c064; box-shadow: 0 0 0 4px rgba(232, 192, 100, 0.15); }
+
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .star-container { display: flex; justify-content: center; gap: 8px; direction: rtl; }
+        .star-svg { width: 48px; height: 48px; cursor: pointer; fill: transparent; stroke: #4b5563; stroke-width: 1.5; transition: all 0.25s; }
+        
+        .star-svg:hover, .star-svg:hover ~ .star-svg,
+        .star-container[data-rating="5"] .star-svg:nth-child(n+1),
+        .star-container[data-rating="4"] .star-svg:nth-child(n+2),
+        .star-container[data-rating="3"] .star-svg:nth-child(n+3),
+        .star-container[data-rating="2"] .star-svg:nth-child(n+4),
+        .star-container[data-rating="1"] .star-svg:nth-child(5) {
+            fill: #e8c064; stroke: #e8c064; filter: drop-shadow(0 0 8px rgba(232, 192, 100, 0.6)); transform: scale(1.15);
+        }
+
+        .choice-btn {
+            flex: 1; padding: 16px; border-radius: 16px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 1px; font-size: 13px; border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.03); color: #9ca3af; transition: all 0.2s ease;
+        }
+        .choice-btn.yes:hover, .choice-btn.yes.active { background: #16a34a; border-color: #16a34a; color: #fff; box-shadow: 0 0 20px rgba(22, 163, 74, 0.3); }
+        .choice-btn.no:hover, .choice-btn.no.active { background: #ef4444; border-color: #ef4444; color: #fff; box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+
+        .view-section { display: none; opacity: 0; transform: translateY(15px); transition: all 0.4s ease; }
+        .view-section.active { display: block; opacity: 1; transform: translateY(0); }
+     /* 🟢 UPGRADE: Premium Notification Animation Profiles */
+        @keyframes toast-drop {
+            0% { transform: translate(-50%, -30px); opacity: 0; scale: 0.95; }
+            100% { transform: translate(-50%, 0); opacity: 1; scale: 1; }
+        }
+        @media (max-width: 640px) {
+            @keyframes toast-drop {
+                0% { transform: translateY(-30px); opacity: 0; scale: 0.95; }
+                100% { transform: translateY(0); opacity: 1; scale: 1; }
+            }
+        }
+        .animate-toast {
+            animation: toast-drop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+    </style>
+</head>
+<body class="antialiased h-[100dvh] w-screen overflow-hidden flex flex-col relative">
+
+    <input type="text" id="website_url" name="website_url" tabindex="-1" autocomplete="off" class="hidden absolute -left-[9999px]">
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+
+    <!-- 🟢 UPGRADE: Increased top padding (pt-10) for perfect cinematic headroom -->
+    <div class="w-full px-6 pt-10 pb-2 flex justify-between items-center z-40 relative max-w-xl mx-auto shrink-0">
+        <!-- 🟢 PREMIUM 3D LOGO: Image breaks out of the frame -->
+        <div class="relative w-14 h-14 shrink-0 flex items-end justify-center">
+            <!-- The glowing golden ring (sits behind) -->
+            <div class="absolute inset-0 rounded-full border-2 border-brand-gold shadow-[0_0_15px_rgba(232,192,100,0.3)] bg-black"></div>
+            <!-- The avatar (scaled up, shifted up, bottom-rounded to fit the ring) -->
+            <img src="https://res.cloudinary.com/dr6xhnhor/image/upload/v1781864406/big_size_Logo_without_background_new_ubp9mn.png" alt="Logo" class="w-full h-full object-cover scale-[1.3] -translate-y-2 relative z-10 rounded-b-full">
+        </div>
+        
+        <!-- 🟢 UX FIX: Slimmer, elegant 2px progress bar restored -->
+        <div class="flex flex-col items-end">
+            <div id="step-indicator" class="text-[10px] font-black text-brand-gold uppercase tracking-[0.2em] mb-1">Setup</div>
+            <div class="w-24 h-[2px] bg-white/10 rounded-full overflow-hidden">
+                <div id="progress-bar" class="h-full bg-brand-gold w-[10%] transition-all duration-500 ease-out"></div>
+            </div>
+        </div>
+    </div>
+    <div class="flex-1 w-full max-w-xl mx-auto relative px-4 sm:px-6 flex flex-col overflow-y-auto hide-scroll pt-4 sm:pt-10 pb-8 z-30 transition-all duration-300" id="app-container">
+        
+        <!-- VIEW 1: SETUP -->
+        <div id="view-setup" class="view-section active w-full shrink-0">
+            <div class="glass-card rounded-3xl p-6 sm:p-8 mb-6">
+                <!-- 🟢 UPGRADED HEADING -->
+                <h1 class="text-3xl font-black text-white mb-2 leading-tight tracking-tight">Quick Feedback.<br><span class="text-brand-gold">Secret Reward 🎁</span></h1>
+                <p class="text-sm text-gray-400 mb-8 font-medium">Help us improve, and we'll send a secret reward straight to your inbox.</p>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-1">Location <span id="location-asterisk" class="text-brand-red">*</span></label>
+                        <div class="relative">
+                            <select id="setup-resto" class="appearance-none cursor-pointer" onchange="validateSetup()">
+                                <option value="" disabled selected hidden>Select your restaurant...</option>
+                                <option value="Temp New">Temp New</option>
+                            </select>
+                            <div id="resto-arrow" class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-brand-gold">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-1">Your Email <span class="text-brand-red">*</span></label>
+                        <input type="email" id="setup-email" placeholder="Where should we send the reward?" maxlength="100" oninput="this.value = this.value.toLowerCase().replace(/\s/g, '').replace(/\+/g, ''); validateSetup();" autocomplete="email">
+                        <p id="email-error" class="text-brand-red text-[10px] font-bold mt-2 hidden uppercase tracking-wider pl-1">Valid email required.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-1">Receipt Number <span class="text-brand-red">*</span></label>
+                        <!-- 🟢 UX FIX: 'one-time-code' explicitly tells the keyboard NOT to suggest saved passwords or emails -->
+                        <!-- 🟢 UX FIX: Added 'scroll-mt-24' and 'onfocus' to automatically glide the input to the top when the keyboard opens, revealing the Verify button below -->
+                        <input type="text" id="setup-bill" name="receipt_verify_code" placeholder="Last 4 digits of your bill" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="one-time-code" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" class="scroll-mt-24" onfocus="setTimeout(() => this.scrollIntoView({behavior: 'smooth', block: 'start'}), 300);" oninput="this.value = this.value.replace(/[^0-9]/g, ''); validateSetup();">
+                        <p id="bill-error" class="text-brand-red text-[10px] font-bold mt-2 hidden uppercase tracking-wider pl-1">Must be exactly 4 digits.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 🟢 UPGRADED BUTTON: Starts as muted glass, ignites to solid gold -->
+            <button id="btn-start" onclick="requestOTP()" disabled class="w-full py-4 rounded-2xl font-black text-gray-500 bg-white/5 border border-white/10 cursor-not-allowed uppercase tracking-widest transition-all duration-300">
+                Verify Identity
+            </button>
+        </div>
+
+        <!-- VIEW 2: OTP VERIFICATION -->
+        <div id="view-otp" class="view-section w-full shrink-0">
+            <div class="glass-card rounded-3xl p-6 sm:p-8 mb-6 text-center">
+                <div class="w-16 h-16 bg-blue-500/10 border border-blue-500/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl">🛡️</span>
+                </div>
+                <h2 class="text-2xl font-black text-white mb-2 leading-tight">Integrity Check</h2>
+                
+                <p class="text-sm text-gray-400 mb-6 font-medium leading-relaxed">
+                    To ensure 100% genuine reviews from real guests, we've sent a 4-digit secure code to <br>
+                    <strong class="text-brand-gold block mt-2" id="otp-display-email"></strong>
+                </p>
+                
+                <div id="otp-input-wrapper" class="flex justify-center gap-3 mb-6">
+                    <input type="tel" maxlength="1" class="otp-input" id="otp-1" onkeyup="handleOtpInput(this, 1)" onfocus="this.select()">
+                    <input type="tel" maxlength="1" class="otp-input" id="otp-2" onkeyup="handleOtpInput(this, 2)" onfocus="this.select()">
+                    <input type="tel" maxlength="1" class="otp-input" id="otp-3" onkeyup="handleOtpInput(this, 3)" onfocus="this.select()">
+                    <input type="tel" maxlength="1" class="otp-input" id="otp-4" onkeyup="handleOtpInput(this, 4)" onfocus="this.select()">
+                </div>
+
+                <div class="flex flex-col gap-3 relative">
+                    <button id="btn-submit-otp" onclick="triggerManualVerify()" disabled class="w-full py-3 rounded-xl font-black text-gray-500 bg-white/10 cursor-not-allowed uppercase tracking-widest transition-all duration-300">
+                        Verify Code
+                    </button>
+                </div>
+                
+                <p id="otp-error" class="text-brand-red text-xs font-bold mt-4 hidden uppercase tracking-wider">Invalid Code. Try again.</p>
+
+                <div class="mt-6 text-center">
+                    <button id="btn-resend-otp" onclick="requestOTP()" class="text-[11px] font-bold text-gray-500 uppercase tracking-widest hover:text-brand-gold transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        Resend Code
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: RATINGS -->
+        <div id="view-rating" class="view-section w-full shrink-0">
+            <div id="dynamic-dish-container"></div>
+        </div>
+
+        <!-- VIEW 4: SUCCESS -->
+        <!-- 🟢 UPGRADE: flex-1 ensures it perfectly calculates the dead-center of any screen -->
+        <div id="view-success" class="view-section w-full flex-1 flex flex-col items-center justify-center text-center pb-8 sm:pb-12 shrink-0">
+            
+            <div id="state-loading" class="flex flex-col items-center">
+                <div class="relative w-20 h-20 mb-8">
+                    <div class="absolute inset-0 rounded-full border-t-2 border-brand-gold animate-spin"></div>
+                    <div class="absolute inset-2 rounded-full border-r-2 border-white/20 animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+                    <div class="absolute inset-0 flex items-center justify-center text-2xl">🔒</div>
+                </div>
+                <h2 class="text-2xl font-black text-white mb-2 tracking-tight">Securing Reward...</h2>
+                <p class="text-sm text-gray-400 font-medium">Writing verified data to ledger.</p>
+            </div>
+
+            <div id="state-done" class="hidden flex-col items-center w-full pb-10 animate-in zoom-in-95 duration-500">
+                <!-- 🟢 Premium Brand Gold Ring -->
+                <div class="w-24 h-24 bg-brand-gold/10 rounded-full flex items-center justify-center mb-8 border border-brand-gold/30 relative shadow-[0_0_30px_rgba(232,192,100,0.15)]">
+                    <div class="absolute inset-0 rounded-full bg-brand-gold/20 animate-ping opacity-30" style="animation-duration: 2s;"></div>
+                    <span class="text-5xl relative z-10 drop-shadow-lg">✨</span>
+                </div>
+                
+                <h2 class="text-4xl font-black text-white mb-3 tracking-tight">You're In!</h2>
+                <p class="text-[15px] text-gray-400 mb-8 leading-relaxed max-w-[280px] mx-auto text-center">Your secure reward code has been generated and sent to your email.</p>
+                
+                <!-- 🟢 The Digital Receipt Card -->
+                <div class="glass-card p-7 rounded-3xl w-full max-w-sm text-left border-brand-gold/40 shadow-[0_0_25px_rgba(232,192,100,0.08)] relative overflow-hidden mb-10">
+                    <!-- Subtle background gradient accent -->
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand-gold to-transparent opacity-50"></div>
+                    
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-2 h-2 rounded-full bg-brand-gold animate-pulse shadow-[0_0_10px_rgba(232,192,100,0.8)]"></span>
+                        <p class="text-[10px] text-brand-gold font-black uppercase tracking-[0.2em] pt-0.5">Final Step</p>
+                    </div>
+                    
+                    <!-- 🟢 UX FIX: Natural text flow with modern CSS line balancing -->
+                    <p class="text-[15px] text-gray-200 font-medium leading-relaxed mb-1" style="text-wrap: pretty;">
+                        Check your inbox and show the code to the staff at the counter to claim your discount.
+                    </p>
+                    
+                    <!-- 🟢 UX FIX: Flexbox Hanging Indent for pixel-perfect text alignment -->
+                    <div class="mt-5 pt-4 border-t border-white/10 flex items-start gap-1.5">
+                        <span class="text-brand-gold font-bold text-[13px] leading-none pt-[1px]">*</span>
+                        <p class="text-[10px] text-[#A3A3A3] leading-relaxed font-medium m-0">
+                            Don't see it? Check your Promotions or Spam folder and mark as "Not Spam" for future rewards.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- 🟢 Added mb-8 for perfect breathing room on tall aspect ratio phones -->
+                <div class="flex items-center justify-center gap-2 text-gray-400 bg-white/5 px-5 py-3 rounded-full border border-white/5 shadow-inner mb-8">
+                    <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="text-[10px] font-black uppercase tracking-[0.15em] pt-0.5">You may safely close this page</span>
+                </div>
+            </div>
+            
+        </div>
+
+    <!-- ACTION BAR -->
+    <div id="action-bar" class="fixed bottom-0 left-0 right-0 p-4 sm:p-6 bg-gradient-to-t from-black via-[#050505] to-transparent z-50 hidden pointer-events-none">
+        <div class="max-w-xl mx-auto flex gap-3 pointer-events-auto items-center">
+            
+            <button id="btn-prev-dish" onclick="navigateDish(-1)" class="w-14 h-14 shrink-0 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 hover:bg-white/10 hover:text-white transition-all duration-300 hidden active:scale-95 shadow-lg" aria-label="Go Back">
+                <svg class="w-6 h-6 pr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+
+            <button id="btn-next-dish" onclick="navigateDish(1)" class="flex-1 h-14 rounded-2xl font-black text-black bg-brand-gold shadow-[0_0_25px_rgba(232,192,100,0.3)] uppercase tracking-widest transition-all duration-300 hidden hover:scale-[1.02] active:scale-95">
+                Next Dish
+            </button>
+            
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT ENGINE -->
+    <script>
+        // ==========================================
+        // ⚙️ CONFIGURATION
+        // ==========================================
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyRFZTmeB3AcmEg-DjtcKkBt8_-5Uju4LGNlqolFIype2v0-EF1ILlxM0Ljf_46GNBJgQ/exec"; 
+
+        const MENU_CONFIG = [
+            { type: 'signature', name: "Fish mango curry" },
+            { type: 'signature', name: "Chicken Biriyani" },
+            { type: 'signature', name: "Malai Chicken" },
+            { type: 'signature', name: "Kerala Chicken" },
+            { type: 'custom', name: "Custom 1", prompt: "Did you try anything else?" },
+            { type: 'custom', name: "Custom 2", prompt: "Any other dish you'd like to rate?" }
+        ];
+
+        const State = {
+            view: 'setup', currentDishIndex: 0, 
+            payload: { restaurant: "", email: "", billNumber: "", ratings: [] },
+            globalMenu: [] // 🟢 NEW: Stores the fetched menu in RAM
+        };
+
+        // 🟢 NEW: DRAFT SAVING ENGINE
+        function saveDraft() {
+            sessionStorage.setItem('impact_draft', JSON.stringify(State));
+        }
+
+        // 🟢 NEW: BACKGROUND MENU FETCHER
+        async function fetchMenuData() {
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: "get_menu" })
+                });
+                const res = await response.json();
+                if (res.success && res.menu) {
+                    State.globalMenu = res.menu;
+                    saveDraft();
+                }
+            } catch (e) {
+                console.log("Menu pre-fetch failed silently.");
+            }
+        }
+
+        // 🟢 APP INITIALIZATION
+        window.onload = () => {
+            const restoSelect = document.getElementById('setup-resto');
+            const validOptions = Array.from(restoSelect.options).filter(opt => !opt.disabled && opt.value !== "");
+            
+            if (validOptions.length === 1) {
+                restoSelect.value = validOptions[0].value;
+                // 🟢 ADDED: Dynamically centers ONLY the single-location lock
+                restoSelect.classList.add('opacity-50', 'pointer-events-none');
+                restoSelect.style.textAlign = 'center';
+                restoSelect.style.textAlignLast = 'center';
+                State.payload.restaurant = validOptions[0].value;
+                
+                const arrow = document.getElementById('resto-arrow');
+                if (arrow) arrow.classList.add('hidden');
+                
+                // 🟢 NEW: Hide the red asterisk if location is locked
+                const asterisk = document.getElementById('location-asterisk');
+                if (asterisk) asterisk.classList.add('hidden');
+            }
+
+            const savedDraft = sessionStorage.getItem('impact_draft');
+            if (savedDraft) {
+                try {
+                    const parsed = JSON.parse(savedDraft);
+                    if (parsed && parsed.payload) {
+                        State.payload = parsed.payload;
+                        State.currentDishIndex = parsed.currentDishIndex || 0;
+                        State.view = parsed.view || 'setup';
+                        State.globalMenu = parsed.globalMenu || [];
+
+                        if(State.payload.email) document.getElementById('setup-email').value = State.payload.email;
+                        if(State.payload.billNumber) document.getElementById('setup-bill').value = State.payload.billNumber;
+                        
+                        if (State.view === 'rating') {
+                            document.getElementById('action-bar').classList.remove('hidden');
+                            renderDishCard();
+                        }
+                        switchView(State.view);
+                    }
+                } catch(e) {}
+            }
+            validateSetup();
+            
+            if (State.globalMenu.length === 0) fetchMenuData();
+        };
+
+        function getStarHTML(score) {
+            return `<svg class="star-svg" onclick="setRating(${score})" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+        }
+
+        if (!localStorage.getItem("impact_device_id")) localStorage.setItem("impact_device_id", Math.random().toString(36).substring(2) + Date.now().toString(36));
+        function isValidEmail(e) { return /^[^@]+@[^@]+\.[a-zA-Z]{2,}$/.test(String(e).toLowerCase()); }
+        function getRatedCount() { return State.payload.ratings.filter(r => r.rating > 0 && r.name.length > 2).length; }
+
+        function switchView(newView) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${newView}`).classList.add('active');
+            State.view = newView;
+            
+            const bar = document.getElementById('progress-bar');
+            const ind = document.getElementById('step-indicator');
+            if (newView === 'setup') { bar.style.width = '10%'; ind.innerText = 'Setup'; }
+            else if (newView === 'otp') { bar.style.width = '20%'; ind.innerText = 'Verify'; }
+            else if (newView === 'rating') { bar.style.width = `${20 + ((State.currentDishIndex) / MENU_CONFIG.length) * 80}%`; ind.innerText = `Dish ${State.currentDishIndex + 1} of ${MENU_CONFIG.length}`; }
+            else { bar.style.width = '100%'; ind.innerText = 'Done'; }
+            
+            // 🟢 UPGRADE: Dynamic Action Bar Padding
+            const appContainer = document.getElementById('app-container');
+            if (newView === 'rating') {
+                appContainer.classList.add('pb-[120px]');
+                appContainer.classList.remove('pb-8');
+            } else {
+                appContainer.classList.remove('pb-[120px]');
+                appContainer.classList.add('pb-8');
+            }
+            
+            appContainer.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function validateSetup() {
+            const resto = document.getElementById('setup-resto').value;
+            const email = document.getElementById('setup-email').value; 
+            const bill = document.getElementById('setup-bill').value;
+            const btn = document.getElementById('btn-start');
+            
+            let emailValid = email.length > 0 && isValidEmail(email);
+            if(email.length > 0 && !emailValid) { 
+                document.getElementById('email-error').classList.remove('hidden'); 
+                document.getElementById('setup-email').classList.add('border-brand-red'); 
+            } else { 
+                document.getElementById('email-error').classList.add('hidden'); 
+                document.getElementById('setup-email').classList.remove('border-brand-red'); 
+            }
+
+            let billValid = bill.length === 4;
+            if(bill.length > 0 && !billValid) { 
+                document.getElementById('bill-error').classList.remove('hidden'); 
+                document.getElementById('setup-bill').classList.add('border-brand-red'); 
+            } else { 
+                document.getElementById('bill-error').classList.add('hidden'); 
+                document.getElementById('setup-bill').classList.remove('border-brand-red'); 
+            }
+
+            // 🟢 UPGRADED BUTTON CLASSES: Perfectly matches the "Next Dish" button UI
+            if (resto !== "" && emailValid && billValid) {
+                btn.disabled = false; 
+                btn.classList.remove('bg-white/5', 'text-gray-500', 'cursor-not-allowed', 'border', 'border-white/10'); 
+                btn.classList.add('bg-brand-gold', 'text-black', 'shadow-[0_0_25px_rgba(232,192,100,0.3)]', 'hover:scale-[1.02]', 'active:scale-95');
+                State.payload.restaurant = resto; 
+                State.payload.email = email; 
+                State.payload.billNumber = bill;
+            } else {
+                btn.disabled = true; 
+                btn.classList.add('bg-white/5', 'text-gray-500', 'cursor-not-allowed', 'border', 'border-white/10'); 
+                btn.classList.remove('bg-brand-gold', 'text-black', 'shadow-[0_0_25px_rgba(232,192,100,0.3)]', 'hover:scale-[1.02]', 'active:scale-95');
+            }
+            saveDraft();
+        }
+
+        // ==========================================
+        // OTP ENGINE 
+        // ==========================================
+        let cooldownTimer = null;
+
+        function startOtpCooldown(seconds) {
+            const btnStart = document.getElementById('btn-start');
+            const btnResend = document.getElementById('btn-resend-otp');
+            let timeLeft = seconds;
+            
+            btnStart.disabled = true;
+            if(btnResend) btnResend.disabled = true;
+            
+            btnStart.classList.add('bg-white/5', 'text-gray-500', 'cursor-not-allowed', 'border', 'border-white/10');
+            btnStart.classList.remove('bg-brand-gold', 'text-black', 'shadow-[0_0_25px_rgba(232,192,100,0.3)]', 'hover:scale-[1.02]', 'active:scale-95');
+            
+            clearInterval(cooldownTimer);
+            cooldownTimer = setInterval(() => {
+                timeLeft--;
+                btnStart.innerText = `Wait ${timeLeft}s`;
+                if(btnResend) btnResend.innerText = `Resend available in ${timeLeft}s`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(cooldownTimer);
+                    btnStart.innerText = "Verify Identity";
+                    btnStart.disabled = false;
+                    btnStart.classList.remove('bg-white/5', 'text-gray-500', 'cursor-not-allowed', 'border', 'border-white/10');
+                    btnStart.classList.add('bg-brand-gold', 'text-black', 'shadow-[0_0_25px_rgba(232,192,100,0.3)]', 'hover:scale-[1.02]', 'active:scale-95');
+                    
+                    if(btnResend) {
+                        btnResend.innerText = "Resend Code";
+                        btnResend.disabled = false;
+                    }
+                }
+            }, 1000);
+        }
+
+        async function requestOTP() {
+            if(document.getElementById('setup-email').classList.contains('border-brand-red')) return;
+            const btn = document.getElementById('btn-start');
+            const btnResend = document.getElementById('btn-resend-otp');
+            
+            btn.innerText = "Sending Secure Code...";
+            btn.classList.add('animate-pulse');
+            if(btnResend) btnResend.innerText = "Sending...";
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: "request_otp", email: State.payload.email })
+                });
+                
+                const res = await response.json();
+
+                if (res.success) {
+                    btn.classList.remove('animate-pulse');
+                    document.getElementById('otp-display-email').innerText = State.payload.email;
+                    
+                    if (State.view !== 'otp') {
+                        switchView('otp');
+                        setTimeout(() => document.getElementById('otp-1').focus(), 500); 
+                    }
+                    
+                    startOtpCooldown(60); 
+                } else {
+                    btn.classList.remove('animate-pulse');
+                    
+                    // 🟢 UPGRADE: Make backend limit errors customer-friendly
+                    let displayMessage = res.message;
+                    if (displayMessage.toLowerCase().includes("maximum") || displayMessage.toLowerCase().includes("limit")) {
+                        displayMessage = "Too many attempts. Please wait a while or use a different email address.";
+                    }
+                    
+                    showNotification(displayMessage, 'error');
+                    
+                    if (res.message.includes("60 seconds")) {
+                        startOtpCooldown(60);
+                    } else {
+                        btn.innerText = "Limit Reached";
+                        if(btnResend) btnResend.innerText = "Limit Reached";
+                    }
+                }
+            } catch (e) {
+                console.error("Full Error:", e);
+                let errorMsg = e.message || String(e);
+                
+                if (errorMsg.includes("Unexpected token '<'") || errorMsg.includes("Unexpected token <")) {
+                    showNotification("Deployment configuration mismatch detected. Please re-deploy backend container.", "error");
+                } else {
+                    showNotification("System Connection Error. Please verify your internet connection or network filters.", "error");
+                }
+
+                btn.innerText = "Verify Identity";
+                btn.classList.remove('animate-pulse');
+                if(btnResend) btnResend.innerText = "Resend Code";
+            }
+        }
+
+        function triggerManualVerify() {
+            const pin = document.getElementById('otp-1').value + document.getElementById('otp-2').value + document.getElementById('otp-3').value + document.getElementById('otp-4').value;
+            if (pin.length === 4) verifyOTP(pin);
+        }
+
+        async function handleOtpInput(element, position) {
+            const hasInput = document.getElementById('otp-1').value || document.getElementById('otp-2').value || document.getElementById('otp-3').value || document.getElementById('otp-4').value;
+            const submitBtn = document.getElementById('btn-submit-otp');
+            
+            if (hasInput) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('bg-white/10', 'text-gray-500', 'cursor-not-allowed');
+                submitBtn.classList.add('bg-brand-gold', 'text-black', 'shadow-[0_0_15px_rgba(232,192,100,0.2)]', 'hover:bg-brand-gold-hover');
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('bg-white/10', 'text-gray-500', 'cursor-not-allowed');
+                submitBtn.classList.remove('bg-brand-gold', 'text-black', 'shadow-[0_0_15px_rgba(232,192,100,0.2)]', 'hover:bg-brand-gold-hover');
+            }
+
+            if (element.value.length === 1 && position < 4) {
+                document.getElementById(`otp-${position + 1}`).focus();
+            }
+            if (element.value.length === 0 && position > 1 && event.key === "Backspace") {
+                document.getElementById(`otp-${position - 1}`).focus();
+            }
+            if (position === 4 && element.value.length === 1) {
+                triggerManualVerify();
+            }
+        }
+
+        async function verifyOTP(pin) {
+            document.getElementById('otp-error').classList.add('hidden');
+            const submitBtn = document.getElementById('btn-submit-otp');
+            
+            const otpInputs = document.querySelectorAll('.otp-input');
+            otpInputs.forEach(input => input.classList.add('opacity-50', 'pointer-events-none'));
+            submitBtn.innerText = "Verifying...";
+            
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: "verify_otp", email: State.payload.email, pinAttempt: pin })
+                });
+                const res = await response.json();
+                
+                if (res.success) {
+                    document.getElementById('action-bar').classList.remove('hidden');
+                    renderDishCard();
+                    switchView('rating');
+                    saveDraft();
+                } else {
+                    triggerHaptic('heavy'); // 🟢 Heavy error buzz
+                    const otpWrapper = document.getElementById('otp-input-wrapper');
+                    otpWrapper.classList.add('animate-shake'); // 🟢 Apple error shake
+                    setTimeout(() => otpWrapper.classList.remove('animate-shake'), 400);
+
+                    otpInputs.forEach(input => input.classList.remove('opacity-50', 'pointer-events-none'));
+                    document.getElementById('otp-error').classList.remove('hidden');
+                    document.getElementById('otp-1').value = ''; document.getElementById('otp-2').value = ''; document.getElementById('otp-3').value = ''; document.getElementById('otp-4').value = '';
+                    
+                    submitBtn.innerText = "Verify Code";
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('bg-white/10', 'text-gray-500', 'cursor-not-allowed');
+                    submitBtn.classList.remove('bg-brand-gold', 'text-black', 'shadow-[0_0_15px_rgba(232,192,100,0.2)]', 'hover:bg-brand-gold-hover');
+                    
+                    document.getElementById('otp-1').focus();
+                }
+            } catch (e) {
+                otpInputs.forEach(input => input.classList.remove('opacity-50', 'pointer-events-none'));
+                submitBtn.innerText = "Verify Code";
+                showNotification("Network timeout encountered while authenticating validation key.", "error");
+            }
+        }
+
+        // ==========================================
+        // DYNAMIC WIZARD RENDERER & NAVIGATION
+        // ==========================================
+
+         function renderDishCard() {
+            const container = document.getElementById('dynamic-dish-container');
+            const item = MENU_CONFIG[State.currentDishIndex];
+            const isLast = State.currentDishIndex === MENU_CONFIG.length - 1;
+            const currentRated = getRatedCount();
+            const nextBtn = document.getElementById('btn-next-dish');
+            const prevBtn = document.getElementById('btn-prev-dish');
+
+            if (!State.payload.ratings[State.currentDishIndex]) {
+                State.payload.ratings[State.currentDishIndex] = { name: item.type === 'signature' ? item.name : "", rating: 0, comment: "", type: item.type };
+            }
+
+            if (State.currentDishIndex > 0) {
+                prevBtn.classList.remove('hidden');
+            } else {
+                prevBtn.classList.add('hidden');
+            }
+
+            let html = '';
+            if (item.type === 'signature') {
+                html = `
+                <div class="glass-card rounded-3xl p-6 sm:p-8 w-full animate-in slide-in-from-right-8 duration-300">
+                    <p class="text-[10px] text-brand-gold font-black uppercase tracking-widest mb-3">Signature Menu</p>
+                    <h2 class="text-2xl font-black text-white mb-6 leading-tight">Did you try our famous <br><span class="text-brand-gold">${item.name}</span>?</h2>
+                    <div class="flex gap-3 mb-6" id="choice-container-${State.currentDishIndex}">
+                        <button onclick="handleChoice('no')" class="choice-btn no">No</button>
+                        <button onclick="handleChoice('yes')" class="choice-btn yes">Yes</button>
+                    </div>
+                    
+                    <div id="evaluation-box-${State.currentDishIndex}" class="overflow-hidden max-h-0 opacity-0 transition-all duration-500 ease-in-out">
+                        <div class="pt-2 pb-2">
+                            <div class="w-full h-px bg-white/10 mb-6"></div>
+                            <p class="text-center text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Tap to rate</p>
+                            <div class="star-container" data-rating="0" id="stars-${State.currentDishIndex}">
+                                ${getStarHTML(5)}${getStarHTML(4)}${getStarHTML(3)}${getStarHTML(2)}${getStarHTML(1)}
+                            </div>
+                            <!-- 🟢 UPGRADED COMMENT BOX -->
+                            <div id="comment-box-${State.currentDishIndex}" class="hidden mt-6 animate-in slide-in-from-bottom-4 relative">
+                                <!-- 🟢 UX FIX: Added 'break-words' to prevent long unbroken strings from bursting out -->
+                                <textarea id="dish-comment-${State.currentDishIndex}" rows="3" maxlength="200" placeholder="Any specific thoughts? (Optional)" oninput="updateCharCount(${State.currentDishIndex})" class="w-full bg-black/40 border border-white/10 text-white rounded-2xl text-[13px] sm:text-sm pt-4 px-5 pb-10 text-left resize-none focus:border-brand-gold focus:ring-4 focus:ring-brand-gold/15 outline-none transition-all duration-300 leading-relaxed block box-border break-words" maxlength="200"></textarea>
+                                <span id="char-count-${State.currentDishIndex}" class="absolute bottom-3 right-5 text-[10px] font-black text-gray-500 transition-colors duration-300 pointer-events-none">200 left</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+                nextBtn.classList.add('hidden');
+            } else {
+                let mustRateWarning = (isLast && currentRated === 0) ? `<p class="text-brand-red text-[11px] font-bold uppercase tracking-widest text-center mt-6 animate-pulse">⚠️ Please rate at least one dish to submit</p>` : "";
+                
+                html = `
+                <div class="glass-card rounded-3xl p-6 sm:p-8 w-full animate-in slide-in-from-right-8 duration-300 relative">
+                    <p class="text-[10px] text-brand-gold font-black uppercase tracking-widest mb-3">Extras</p>
+                    <h2 class="text-2xl font-black text-white mb-6 leading-tight">${item.prompt} <span class="text-gray-500 font-normal text-lg">(Optional)</span></h2>
+                    
+                    <div class="relative w-full mb-6 z-50">
+                        <!-- 🟢 UX FIX: Added 'scroll-mt-24' and 'onfocus' to glide the input to the top. This guarantees the dropdown menu has maximum vertical space to render above the keyboard. -->
+                        <input type="text" id="custom-name-${State.currentDishIndex}" name="dish_search_query" role="combobox" aria-autocomplete="list" placeholder="e.g., Spicy French Fries" autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" maxlength="50" class="font-semibold text-lg scroll-mt-24" onfocus="setTimeout(() => this.scrollIntoView({behavior: 'smooth', block: 'start'}), 300);" oninput="filterCustomMenu(${State.currentDishIndex})">
+                        <div id="custom-dropdown-${State.currentDishIndex}" class="absolute left-0 right-0 top-[110%] max-h-[160px] overflow-y-auto rounded-xl border border-white/10 bg-[#0c0c0c]/95 backdrop-blur-xl hidden hide-scroll shadow-2xl z-50"></div>
+                    </div>
+
+                    <div id="evaluation-box-${State.currentDishIndex}" class="opacity-30 pointer-events-none transition-all duration-500 ease-in-out">
+                        <p class="text-center text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Tap to rate</p>
+                        <div class="star-container" data-rating="0" id="stars-${State.currentDishIndex}">
+                            ${getStarHTML(5)}${getStarHTML(4)}${getStarHTML(3)}${getStarHTML(2)}${getStarHTML(1)}
+                        </div>
+                        <div id="comment-box-${State.currentDishIndex}" class="hidden mt-6 animate-in slide-in-from-bottom-4 relative">
+                            <!-- 🟢 UX FIX: Added 'break-words' to prevent long unbroken strings from bursting out -->
+                            <textarea id="dish-comment-${State.currentDishIndex}" rows="3" maxlength="200" placeholder="Any specific thoughts? (Optional)" oninput="updateCharCount(${State.currentDishIndex})" class="w-full bg-black/40 border border-white/10 text-white rounded-2xl text-[13px] sm:text-sm pt-4 px-5 pb-10 text-left resize-none focus:border-brand-gold focus:ring-4 focus:ring-brand-gold/15 outline-none transition-all duration-300 leading-relaxed block box-border break-words" maxlength="200"></textarea>
+                            <span id="char-count-${State.currentDishIndex}" class="absolute bottom-3 right-5 text-[10px] font-black text-gray-500 transition-colors duration-300 pointer-events-none">200 left</span>
+                        </div>
+                    </div>
+                    ${mustRateWarning}
+                </div>`;
+
+                if (isLast && currentRated === 0) nextBtn.classList.add('hidden'); 
+                else nextBtn.classList.remove('hidden');
+                nextBtn.innerText = isLast ? "Submit Feedback" : "Skip Dish";
+            }
+            container.innerHTML = html;
+
+            const currentDraft = State.payload.ratings[State.currentDishIndex];
+            if (currentDraft && currentDraft.rating > 0) {
+                if (item.type === 'signature') {
+                    document.querySelector(`#choice-container-${State.currentDishIndex} .yes`).classList.add('active');
+                    const evalBox = document.getElementById(`evaluation-box-${State.currentDishIndex}`);
+                    evalBox.style.maxHeight = '400px';
+                    evalBox.classList.replace('opacity-0', 'opacity-100');
+                } else {
+                    document.getElementById(`custom-name-${State.currentDishIndex}`).value = currentDraft.name;
+                    document.getElementById(`evaluation-box-${State.currentDishIndex}`).classList.remove('opacity-30', 'pointer-events-none');
+                }
+                
+                document.getElementById(`stars-${State.currentDishIndex}`).setAttribute('data-rating', currentDraft.rating);
+                document.getElementById(`comment-box-${State.currentDishIndex}`).classList.remove('hidden');
+                if(currentDraft.comment) {
+                    document.getElementById(`dish-comment-${State.currentDishIndex}`).value = currentDraft.comment;
+                    updateCharCount(State.currentDishIndex); // 🟢 Auto-updates counter if draft exists
+                }
+                
+                nextBtn.classList.remove('hidden');
+                nextBtn.innerText = isLast ? "Submit Feedback" : "Next Dish";
+            } else if (item.type !== 'signature' && currentDraft && currentDraft.name.length > 2) {
+                document.getElementById(`custom-name-${State.currentDishIndex}`).value = currentDraft.name;
+                document.getElementById(`evaluation-box-${State.currentDishIndex}`).classList.remove('opacity-30', 'pointer-events-none');
+            }
+        }
+
+        function handleChoice(choice) {
+            triggerHaptic('light'); // 🟢 Haptic feedback on choice
+            const evalBox = document.getElementById(`evaluation-box-${State.currentDishIndex}`);
+            const container = document.getElementById(`choice-container-${State.currentDishIndex}`);
+            container.querySelectorAll('.choice-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (choice === 'no') {
+                evalBox.style.maxHeight = '0px';
+                evalBox.classList.remove('opacity-100');
+                evalBox.classList.add('opacity-0');
+                State.payload.ratings[State.currentDishIndex].rating = 0;
+                saveDraft();
+                
+                // Add tiny delay before auto-advancing so user feels the visual click
+                setTimeout(() => navigateDish(1), 350); 
+            } else {
+                evalBox.style.maxHeight = '400px';
+                evalBox.classList.remove('opacity-0');
+                evalBox.classList.add('opacity-100');
+                saveDraft();
+                setTimeout(() => document.getElementById('app-container').scrollBy({ top: 100, behavior: 'smooth' }), 100);
+            }
+        }
+
+        function checkCustomInput() {
+            const inputVal = document.getElementById(`custom-name-${State.currentDishIndex}`).value.trim();
+            const evalBox = document.getElementById(`evaluation-box-${State.currentDishIndex}`);
+            const nextBtn = document.getElementById('btn-next-dish');
+            
+            State.payload.ratings[State.currentDishIndex].name = inputVal;
+            const isLast = State.currentDishIndex === MENU_CONFIG.length - 1;
+            const currentRated = getRatedCount();
+
+            if (inputVal.length > 2) {
+                evalBox.classList.remove('opacity-30', 'pointer-events-none');
+                nextBtn.classList.add('hidden');
+            } else {
+                evalBox.classList.add('opacity-30', 'pointer-events-none');
+                State.payload.ratings[State.currentDishIndex].rating = 0;
+                if (isLast && currentRated === 0) nextBtn.classList.add('hidden');
+                else {
+                    nextBtn.classList.remove('hidden');
+                    nextBtn.innerText = isLast ? "Submit Feedback" : "Skip Dish";
+                }
+            }
+            saveDraft();
+        }
+
+        function setRating(score) {
+            triggerHaptic('light'); // 🟢 Haptic feedback on star tap
+            State.payload.ratings[State.currentDishIndex].rating = score;
+            document.getElementById(`stars-${State.currentDishIndex}`).setAttribute('data-rating', score);
+            document.getElementById(`comment-box-${State.currentDishIndex}`).classList.remove('hidden');
+            
+            const nextBtn = document.getElementById('btn-next-dish');
+            nextBtn.classList.remove('hidden');
+            nextBtn.innerText = (State.currentDishIndex === MENU_CONFIG.length - 1) ? "Submit Feedback" : "Next Dish";
+            saveDraft();
+            setTimeout(() => document.getElementById('app-container').scrollBy({ top: 150, behavior: 'smooth' }), 100);
+        }
+
+        // 🟢 FIXED: Omni-Directional Navigation with strict deep string sanitization bounds
+        function navigateDish(direction) {
+            const commentEl = document.getElementById(`dish-comment-${State.currentDishIndex}`);
+            if (commentEl) {
+                // Hard sanitization sweep execution boundary mapping
+                let rawComment = commentEl.value.trim();
+                State.payload.ratings[State.currentDishIndex].comment = rawComment.slice(0, 200);
+            }
+
+            if (direction === 1) { // Forward
+                if (State.currentDishIndex < MENU_CONFIG.length - 1) {
+                    State.currentDishIndex++;
+                    renderDishCard();
+                    switchView('rating');
+                } else {
+                    submitPayload();
+                }
+            } else if (direction === -1) { // Backward
+                if (State.currentDishIndex > 0) {
+                    State.currentDishIndex--;
+                    renderDishCard();
+                    switchView('rating');
+                }
+            }
+            saveDraft();
+        }
+
+        async function submitPayload() {
+            // 🟢 SECURITY FIX: Prevent Double-Submissions on slow networks
+            const nextBtn = document.getElementById('btn-next-dish');
+            const prevBtn = document.getElementById('btn-prev-dish');
+            if (nextBtn.disabled) return; // If already submitting, abort.
+            
+            nextBtn.disabled = true;
+            prevBtn.disabled = true;
+            nextBtn.innerText = "Processing...";
+
+            const commentEl = document.getElementById(`dish-comment-${State.currentDishIndex}`);
+            if (commentEl) State.payload.ratings[State.currentDishIndex].comment = commentEl.value.trim();
+
+            const cleanRatings = State.payload.ratings.filter(r => r.rating > 0 && r.name.length > 2);
+            if (cleanRatings.length === 0) { 
+                showNotification("Please select and rate at least one item to claim your secret reward.", "gold"); // 🟢 Custom Premium Gold Accent Toast
+                nextBtn.disabled = false;
+                prevBtn.disabled = false;
+                nextBtn.innerText = "Submit Feedback";
+                return; 
+            }
+
+            const customDishes = cleanRatings.filter(r => r.type === 'custom');
+            const finalPayload = {
+                action: "submit_feedback",
+                deviceId: localStorage.getItem("impact_device_id"),
+                honeypot: document.getElementById('website_url').value, 
+                restaurant: State.payload.restaurant,
+                email: State.payload.email,
+                billNumber: State.payload.billNumber,
+                mobile: "", 
+                customDish1Name: customDishes[0] ? customDishes[0].name : "",
+                customDish2Name: customDishes[1] ? customDishes[1].name : "",
+                ratings: cleanRatings.map((d) => ({
+                    name: d.name, rating: d.rating, comment: d.comment,
+                    isCustom1: customDishes[0] && d.name === customDishes[0].name,
+                    isCustom2: customDishes[1] && d.name === customDishes[1].name
+                }))
+            };
+
+            document.getElementById('action-bar').classList.add('hidden');
+            switchView('success');
+
+            try {
+                await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(finalPayload) });
+                
+                sessionStorage.removeItem('impact_draft');
+                
+                setTimeout(() => {
+                    document.getElementById('state-loading').classList.add('hidden');
+                    document.getElementById('state-done').classList.remove('hidden');
+                    document.getElementById('state-done').classList.add('flex');
+                }, 800);
+           } catch (error) {
+                showNotification("Connection lost. Please check your internet connection and try submitting again.", "error");
+                document.getElementById('action-bar').classList.remove('hidden');
+                switchView('rating');
+                
+                // Re-enable buttons if network fails
+                nextBtn.disabled = false;
+                prevBtn.disabled = false;
+                nextBtn.innerText = "Submit Feedback";
+            }
+        }
+// 🟢 UPGRADE: Haptic "Bumper" Character Counter Logic
+        function updateCharCount(index) {
+            const textarea = document.getElementById(`dish-comment-${index}`);
+            const counter = document.getElementById(`char-count-${index}`);
+            
+            if (textarea && counter) {
+                if (textarea.value.length > 200) {
+                    textarea.value = textarea.value.slice(0, 200);
+                }
+                const remaining = 200 - textarea.value.length;
+                counter.innerText = remaining + " left";
+                
+                if (remaining <= 20) {
+                    counter.classList.replace('text-gray-500', 'text-brand-red');
+                } else {
+                    counter.classList.replace('text-brand-red', 'text-gray-500');
+                }
+
+                // 🟢 NEW: Physical and Visual Feedback when the wall is hit
+                if (remaining === 0) {
+                    triggerHaptic('heavy');
+                    counter.classList.add('animate-shake');
+                    setTimeout(() => counter.classList.remove('animate-shake'), 400);
+                }
+            }
+        }
+// 🟢 NEW: Premium Haptic Engine
+        function triggerHaptic(intensity = 'light') {
+            if (navigator.vibrate) {
+                if (intensity === 'light') navigator.vibrate(10); // Tiny crisp buzz
+                if (intensity === 'heavy') navigator.vibrate([30, 50, 30]); // Error buzz
+            }
+        }
+// 🟢 FIXED: Cross-Browser Autocomplete with hard parameter validation limits
+        function filterCustomMenu(index) {
+            const input = document.getElementById(`custom-name-${index}`);
+            const dropdown = document.getElementById(`custom-dropdown-${index}`);
+            
+            // Hard data truncation gate down to max 50 configuration
+            if (input.value.length > 50) {
+                input.value = input.value.slice(0, 50);
+            }
+
+            // 🟢 NEW: Physical UI lock alert for the Dish Name input
+            if (input.value.length === 50) {
+                triggerHaptic('heavy');
+                input.classList.add('border-brand-red', 'animate-shake');
+                setTimeout(() => input.classList.remove('border-brand-red', 'animate-shake'), 400);
+            }
+            
+            const query = input.value.toLowerCase().trim();
+            State.payload.ratings[index].name = input.value.trim();
+            saveDraft();
+
+            if (query.length < 1) {
+                dropdown.innerHTML = "";
+                dropdown.classList.add('hidden');
+                checkCustomInput();
+                return;
+            }
+
+            // Search matches containing the characters typed
+            const matches = State.globalMenu.filter(dish => dish.toLowerCase().includes(query));
+
+            if (matches.length === 0) {
+                dropdown.classList.add('hidden');
+                checkCustomInput();
+                return;
+            }
+
+            dropdown.innerHTML = matches.map(dish => `
+                <div onclick="selectCustomDish(${index}, '${dish.replace(/'/g, "\\'")}')" class="px-5 py-3 text-sm font-semibold text-left text-gray-300 hover:bg-brand-gold/10 hover:text-white cursor-pointer transition-colors border-b border-white/5 last:border-0">${dish}</div>
+            `).join('');
+
+            dropdown.classList.remove('hidden');
+            checkCustomInput();
+        }
+
+        // 🟢 NEW: Handles choosing a suggestion item smoothly
+        function selectCustomDish(index, name) {
+            triggerHaptic('light');
+            const input = document.getElementById(`custom-name-${index}`);
+            const dropdown = document.getElementById(`custom-dropdown-${index}`);
+            
+            input.value = name;
+            dropdown.classList.add('hidden');
+            
+            // Re-run standard card logic now that value is filled
+            checkCustomInput();
+        }
+ // 🟢 NEW: Enterprise-Grade Custom Notification Engine
+        function showNotification(message, type = 'error') {
+            triggerHaptic(type === 'error' ? 'heavy' : 'light');
+            
+            const existing = document.getElementById('custom-notification');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.id = 'custom-notification';
+            
+            let icon = '⚠️';
+            let borderClass = 'border-brand-red/30 shadow-[0_10px_30px_rgba(239,68,68,0.15)]';
+            
+            if (type === 'success') {
+                icon = '✨';
+                borderClass = 'border-green-500/30 shadow-[0_10px_30px_rgba(34,197,94,0.15)]';
+            } else if (type === 'gold') {
+                icon = '🎁';
+                borderClass = 'border-brand-gold/30 shadow-[0_10px_30px_rgba(232,192,100,0.15)]';
+            }
+
+            // 🟢 UPGRADE: Refined padding, gap spacing, and flex alignments
+            toast.className = `fixed top-5 left-4 right-4 sm:left-1/2 sm:right-auto sm:w-[420px] glass-card p-4 sm:p-5 rounded-2xl border ${borderClass} flex items-center z-[9999] animate-toast pointer-events-auto`;
+            
+            // 🟢 UPGRADE: Typography adjustments (font-medium), explicit text-left, and shrink-0 on the button
+            toast.innerHTML = `
+                <div class="text-2xl shrink-0 mr-3.5">${icon}</div>
+                <div class="text-[13px] font-medium text-gray-200 leading-relaxed flex-1 text-left pr-2">${message}</div>
+                <button onclick="this.parentElement.remove()" class="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white transition-colors px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl shrink-0 whitespace-nowrap active:scale-95">Dismiss</button>
+            `;
+
+            document.body.appendChild(toast);
+
+            // High-retention clean dismiss routine after 5 seconds
+            setTimeout(() => {
+                if (toast && toast.parentElement) {
+                    toast.style.opacity = '0';
+                    toast.style.transform = window.innerWidth > 640 ? 'translate(-50%, -20px)' : 'translateY(-20px)';
+                    toast.style.transition = 'all 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
