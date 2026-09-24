@@ -156,29 +156,29 @@
             </div>
 
             <div class="overflow-y-auto pr-2 space-y-4 text-sm text-gray-700">
-                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                    <p class="font-bold text-gray-900 text-[11px] uppercase mb-1">1. The Visual Check</p>
-                    <p class="text-xs">If the offer says "Valid Today Only," the customer MUST hand you today's physical paper receipt. Ensure the Bill Number on the screen matches the paper.</p>
+                <div class="bg-purple-50 p-3 rounded-xl border border-purple-100">
+                    <p class="font-bold text-purple-900 text-[11px] uppercase mb-1">1. The Loyalty Rule</p>
+                    <p class="text-xs text-purple-800">Customers earn 1 point per visit. Points are invisible and tracked automatically. <strong>You only scan a code when they unlock a secret reward on their final visit.</strong></p>
                 </div>
                 
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <p class="font-bold text-gray-900 text-[11px] uppercase mb-1">2. The Visual Check</p>
+                    <p class="text-xs">If the offer says "Valid Today Only," the customer MUST hand you today's physical paper receipt. Ensure the Bill Number on the screen matches the paper.</p>
+                </div>
+
                 <div class="bg-blue-50 p-3 rounded-xl border border-blue-100">
-                    <p class="font-bold text-blue-900 text-[11px] uppercase mb-1">2. Fixing Typos (Blue Button)</p>
+                    <p class="font-bold text-blue-900 text-[11px] uppercase mb-1">3. Fixing Typos (Blue Button)</p>
                     <p class="text-xs text-blue-800">If the bill number on the screen is slightly different from the receipt, click <strong>✏️ Edit</strong> to correct it before hitting Redeem.</p>
                 </div>
 
                 <div class="bg-green-50 p-3 rounded-xl border border-green-100">
-                    <p class="font-bold text-green-900 text-[11px] uppercase mb-1">3. Redeeming (Green Button)</p>
+                    <p class="font-bold text-green-900 text-[11px] uppercase mb-1">4. Redeeming (Green Button)</p>
                     <p class="text-xs text-green-800">Once you click <strong>Confirm Redemption</strong>, use a pen to draw an 'X' on their physical receipt so they cannot use it again.</p>
-                </div>
-
-                <div class="bg-red-50 p-3 rounded-xl border border-red-100">
-                    <p class="font-bold text-red-900 text-[11px] uppercase mb-1">4. Flag as Spam (Red Button)</p>
-                    <p class="text-xs text-red-800">Only use this if a customer is showing a fake/forged receipt or causing a severe dispute. This will permanently ban them.</p>
                 </div>
 
                 <div class="bg-orange-50 p-3 rounded-xl border border-orange-100">
                     <p class="font-bold text-orange-900 text-[11px] uppercase mb-1">5. Voided or Used Errors</p>
-                    <p class="text-xs text-orange-800">If the screen says Used or Voided, tell the customer: <em>"Our system shows this receipt has already claimed a reward today."</em> If they argue, call a Manager.</p>
+                    <p class="text-xs text-orange-800">If the screen says Used or Voided, tell the customer: <em>"Our system shows this receipt has already claimed a reward today."</em></p>
                 </div>
             </div>
         </div>
@@ -378,8 +378,18 @@
             paramsObj.staff_auth = staffToken; 
             const formData = new URLSearchParams(paramsObj);
             
+            // 🟢 UX FIX: 12-Second Network Timeout for POS Terminals
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 12000);
+            
             try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: formData });
+                const response = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: formData,
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
                 const data = await response.json();
                 
                 // 🟢 SECURITY BOUNCER: Handle backend rejection gracefully
@@ -394,7 +404,18 @@
                 
                 return data;
             } catch (err) {
-                // If it's our own thrown error, pass it up. Otherwise it's a true network error.
+                clearTimeout(timeoutId);
+                
+                if (err.name === 'AbortError') {
+                    return { success: false, message: "Network timeout. Please check terminal connection." };
+                }
+                
+                let errorMsg = err.message || String(err);
+                if (errorMsg.includes("Unexpected token '<'") || errorMsg.includes("Unexpected token <")) {
+                    return { success: false, message: "Deployment mismatch. Update Web App URL." };
+                }
+
+                // If it's our own thrown error, pass it up.
                 if (err.message === "Invalid Staff Passcode" || err.message === "Terminal Locked") {
                     throw err;
                 }
@@ -618,12 +639,19 @@ function openHelpModal() {
         }
 
         async function verifyCode() {
-            const rawInput = document.getElementById('discount-code').value.trim();
+            let rawInput = document.getElementById('discount-code').value.trim().toUpperCase();
             const errorMsg = document.getElementById('error-message');
             const resultCard = document.getElementById('result-card');
             
             if (!rawInput) return;
-            const fullCode = "IMPACT-" + rawInput.toUpperCase();
+            
+            // 🟢 UX FIX: Automatically strip "IMPACT-" if the cashier accidentally types it
+            if (rawInput.startsWith("IMPACT-")) {
+                rawInput = rawInput.replace("IMPACT-", "");
+                document.getElementById('discount-code').value = rawInput; 
+            }
+            
+            const fullCode = "IMPACT-" + rawInput;
 
             errorMsg.classList.add('hidden');
             resultCard.classList.add('hidden');
@@ -635,7 +663,6 @@ function openHelpModal() {
                 if (data.success) showResultCard(data.data, fullCode);
                 else showError(data.message);
             } catch (err) {
-                // If the error was just the lock screen triggering, do NOT show a red error message.
                 if (err.message !== "Invalid Staff Passcode" && err.message !== "Terminal Locked") {
                     showError("Connection Error. Try again.");
                 }
