@@ -378,8 +378,18 @@
             paramsObj.staff_auth = staffToken; 
             const formData = new URLSearchParams(paramsObj);
             
+            // 🟢 UX FIX: 12-Second Network Timeout for POS Terminals
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 12000);
+            
             try {
-                const response = await fetch(SCRIPT_URL, { method: 'POST', body: formData });
+                const response = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: formData,
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
                 const data = await response.json();
                 
                 // 🟢 SECURITY BOUNCER: Handle backend rejection gracefully
@@ -394,7 +404,18 @@
                 
                 return data;
             } catch (err) {
-                // If it's our own thrown error, pass it up. Otherwise it's a true network error.
+                clearTimeout(timeoutId);
+                
+                if (err.name === 'AbortError') {
+                    return { success: false, message: "Network timeout. Please check terminal connection." };
+                }
+                
+                let errorMsg = err.message || String(err);
+                if (errorMsg.includes("Unexpected token '<'") || errorMsg.includes("Unexpected token <")) {
+                    return { success: false, message: "Deployment mismatch. Update Web App URL." };
+                }
+
+                // If it's our own thrown error, pass it up.
                 if (err.message === "Invalid Staff Passcode" || err.message === "Terminal Locked") {
                     throw err;
                 }
@@ -618,12 +639,19 @@ function openHelpModal() {
         }
 
         async function verifyCode() {
-            const rawInput = document.getElementById('discount-code').value.trim();
+            let rawInput = document.getElementById('discount-code').value.trim().toUpperCase();
             const errorMsg = document.getElementById('error-message');
             const resultCard = document.getElementById('result-card');
             
             if (!rawInput) return;
-            const fullCode = "IMPACT-" + rawInput.toUpperCase();
+            
+            // 🟢 UX FIX: Automatically strip "IMPACT-" if the cashier accidentally types it
+            if (rawInput.startsWith("IMPACT-")) {
+                rawInput = rawInput.replace("IMPACT-", "");
+                document.getElementById('discount-code').value = rawInput; 
+            }
+            
+            const fullCode = "IMPACT-" + rawInput;
 
             errorMsg.classList.add('hidden');
             resultCard.classList.add('hidden');
@@ -635,7 +663,6 @@ function openHelpModal() {
                 if (data.success) showResultCard(data.data, fullCode);
                 else showError(data.message);
             } catch (err) {
-                // If the error was just the lock screen triggering, do NOT show a red error message.
                 if (err.message !== "Invalid Staff Passcode" && err.message !== "Terminal Locked") {
                     showError("Connection Error. Try again.");
                 }
