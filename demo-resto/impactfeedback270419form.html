@@ -506,13 +506,19 @@
             btn.classList.add('animate-pulse');
             if(btnResend) btnResend.innerText = "Sending...";
 
+            // 🟢 UX FIX: 12-Second Network Timeout to prevent infinite freeze
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 12000);
+
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({ action: "request_otp", email: State.payload.email })
+                    body: JSON.stringify({ action: "request_otp", email: State.payload.email }),
+                    signal: controller.signal
                 });
                 
+                clearTimeout(timeoutId);
                 const res = await response.json();
 
                 if (res.success) {
@@ -544,10 +550,13 @@
                     }
                 }
             } catch (e) {
+                clearTimeout(timeoutId);
                 console.error("Full Error:", e);
                 let errorMsg = e.message || String(e);
                 
-                if (errorMsg.includes("Unexpected token '<'") || errorMsg.includes("Unexpected token <")) {
+                if (e.name === 'AbortError') {
+                    showNotification("Network timeout. Google servers are busy. Please try again in a few seconds.", "error");
+                } else if (errorMsg.includes("Unexpected token '<'") || errorMsg.includes("Unexpected token <")) {
                     showNotification("Deployment configuration mismatch detected. Please re-deploy backend container.", "error");
                 } else {
                     showNotification("System Connection Error. Please verify your internet connection or network filters.", "error");
@@ -597,12 +606,19 @@
             otpInputs.forEach(input => input.classList.add('opacity-50', 'pointer-events-none'));
             submitBtn.innerText = "Verifying...";
             
+            // 🟢 UX FIX: 12-Second Network Timeout to prevent infinite freeze
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 12000);
+            
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify({ action: "verify_otp", email: State.payload.email, pinAttempt: pin })
+                    body: JSON.stringify({ action: "verify_otp", email: State.payload.email, pinAttempt: pin }),
+                    signal: controller.signal
                 });
+                
+                clearTimeout(timeoutId);
                 const res = await response.json();
                 
                 if (res.success) {
@@ -611,12 +627,14 @@
                     switchView('rating');
                     saveDraft();
                 } else {
-                    triggerHaptic('heavy'); // 🟢 Heavy error buzz
+                    triggerHaptic('heavy'); 
                     const otpWrapper = document.getElementById('otp-input-wrapper');
-                    otpWrapper.classList.add('animate-shake'); // 🟢 Apple error shake
+                    otpWrapper.classList.add('animate-shake'); 
                     setTimeout(() => otpWrapper.classList.remove('animate-shake'), 400);
 
                     otpInputs.forEach(input => input.classList.remove('opacity-50', 'pointer-events-none'));
+                    
+                    document.getElementById('otp-error').innerText = res.message || "Invalid Code. Try again.";
                     document.getElementById('otp-error').classList.remove('hidden');
                     document.getElementById('otp-1').value = ''; document.getElementById('otp-2').value = ''; document.getElementById('otp-3').value = ''; document.getElementById('otp-4').value = '';
                     
@@ -628,12 +646,23 @@
                     document.getElementById('otp-1').focus();
                 }
             } catch (e) {
+                clearTimeout(timeoutId);
+                console.error("Full Error:", e);
+                let errorMsg = e.message || String(e);
+
                 otpInputs.forEach(input => input.classList.remove('opacity-50', 'pointer-events-none'));
                 submitBtn.innerText = "Verify Code";
-                showNotification("Network timeout encountered while authenticating validation key.", "error");
+                submitBtn.disabled = true;
+                
+                if (e.name === 'AbortError') {
+                    showNotification("Network timeout. Google servers are throttling rapid requests. Please try again in 15 seconds.", "error");
+                } else if (errorMsg.includes("Unexpected token '<'") || errorMsg.includes("Unexpected token <")) {
+                    showNotification("Deployment configuration mismatch detected. Please re-deploy backend container.", "error");
+                } else {
+                    showNotification("Network timeout encountered while authenticating validation key.", "error");
+                }
             }
         }
-
         // ==========================================
         // DYNAMIC WIZARD RENDERER & NAVIGATION
         // ==========================================
@@ -877,8 +906,20 @@
             document.getElementById('action-bar').classList.add('hidden');
             switchView('success');
 
+            // 🟢 UX FIX: 15-Second Timeout for final submission (Needs slightly longer for DB write)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+
             try {
-                await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(finalPayload) });
+                const response = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'text/plain' }, 
+                    body: JSON.stringify(finalPayload),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                const res = await response.json(); // Wait for actual response to confirm success
                 
                 sessionStorage.removeItem('impact_draft');
                 
@@ -888,7 +929,18 @@
                     document.getElementById('state-done').classList.add('flex');
                 }, 800);
            } catch (error) {
-                showNotification("Connection lost. Please check your internet connection and try submitting again.", "error");
+                clearTimeout(timeoutId);
+                console.error("Full Error:", error);
+                let errorMsg = error.message || String(error);
+                
+                if (error.name === 'AbortError') {
+                    showNotification("Network timeout. The server is taking too long to respond. Please try again.", "error");
+                } else if (errorMsg.includes("Unexpected token '<'") || errorMsg.includes("Unexpected token <")) {
+                    showNotification("Deployment configuration mismatch detected. Please re-deploy backend container.", "error");
+                } else {
+                    showNotification("Connection lost. Please check your internet connection and try submitting again.", "error");
+                }
+                
                 document.getElementById('action-bar').classList.remove('hidden');
                 switchView('rating');
                 
