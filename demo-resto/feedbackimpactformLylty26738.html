@@ -300,7 +300,7 @@
         // ==========================================
         // ⚙️ CONFIGURATION
         // ==========================================
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVuB_1A4AilKlKjR5TTz4A1GxT9onv7olALE9Ch-QdqMD_Av8sq2cEejNmbE8JeUl5/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvWW7jW3zS5AlAIqz9P57Ng4xQn0QxmzqIrVIopnoKZIheRdY332YPW_BJ3UQfr40Q/exec"; 
 
         const MENU_CONFIG = [
             { type: 'signature', name: "Fish mango curry" },
@@ -506,9 +506,10 @@
             btn.classList.add('animate-pulse');
             if(btnResend) btnResend.innerText = "Sending...";
 
-            // 🟢 UX FIX: 12-Second Network Timeout to prevent infinite freeze
+            // 🟢 UX FIX: Relaxed 25-Second Network Timeout. 
+            // Gives the serverless backend enough time to communicate with the Resend API before aborting.
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 12000);
+            const timeoutId = setTimeout(() => controller.abort(), 25000);
 
             try {
                 const response = await fetch(SCRIPT_URL, {
@@ -524,6 +525,11 @@
                 if (res.success) {
                     btn.classList.remove('animate-pulse');
                     document.getElementById('otp-display-email').innerText = State.payload.email;
+                    
+                    // 🟢 THE MISSING PIECE: Alert the user if the backend triggered a Silent Recovery
+                    if (res.isCooldown) {
+                        showNotification("A code was already sent recently. Please check your inbox or spam folder.", "gold");
+                    }
                     
                     if (State.view !== 'otp') {
                         switchView('otp');
