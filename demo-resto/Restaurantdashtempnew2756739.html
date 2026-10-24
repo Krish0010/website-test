@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0a0a0a">
     <title>IMPACT Analytics | FOODSTORYTVC</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -587,7 +589,7 @@
                 </div>
                 <div class="flex flex-wrap items-center justify-center gap-2">
                     <button onclick="window.openMatrixQuadrant('stars')" id="toggle-quadrant-btn" class="text-[9px] sm:text-[10px] uppercase tracking-wider font-bold text-brand-gold bg-[#0a0a0a] border border-brand-gold/30 px-3.5 py-2 rounded-full hover:bg-brand-gold/10 transition-colors focus:outline-none">
-                        📋 View All by Category
+                        View All by Category
                     </button>
                     <button onclick="window.zoomMatrixChart(1.3)" title="Zoom In" class="w-8 h-8 rounded-full bg-[#0a0a0a] border border-gray-800 hover:border-brand-gold/50 text-brand-gold font-bold text-sm flex items-center justify-center focus:outline-none active:scale-95 transition-all">+</button>
                     <button onclick="window.zoomMatrixChart(0.75)" title="Zoom Out" class="w-8 h-8 rounded-full bg-[#0a0a0a] border border-gray-800 hover:border-brand-gold/50 text-brand-gold font-bold text-sm flex items-center justify-center focus:outline-none active:scale-95 transition-all">&minus;</button>
@@ -783,9 +785,10 @@
     </div>
 
     <div id="draggable-matrix-tooltip" class="fixed bg-[#141414]/95 border border-brand-gold/60 text-white rounded-xl p-0 shadow-[0_10px_50px_rgba(0,0,0,0.9)] z-[9999] hidden flex-col w-[260px] sm:w-[320px]" style="touch-action: none;">
-        <div class="drag-handle bg-[#0a0a0a] rounded-t-xl px-4 py-3 border-b border-brand-gold/20 flex justify-between items-center cursor-move select-none">
-            <span class="text-[8px] text-brand-gold font-black uppercase tracking-widest flex items-center gap-2">
-                <span class="text-base leading-none">✋</span> Drag to move
+        <div class="drag-handle bg-[#0a0a0a] rounded-t-xl px-4 py-2.5 border-b border-brand-gold/20 flex justify-between items-center cursor-move select-none">
+            <span class="text-[8.5px] text-brand-gold/90 font-black uppercase tracking-widest flex items-center gap-2">
+                <svg class="w-3.5 h-3.5 text-brand-gold shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+                <span>Drag to move</span>
             </span>
             <button onclick="closeDraggableTooltip()" class="text-gray-500 hover:text-white text-2xl leading-none px-2 focus:outline-none">&times;</button>
         </div>
@@ -1261,8 +1264,10 @@
                                 <div class="w-3 h-3 rounded-sm shadow-sm shrink-0" style="background-color: ${datasetColor};"></div> 
                                 ${name}
                             </div>
-                            <div class="text-[11px] text-gray-300 mt-1 pl-5 font-semibold tracking-wide">
-                                ⭐ Rating: ${dataPoint.y.toFixed(2)} &nbsp;|&nbsp; 📊 Volume: ${dataPoint.x}
+                            <div class="text-[11px] text-gray-300 mt-1 pl-5 font-semibold tracking-wide flex items-center gap-2">
+                                <span>Rating: <b class="text-white">${dataPoint.y.toFixed(2)}★</b></span>
+                                <span class="text-gray-600">•</span>
+                                <span>Volume: <b class="text-white">${dataPoint.x} votes</b></span>
                             </div>
                         </div>
                     `;
@@ -1376,9 +1381,8 @@
           if (fromExternalSection) {
               window.hideAllBackButtons();
               window.savedScrollOriginY = window.scrollY;
-              window.backButtonSpawnScrollY = null;
               document.getElementById('back-from-matrix-btn')?.classList.remove('hidden');
-              setTimeout(() => { window.backButtonSpawnScrollY = window.scrollY; }, 650);
+              window.armBackButtonAutoHide();
           } else {
               document.getElementById('back-from-matrix-btn')?.classList.add('hidden');
           }
@@ -1524,17 +1528,23 @@
                 container.innerHTML = `<span class="text-gray-600 text-[10px] italic font-medium">Gathering data... No recurring themes detected yet.</span>`;
                 return;
             }
-
+            
             let htmlString = "";
             for (let i = 0; i < categoriesArray.length; i++) {
                 let cat = categoriesArray[i];
-                let colorClasses = cat.config.type === 'positive' 
+                let isPos = cat.config.type === 'positive';
+                let colorClasses = isPos
                     ? 'bg-success-green/10 border-success-green/30 hover:bg-success-green/20 text-success-green' 
                     : 'bg-danger-red/10 border-danger-red/30 hover:bg-danger-red/20 text-danger-red';
+                let dotClass = isPos
+                    ? 'bg-success-green shadow-[0_0_6px_#4ade80]'
+                    : 'bg-danger-red shadow-[0_0_6px_#ef4444]';
+                let safeCatJS = cat.name.replace(/'/g, "\\'");
 
                 htmlString += `
-                    <button onclick="window.showKeywordBreakdown('${cat.name}')" class="${colorClasses} px-3 py-1.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer">
-                        <span class="text-xs">${cat.config.emoji}</span> ${cat.name} (${cat.total})
+                    <button onclick="window.showKeywordBreakdown('${safeCatJS}')" class="${colorClasses} border px-3 py-1.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 shadow-sm transition-colors cursor-pointer focus:outline-none active:scale-95">
+                        <span class="w-1.5 h-1.5 rounded-full ${dotClass} shrink-0"></span>
+                        <span>${cat.name} (${cat.total})</span>
                     </button>
                 `;
             }
@@ -1548,6 +1558,7 @@
             if (!data) return;
 
             if (fromExternalSection) {
+                window.hideAllBackButtons();
                 window.savedScrollOriginY = window.scrollY;
             }
 
@@ -1590,8 +1601,7 @@
             container.innerHTML = html;
             container.classList.remove('hidden');
             if (fromExternalSection) {
-                window.backButtonSpawnScrollY = null;
-                setTimeout(() => { window.backButtonSpawnScrollY = window.scrollY; }, 650);
+                window.armBackButtonAutoHide();
             }
         };
 
@@ -1601,8 +1611,31 @@
 
         window.savedScrollOriginY = null;
         window.backButtonSpawnScrollY = null;
+        window.isProgrammaticScrolling = false;
+        window.scrollIdleTimer = null;
+
+        // 🟢 SCROLL-IDLE DETECTOR: Waits until smooth-scroll completely finishes before arming auto-hide
+        window.armBackButtonAutoHide = function() {
+            window.isProgrammaticScrolling = true;
+            window.backButtonSpawnScrollY = null;
+            clearTimeout(window.scrollIdleTimer);
+
+            const waitForScrollIdle = () => {
+                clearTimeout(window.scrollIdleTimer);
+                window.scrollIdleTimer = setTimeout(() => {
+                    window.removeEventListener('scroll', waitForScrollIdle);
+                    window.isProgrammaticScrolling = false;
+                    window.backButtonSpawnScrollY = window.scrollY;
+                }, 180);
+            };
+
+            window.addEventListener('scroll', waitForScrollIdle, { passive: true });
+            waitForScrollIdle();
+        };
 
         window.hideAllBackButtons = function() {
+            clearTimeout(window.scrollIdleTimer);
+            window.isProgrammaticScrolling = false;
             ['back-to-source-btn', 'back-from-heatmap-btn', 'back-from-top-card-btn', 'back-from-low-card-btn', 'back-from-kw-btn', 'back-from-matrix-btn'].forEach(id => {
                 document.getElementById(id)?.classList.add('hidden');
             });
@@ -1638,7 +1671,7 @@
                 const targetEl = (!resultsBox.classList.contains('hidden')) ? resultsBox : searchInput;
                 targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 if (fromExternalSection) {
-                    setTimeout(() => { window.backButtonSpawnScrollY = window.scrollY; }, 650);
+                    window.armBackButtonAutoHide();
                 }
             }, 50);
         };
@@ -1754,15 +1787,20 @@
                 let htmlString = "";
                 for (let i = 0; i < tagsArray.length; i++) {
                     let cat = tagsArray[i];
+                    let isPos = cat.config.type === 'positive';
                     let isSelected = window.activeDishTagFilter === cat.name;
-                    let colorClasses = cat.config.type === 'positive' 
+                    let colorClasses = isPos
                         ? (isSelected ? 'bg-success-green text-black border-success-green shadow-[0_0_12px_rgba(74,222,128,0.4)]' : 'bg-success-green/10 border-success-green/30 text-success-green hover:bg-success-green/20')
                         : (isSelected ? 'bg-danger-red text-white border-danger-red shadow-[0_0_12px_rgba(239,68,68,0.4)]' : 'bg-danger-red/10 border-danger-red/30 text-danger-red hover:bg-danger-red/20');
+                    let dotClass = isSelected
+                        ? (isPos ? 'bg-black' : 'bg-white')
+                        : (isPos ? 'bg-success-green' : 'bg-danger-red');
                     let safeCatJS = cat.name.replace(/'/g, "\\'");
 
                     htmlString += `
-                        <button onclick="window.filterSearchedDishByTag('${safeCatJS}')" title="Tap to filter comments by ${cat.name}" class="${colorClasses} border px-2.5 py-1 rounded-md text-[8px] sm:text-[9px] font-bold uppercase tracking-widest flex items-center gap-1 transition-all active:scale-95 focus:outline-none cursor-pointer">
-                            ${cat.config.emoji} ${cat.name} (${cat.count})${isSelected ? ' ✕' : ''}
+                        <button onclick="window.filterSearchedDishByTag('${safeCatJS}')" title="Tap to filter comments by ${cat.name}" class="${colorClasses} border px-2.5 py-1 rounded-md text-[8px] sm:text-[9px] font-bold uppercase tracking-widest flex items-center gap-1.5 transition-all active:scale-95 focus:outline-none cursor-pointer">
+                            <span class="w-1.5 h-1.5 rounded-full ${dotClass} shrink-0"></span>
+                            <span>${cat.name} (${cat.count})${isSelected ? ' ✕' : ''}</span>
                         </button>
                     `;
                 }
@@ -1840,8 +1878,8 @@
                                 onZoomComplete: () => document.getElementById('reset-time-zoom-btn')?.classList.remove('hidden')
                             } 
                         }, 
-                        tooltip: {
-                            displayColors: false, 
+                        tooltip: { 
+                            displayColors: false,
                             backgroundColor: '#141414', 
                             titleColor: '#e8c064', 
                             borderColor: '#e8c064', 
@@ -2502,10 +2540,10 @@
             window.activeQuadrantKey = key;
 
             const meta = {
-                stars: { title: '🌟 Stars', action: 'Keep & Protect', color: 'text-[#4ade80]', border: 'border-[#4ade80]/60', dot: 'bg-[#4ade80]', badgeBg: 'bg-[#4ade80]/15 text-[#4ade80]', desc: 'High rating (≥ 3.8★) & high order volume. Flagship dishes—maintain strict recipe consistency.' },
-                plowhorses: { title: '🐎 Plowhorses', action: 'Fix Recipe', color: 'text-[#3b82f6]', border: 'border-[#3b82f6]/60', dot: 'bg-[#3b82f6]', badgeBg: 'bg-[#3b82f6]/15 text-[#3b82f6]', desc: 'High order volume but below-target rating (< 3.8★). Tweaking these recipes immediately boosts overall satisfaction.' },
-                gems: { title: '💎 Hidden Gems', action: 'Promote', color: 'text-[#e8c064]', border: 'border-[#e8c064]/60', dot: 'bg-[#e8c064]', badgeBg: 'bg-[#e8c064]/15 text-[#e8c064]', desc: 'High rating (≥ 3.8★) but lower order volume. Feature these in combos, waiter recommendations, or reels!' },
-                dogs: { title: '🐕 Dogs', action: 'Review / Replace', color: 'text-[#ef4444]', border: 'border-[#ef4444]/60', dot: 'bg-[#ef4444]', badgeBg: 'bg-[#ef4444]/15 text-[#ef4444]', desc: 'Lower rating (< 3.8★) & low order volume. Consider revamping or removing to simplify kitchen prep.' }
+                stars: { title: 'Stars', action: 'Keep & Protect', color: 'text-[#4ade80]', border: 'border-[#4ade80]/60', dot: 'bg-[#4ade80]', badgeBg: 'bg-[#4ade80]/15 text-[#4ade80]', desc: 'High rating (≥ 3.8★) & high order volume. Flagship dishes—maintain strict recipe consistency.' },
+                plowhorses: { title: 'Plowhorses', action: 'Fix Recipe', color: 'text-[#3b82f6]', border: 'border-[#3b82f6]/60', dot: 'bg-[#3b82f6]', badgeBg: 'bg-[#3b82f6]/15 text-[#3b82f6]', desc: 'High order volume but below-target rating (< 3.8★). Tweaking these recipes immediately boosts overall satisfaction.' },
+                gems: { title: 'Hidden Gems', action: 'Promote', color: 'text-[#e8c064]', border: 'border-[#e8c064]/60', dot: 'bg-[#e8c064]', badgeBg: 'bg-[#e8c064]/15 text-[#e8c064]', desc: 'High rating (≥ 3.8★) but lower order volume. Feature these in combos, waiter recommendations, or reels!' },
+                dogs: { title: 'Dogs', action: 'Review / Replace', color: 'text-[#ef4444]', border: 'border-[#ef4444]/60', dot: 'bg-[#ef4444]', badgeBg: 'bg-[#ef4444]/15 text-[#ef4444]', desc: 'Lower rating (< 3.8★) & low order volume. Consider revamping or removing to simplify kitchen prep.' }
             };
 
             const cfg = meta[key];
@@ -2524,6 +2562,7 @@
             });
 
             document.getElementById('quadrant-drawer-title').innerHTML = `
+                <span class="w-2.5 h-2.5 rounded-sm ${cfg.dot} shrink-0"></span>
                 <span class="${cfg.color} text-xs sm:text-sm font-black uppercase tracking-wider whitespace-nowrap">${cfg.title} (${list.length})</span>
                 <span class="${cfg.badgeBg} text-[9px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-full whitespace-nowrap">${cfg.action}</span>
             `;
@@ -2607,7 +2646,7 @@
             });
             const toggleBtn = document.getElementById('toggle-quadrant-btn');
             if (toggleBtn) {
-                toggleBtn.innerText = '📋 View All by Category';
+                toggleBtn.innerText = 'View All by Category';
                 toggleBtn.onclick = () => window.openMatrixQuadrant('stars');
             }
         };
@@ -2656,19 +2695,17 @@
             document.getElementById('back-from-heatmap-btn')?.classList.remove('hidden');
             const container = document.getElementById('heatmap-container');
             container?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            window.armBackButtonAutoHide();
 
             setTimeout(() => {
-                window.backButtonSpawnScrollY = window.scrollY;
                 window.clearHeatmapTooltips();
                 const cell = document.querySelector(`[data-heat-cell="${day}-${hour}"]`);
                 if (cell) {
                     const scrollParent = cell.closest('.overflow-x-auto');
                     if (scrollParent) {
-                        // Only scroll horizontally if the target hour is off-screen (e.g., evening hours > 5 PM)
-                        const cellRight = cell.offsetLeft + cell.clientWidth;
-                        if (cellRight > scrollParent.clientWidth || cell.offsetLeft < scrollParent.scrollLeft + 44) {
-                            const targetLeft = Math.max(0, cell.offsetLeft - (scrollParent.clientWidth / 2) + (cell.clientWidth / 2));
-                            scrollParent.scrollTo({ left: targetLeft, behavior: 'smooth' });
+                        // Daytime hours (10 AM - 4 PM) are already visible in the first viewport; only scroll horizontally for evening hours >= 17 (5 PM+)
+                        if (hour >= 17) {
+                            scrollParent.scrollTo({ left: scrollParent.scrollWidth, behavior: 'smooth' });
                         } else {
                             scrollParent.scrollTo({ left: 0, behavior: 'smooth' });
                         }
@@ -3293,9 +3330,8 @@
                     topCardEl.onclick = () => {
                         window.hideAllBackButtons();
                         window.savedScrollOriginY = window.scrollY;
-                        window.backButtonSpawnScrollY = null;
                         document.getElementById('back-from-top-card-btn')?.classList.remove('hidden');
-                        setTimeout(() => { window.backButtonSpawnScrollY = window.scrollY; }, 650);
+                        window.armBackButtonAutoHide();
                         window.toggleFeaturedCommentCard('top', true);
                         const card = document.getElementById('top-comment-card');
                         card.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -3312,9 +3348,8 @@
                     lowCardEl.onclick = () => {
                         window.hideAllBackButtons();
                         window.savedScrollOriginY = window.scrollY;
-                        window.backButtonSpawnScrollY = null;
                         document.getElementById('back-from-low-card-btn')?.classList.remove('hidden');
-                        setTimeout(() => { window.backButtonSpawnScrollY = window.scrollY; }, 650);
+                        window.armBackButtonAutoHide();
                         window.toggleFeaturedCommentCard('low', true);
                         const card = document.getElementById('low-comment-card');
                         card.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -3708,8 +3743,8 @@
             for (let i = 0; i < allActive.length; i++) {
                 allActive[i].classList.remove('active');
             }
-            // Auto-hide any '↩ Back' pill if the user manually scrolls > 420px away from the target section
-            if (window.backButtonSpawnScrollY !== null && Math.abs(window.scrollY - window.backButtonSpawnScrollY) > 420) {
+            // Auto-hide any '↩ Back' pill ONLY after programmatic smooth-scroll has finished and user manually scrolls > 500px away
+            if (!window.isProgrammaticScrolling && window.backButtonSpawnScrollY !== null && Math.abs(window.scrollY - window.backButtonSpawnScrollY) > 500) {
                 window.hideAllBackButtons();
             }
             const topBtn = document.getElementById('scroll-top-btn');
