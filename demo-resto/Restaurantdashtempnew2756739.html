@@ -104,9 +104,8 @@
             touch-action: pan-y; 
         }
         
-        .custom-scroll {
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior-y: contain;
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
         }
         .custom-scroll {
             -webkit-overflow-scrolling: touch;
@@ -414,8 +413,8 @@
                 <canvas id="timeTrendsChart" style="touch-action: pan-y;"></canvas>
             </div>
             <div class="text-center text-[8.5px] sm:text-[9px] text-brand-gold/60 uppercase tracking-wider sm:tracking-widest mt-4 whitespace-nowrap">
-                <span class="sm:hidden">↔ Swipe to pan &nbsp;•&nbsp; Pinch or + / &minus; to zoom</span>
-                <span class="hidden sm:inline">↔ Drag left/right to pan &nbsp;•&nbsp; Scroll or use + / &minus; to zoom</span>
+                <span class="sm:hidden">Swipe left/right to pan &nbsp;•&nbsp; Pinch or + / &minus; to zoom</span>
+                <span class="hidden sm:inline">Drag left/right to pan &nbsp;•&nbsp; Scroll or use + / &minus; to zoom</span>
             </div>
         </div>
 
@@ -458,7 +457,7 @@
                     <div class="tooltip-container flex items-center" onclick="toggleDishTooltip('tip-dec', event)" id="tip-dec">
                         <span class="text-gray-500 hover:text-brand-gold transition-colors cursor-pointer text-xs ml-1.5 mt-0.5">ⓘ</span>
                         <span class="tooltip-text w-[200px] p-2 text-center normal-case tracking-normal shadow-2xl font-medium text-gray-300" style="right: -10px; left: auto; bottom: 140%;">
-                            Compared to last week.<br><span class="text-brand-gold font-bold">Min. 3 votes required AND volume must equal or exceed last week.</span>
+                            Compared to last week.<br><span class="text-brand-gold font-bold">Min. 3 votes required & volume must equal or exceed last week.</span>
                         </span>
                     </div>
                 </div>
@@ -495,7 +494,7 @@
              <div id="heatmap-container" class="min-w-[600px] flex flex-col gap-1.5" style="touch-action: pan-x pan-y;"></div>
          </div>
          <div class="sm:hidden text-center text-[9px] text-brand-gold/60 uppercase tracking-widest mt-2">
-             ↔ Swipe grid to view all hours
+             Swipe grid left/right to view all hours
          </div>
             
             <!-- 🟢 UX FIX: Structured mobile wrapping so legends stack cleanly without breaking ranges -->
@@ -578,7 +577,7 @@
                     <div id="quadrant-drawer-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 h-52 content-start overflow-y-auto custom-scroll pr-1" style="touch-action: pan-y;"></div>
                 </div>
                 <div class="mt-3 pt-2.5 border-t border-gray-800/60 flex items-center justify-between text-[9px] text-gray-500 uppercase tracking-widest font-bold">
-                    <span>↔ Swipe card left / right</span>
+                    <span>Swipe card left / right</span>
                     <div id="quadrant-dots" class="flex items-center gap-1.5"></div>
                 </div>
             </div>
@@ -607,7 +606,7 @@
             </div>
 
             <div class="text-center text-[8.5px] sm:text-[9px] text-brand-gold/60 uppercase tracking-wider sm:tracking-widest mb-3 whitespace-nowrap">
-                <span class="sm:hidden">Tap category above to list &nbsp;•&nbsp; 🔍 Pinch or + / &minus; to zoom</span>
+                <span class="sm:hidden">Tap category above to list &nbsp;•&nbsp; Pinch or + / &minus; to zoom</span>
                 <span class="hidden sm:inline">Click any category above to list dishes &nbsp;•&nbsp; Ctrl + Scroll or use + / &minus; to zoom</span>
             </div>
 
@@ -744,11 +743,11 @@
                 <div class="rounded-lg border border-gray-800/50 overflow-hidden">
                     <table class="w-full text-left text-sm table-fixed">
                         <thead>
-                            <tr class="text-[9px] sm:text-[10px] uppercase tracking-tighter text-gray-500 border-b border-gray-800 bg-[#111]">
-                                <th class="py-3 pl-2 sm:pl-4 w-[45%]" onclick="sortData('top', 'name')">Dish Name ↕</th>
-                                <th class="py-3 text-center w-[15%]" onclick="sortData('top', 'likedPct')">% Liked  ↕</th>
-                                <th class="py-3 text-center w-[20%]" onclick="sortData('top', 'rating')">Avg ↕</th>
-                                <th class="py-3 text-center pr-2 w-[20%]" onclick="sortData('top', 'reviews')">Votes ↕</th>
+                            <tr class="text-[9px] sm:text-[10px] uppercase tracking-tight text-gray-500 border-b border-gray-800 bg-[#111]">
+                                <th class="py-3 pl-2.5 sm:pl-4 w-[46%]" onclick="sortData('top', 'name')">Dish Name <span class="opacity-60 text-[8px] ml-0.5">⇅</span></th>
+                                <th class="py-3 text-center w-[18%]" onclick="sortData('top', 'likedPct')">% Liked <span class="opacity-60 text-[8px] ml-0.5">⇅</span></th>
+                                <th class="py-3 text-center w-[18%]" onclick="sortData('top', 'rating')">Avg <span class="opacity-60 text-[8px] ml-0.5">⇅</span></th>
+                                <th class="py-3 text-center pr-2 w-[18%]" onclick="sortData('top', 'reviews')">Votes <span class="opacity-60 text-[8px] ml-0.5">⇅</span></th>
                             </tr>
                         </thead>
                         <tbody id="top-dishes-table"></tbody>
@@ -774,11 +773,11 @@
                 <div class="rounded-lg border border-gray-800/50 overflow-hidden">
                     <table class="w-full text-left text-sm table-fixed">
                         <thead>
-                            <tr class="text-[9px] sm:text-[10px] uppercase tracking-tighter text-gray-500 border-b border-gray-800 bg-[#111]">
-                                <th class="py-3 pl-2 sm:pl-4 w-[45%]" onclick="sortData('bottom', 'name')">Dish Name ↕</th>
-                                <th class="py-3 text-center w-[15%]" onclick="sortData('bottom', 'likedPct')">% Liked ↕</th>
-                                <th class="py-3 text-center w-[20%]" onclick="sortData('bottom', 'rating')">Avg ↕</th>
-                                <th class="py-3 text-center pr-2 w-[20%]" onclick="sortData('bottom', 'reviews')">Votes ↕</th>
+                            <tr class="text-[9px] sm:text-[10px] uppercase tracking-tight text-gray-500 border-b border-gray-800 bg-[#111]">
+                                <th class="py-3 pl-2.5 sm:pl-4 w-[46%]" onclick="sortData('bottom', 'name')">Dish Name <span class="opacity-60 text-[8px] ml-0.5">⇅</span></th>
+                                <th class="py-3 text-center w-[18%]" onclick="sortData('bottom', 'likedPct')">% Liked <span class="opacity-60 text-[8px] ml-0.5">⇅</span></th>
+                                <th class="py-3 text-center w-[18%]" onclick="sortData('bottom', 'rating')">Avg <span class="opacity-60 text-[8px] ml-0.5">⇅</span></th>
+                                <th class="py-3 text-center pr-2 w-[18%]" onclick="sortData('bottom', 'reviews')">Votes <span class="opacity-60 text-[8px] ml-0.5">⇅</span></th>
                             </tr>
                         </thead>
                         <tbody id="bottom-dishes-table"></tbody>
@@ -844,7 +843,7 @@
     <button id="scroll-top-btn" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })" class="hidden fixed bottom-5 right-4 z-[90] bg-[#141414]/95 hover:bg-brand-gold text-brand-gold hover:text-black border border-brand-gold/50 rounded-full px-3.5 py-2 text-[10px] font-black uppercase tracking-widest shadow-[0_10px_25px_rgba(0,0,0,0.85)] transition-all active:scale-90 flex items-center gap-1">
         <span>↑</span> Top
     </button>
-    <div class="w-full max-w-5xl mt-12 sm:mt-16 flex flex-col items-center justify-center">
+    <div id="dashboard-footer" class="hidden w-full max-w-5xl mt-12 sm:mt-16 flex flex-col items-center justify-center">
         <div class="w-full h-[1px] bg-gradient-to-r from-transparent via-brand-gold/60 to-transparent"></div>
         <div class="flex flex-col items-center gap-3 mt-8">
             <p class="tagline-font text-white text-lg tracking-wide opacity-90">
@@ -1149,21 +1148,23 @@
                 return 0;
             });
             
-            // Update header arrows & gold highlight on the active table
+            // Update header arrows & gold highlight on the active table (Uses vector SVG arrows so iOS never renders emoji boxes)
             const tbodyId = type === 'top' ? 'top-dishes-table' : 'bottom-dishes-table';
             const tableEl = document.getElementById(tbodyId)?.closest('table');
             if (tableEl) {
+                const upSvg = `<svg class="w-2.5 h-2.5 inline-block ml-0.5 -mt-0.5 text-brand-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>`;
+                const downSvg = `<svg class="w-2.5 h-2.5 inline-block ml-0.5 -mt-0.5 text-brand-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
                 const colMap = { name: { idx: 0, label: 'Dish Name' }, likedPct: { idx: 1, label: '% Liked' }, rating: { idx: 2, label: 'Avg' }, reviews: { idx: 3, label: 'Votes' } };
                 const ths = tableEl.querySelectorAll('thead th');
                 Object.keys(colMap).forEach(k => {
                     const col = colMap[k];
                     if (ths[col.idx]) {
                         if (k === key) {
-                            ths[col.idx].innerHTML = `${col.label} <span class="text-brand-gold font-black">${dir === 1 ? '↑' : '↓'}</span>`;
+                            ths[col.idx].innerHTML = `${col.label}${dir === 1 ? upSvg : downSvg}`;
                             ths[col.idx].classList.add('text-brand-gold');
                             ths[col.idx].classList.remove('text-gray-500');
                         } else {
-                            ths[col.idx].innerHTML = `${col.label} ↕`;
+                            ths[col.idx].innerHTML = `${col.label} <span class="opacity-60 text-[8px] ml-0.5">⇅</span>`;
                             ths[col.idx].classList.remove('text-brand-gold');
                             ths[col.idx].classList.add('text-gray-500');
                         }
@@ -1205,22 +1206,28 @@
                 let volRatio = maxR > 0 ? (d.reviews / maxR) : 0;
                 let volPillStyle = `background-color: rgba(56, 189, 248, ${(0.06 + volRatio * 0.22).toFixed(2)}); border-color: rgba(56, 189, 248, ${(0.18 + volRatio * 0.35).toFixed(2)});`;
                 let commentCount = (d.comments && d.comments.length) || 0;
-                let commentBadge = commentCount > 0 ? `<span class="inline-flex items-center gap-0.5 bg-brand-gold/10 border border-brand-gold/30 rounded px-1.5 py-0.5 text-[8.5px] leading-none text-brand-gold font-extrabold ml-1.5 whitespace-nowrap align-middle"><svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>${commentCount}</span>` : '';
+                // Dedicated fixed-width right slot so all comment badges align in one straight vertical column
+                let commentBadge = commentCount > 0
+                    ? `<span class="inline-flex items-center justify-center gap-1 bg-brand-gold/10 border border-brand-gold/30 rounded-md w-8 py-0.5 text-[8.5px] leading-none text-brand-gold font-extrabold shrink-0 tabular-nums"><svg class="w-2.5 h-2.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>${commentCount}</span>`
+                    : `<span class="w-8 shrink-0"></span>`;
 
                 htmlString += `
                     <tr onclick="window.autoSearchComment('${safeDishJS}', true)" title="Tap to read customer comments" class="border-b border-white/[0.05] last:border-0 sm:hover:bg-white/[0.03] active:bg-white/[0.06] cursor-pointer transition-colors group">
-                        <td class="py-2.5 sm:py-3 pl-2 sm:pl-4 pr-1 text-white font-bold text-[10.5px] sm:text-xs align-middle">
-                            <div class="flex items-baseline gap-1.5">
-                                <span class="text-gray-500 font-semibold shrink-0 w-4 sm:w-5 text-right text-[10px]">${i + 1}.</span>
-                                <span class="leading-snug break-words sm:group-hover:text-brand-gold transition-colors">${safeDishName}${commentBadge}</span>
+                        <td class="py-2.5 sm:py-3 pl-2 sm:pl-4 pr-1.5 text-white font-bold text-[10.5px] sm:text-xs align-middle">
+                            <div class="flex items-center justify-between gap-1.5">
+                                <div class="flex items-baseline gap-1.5 min-w-0">
+                                    <span class="text-gray-500 font-semibold shrink-0 w-4 sm:w-5 text-right text-[10px] tabular-nums">${i + 1}.</span>
+                                    <span class="leading-snug break-words sm:group-hover:text-brand-gold transition-colors">${safeDishName}</span>
+                                </div>
+                                ${commentBadge}
                             </div>
                         </td>
-                        <td class="py-2.5 sm:py-3 text-center text-gray-300 font-semibold text-[10.5px] sm:text-xs whitespace-nowrap align-middle">${d.likedPct}%</td>
+                        <td class="py-2.5 sm:py-3 text-center text-gray-300 font-semibold text-[10.5px] sm:text-xs whitespace-nowrap align-middle tabular-nums">${d.likedPct}%</td>
                         <td class="py-2.5 sm:py-3 text-center align-middle">
-                            <span class="inline-block ${ratingPillClass} border font-extrabold text-[10px] sm:text-[11px] px-2 py-0.5 rounded-md min-w-[2.4rem] text-center">${d.rating.toFixed(1)}</span>
+                            <span class="inline-flex items-center justify-center ${ratingPillClass} border font-extrabold text-[10px] sm:text-[11px] w-10 py-0.5 rounded-md text-center tabular-nums">${d.rating.toFixed(1)}</span>
                         </td>
                         <td class="py-2.5 sm:py-3 text-center pr-2 align-middle">
-                            <span class="inline-block text-[#bae6fd] border font-bold text-[10px] sm:text-[11px] px-2 py-0.5 rounded-md min-w-[2.4rem] text-center" style="${volPillStyle}">${d.reviews}</span>
+                            <span class="inline-flex items-center justify-center text-[#bae6fd] border font-bold text-[10px] sm:text-[11px] w-11 py-0.5 rounded-md text-center tabular-nums" style="${volPillStyle}">${d.reviews}</span>
                         </td>
                     </tr>`;
             }
@@ -1266,10 +1273,10 @@
                                 <div class="w-3 h-3 rounded-sm shadow-sm shrink-0" style="background-color: ${datasetColor};"></div> 
                                 ${name}
                             </div>
-                            <div class="text-[11px] text-gray-300 mt-1 pl-5 font-semibold tracking-wide flex items-center gap-2">
-                                <span>Rating: <b class="text-white">${dataPoint.y.toFixed(2)}★</b></span>
+                            <div class="text-[11px] text-gray-300 mt-1 pl-5 font-semibold tracking-wide flex items-center gap-2 whitespace-nowrap tabular-nums">
+                                <span class="whitespace-nowrap">Rating: <b class="text-white">${dataPoint.y.toFixed(2)}★</b></span>
                                 <span class="text-gray-600">•</span>
-                                <span>Volume: <b class="text-white">${dataPoint.x} votes</b></span>
+                                <span class="whitespace-nowrap">Volume: <b class="text-white">${dataPoint.x} votes</b></span>
                             </div>
                         </div>
                     `;
@@ -2578,14 +2585,14 @@
                     const safeJS = d.name.replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/"/g, '&quot;');
                     const safeHTML = d.name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                     return `
-                        <div onclick="window.selectMatrixDish('${safeJS}')" class="bg-[#141414] hover:border-brand-gold/50 border border-gray-800 rounded-lg px-3 py-2 flex items-center justify-between gap-2 cursor-pointer transition-colors">
+                        <div onclick="window.selectMatrixDish('${safeJS}')" class="bg-[#141414] sm:hover:border-brand-gold/50 border border-gray-800 rounded-lg px-3 py-2 flex items-center justify-between gap-2 cursor-pointer transition-colors">
                             <div class="flex items-baseline gap-1.5 min-w-0">
-                                <span class="text-gray-500 text-[10px] font-bold shrink-0">${idx + 1}.</span>
+                                <span class="text-gray-500 text-[10px] font-bold shrink-0 w-4 text-right tabular-nums">${idx + 1}.</span>
                                 <span class="text-white text-xs font-bold leading-snug break-words">${safeHTML}</span>
                             </div>
-                            <div class="flex items-center gap-1.5 shrink-0">
-                                <span class="${cfg.badgeBg} text-[10px] font-black px-1.5 py-0.5 rounded">★ ${d.rating.toFixed(1)}</span>
-                                <span class="text-gray-400 text-[10px] font-semibold bg-[#0a0a0a] px-1.5 py-0.5 rounded border border-gray-800">${d.reviews}v</span>
+                            <div class="flex items-center gap-1.5 shrink-0 tabular-nums">
+                                <span class="${cfg.badgeBg} text-[10px] font-black w-[3.1rem] py-0.5 rounded inline-flex items-center justify-center whitespace-nowrap">★ ${d.rating.toFixed(1)}</span>
+                                <span class="text-gray-400 text-[10px] font-semibold bg-[#0a0a0a] w-[3.1rem] py-0.5 rounded border border-gray-800 inline-flex items-center justify-center whitespace-nowrap">${d.reviews}v</span>
                             </div>
                         </div>
                     `;
@@ -2918,7 +2925,9 @@
                             </div>
                             <div class="flex items-center gap-1.5 shrink-0">
                                 <span class="hidden md:inline text-[9px] font-bold uppercase tracking-wider text-gray-500 sm:group-hover:text-brand-gold opacity-0 sm:group-hover:opacity-100 transition-opacity">${actionHint || 'Inspect'}</span>
-                                <span class="w-5 h-5 rounded-full bg-white/[0.04] border border-white/[0.09] sm:group-hover:border-brand-gold/40 sm:group-hover:bg-brand-gold/10 text-gray-400 sm:group-hover:text-brand-gold flex items-center justify-center text-[10px] leading-none transition-all">↗</span>
+                                <span class="w-5 h-5 rounded-full bg-white/[0.04] border border-white/[0.09] sm:group-hover:border-brand-gold/40 sm:group-hover:bg-brand-gold/10 text-gray-400 sm:group-hover:text-brand-gold flex items-center justify-center transition-all">
+                                    <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+                                </span>
                             </div>
                         </div>
 
@@ -3425,6 +3434,7 @@
              // ⚡ ZERO-FREEZE SEQUENCE: Unhide container & start card cascade FIRST
              document.getElementById('loading-screen').classList.add('hidden');
              document.getElementById('dashboard-content').classList.remove('hidden');
+             document.getElementById('dashboard-footer')?.classList.remove('hidden');
              initModernMotionUI();
 
              // ⚡ Render heavy canvases & tickers on the next frame after layout is painted
