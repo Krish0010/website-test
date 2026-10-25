@@ -134,24 +134,25 @@
         .tooltip-text {
             visibility: hidden;
             width: max-content;
-            max-width: 200px;
-            background-color: #1a1a1a;
-            color: #e8c064;
+            max-width: 220px;
+            background-color: rgba(18, 18, 20, 0.95);
+            backdrop-filter: blur(12px);
+            color: #f3f4f6;
             text-align: center;
-            border: 1px solid #e8c06440;
+            border: 1px solid rgba(232, 192, 100, 0.25);
             border-radius: 12px;
             padding: 10px 14px;
             position: absolute;
             z-index: 9999;
-            bottom: 125%; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            bottom: 135%; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.9), 0 0 15px rgba(232,192,100,0.08);
             font-size: 11px;
             font-family: 'Inter', sans-serif;
-            font-weight: 700;
-            line-height: 1.4;
-            letter-spacing: 0.02em;
+            font-weight: 500;
+            line-height: 1.45;
+            letter-spacing: 0.01em;
             opacity: 0;
-            transition: opacity 0.3s, bottom 0.3s, visibility 0.3s;
+            transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), bottom 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s;
         }
 
         .tooltip-container:hover .tooltip-text,
@@ -1235,9 +1236,7 @@
             } else {
                 let allActive = document.querySelectorAll('.tooltip-container.active');
                 for (let i = 0; i < allActive.length; i++) {
-                    if (allActive[i].id !== uniqueId) {
-                        allActive[i].classList.remove('active');
-                    }
+                    allActive[i].classList.remove('active');
                 }
                 tooltipContainer.classList.add('active');
             }
@@ -2858,8 +2857,11 @@
                             <span class="text-[7.5px] font-bold uppercase tracking-widest text-brand-gold/80 mt-1">30-Day</span>
                         </div>
                         <div class="min-w-0 flex-1">
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span class="text-[9.5px] sm:text-[10px] font-extrabold uppercase tracking-[0.13em] text-gray-400">Satisfaction Pulse</span>
+                            <!-- Responsive Title: Shows 'SATISFACTION' on mobile, 'SATISFACTION PULSE' on desktop, with badge aligned nicely -->
+                            <div class="flex items-center justify-between sm:justify-start sm:gap-2.5 gap-1.5 flex-wrap">
+                                <span class="text-[9.5px] sm:text-[10px] font-extrabold uppercase tracking-[0.13em] text-gray-400">
+                                    <span class="sm:hidden">Satisfaction</span><span class="hidden sm:inline">Satisfaction Pulse</span>
+                                </span>
                                 <span class="${trendBadgeClass} border px-2 py-0.5 rounded-full text-[8px] sm:text-[8.5px] font-extrabold uppercase tracking-wider inline-flex items-center gap-1 whitespace-nowrap">
                                     <span>${trendArrow}</span><span>${trendLabel}</span>
                                 </span>
@@ -2869,10 +2871,15 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Right-Side Approval Meter (Fills Desktop Balance & Stacks Cleanly on Mobile) -->
+                    <!-- Right-Side Approval Meter with Vector Thumbs-Up Icon -->
                     <div class="w-full sm:w-48 md:w-56 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/[0.05] flex flex-col gap-1.5">
                         <div class="flex items-center justify-between text-[9px] font-bold uppercase tracking-wider">
-                            <span class="text-success-green flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-success-green"></span>${data.totalLikes.toLocaleString()} Likes</span>
+                            <span class="text-success-green flex items-center gap-1">
+                                <span class="w-4 h-4 rounded bg-success-green/15 text-success-green flex items-center justify-center shrink-0">
+                                    <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                                </span>
+                                <span>${data.totalLikes.toLocaleString()} Likes</span>
+                            </span>
                             <span class="text-gray-500">${likeRatio}%</span>
                         </div>
                         <div class="w-full h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
