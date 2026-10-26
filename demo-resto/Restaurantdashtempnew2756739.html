@@ -1629,19 +1629,23 @@
         window.isProgrammaticScrolling = false;
         window.scrollIdleTimer = null;
 
-        // 🟢 SCROLL-IDLE DETECTOR: Waits until smooth-scroll completely finishes before arming auto-hide
+        // 🟢 SCROLL-IDLE DETECTOR: Protects long smooth-scrolls (900ms minimum) + waits for scroll idle before arming auto-hide
         window.armBackButtonAutoHide = function() {
             window.isProgrammaticScrolling = true;
             window.backButtonSpawnScrollY = null;
             clearTimeout(window.scrollIdleTimer);
 
+            const startTime = Date.now();
             const waitForScrollIdle = () => {
                 clearTimeout(window.scrollIdleTimer);
+                const elapsed = Date.now() - startTime;
+                // Guarantee at least 900ms for long mobile smooth-scrolls, plus 250ms of complete scroll silence
+                const remainingMinLock = Math.max(250, 950 - elapsed);
                 window.scrollIdleTimer = setTimeout(() => {
                     window.removeEventListener('scroll', waitForScrollIdle);
                     window.isProgrammaticScrolling = false;
                     window.backButtonSpawnScrollY = window.scrollY;
-                }, 180);
+                }, remainingMinLock);
             };
 
             window.addEventListener('scroll', waitForScrollIdle, { passive: true });
@@ -1667,11 +1671,12 @@
         };
 
         window.autoSearchComment = function(dishName, fromExternalSection = false) {
-            window.hideAllBackButtons();
-            if (fromExternalSection) {
-                window.savedScrollOriginY = window.scrollY;
-                document.getElementById('back-to-source-btn')?.classList.remove('hidden');
-            }
+                          window.hideAllBackButtons();
+                        if (fromExternalSection) {
+                        window.isProgrammaticScrolling = true;
+                        window.savedScrollOriginY = window.scrollY;
+                        document.getElementById('back-to-source-btn')?.classList.remove('hidden');
+                    }
             if (window.currentSearchedDishName && window.currentSearchedDishName.toLowerCase() !== dishName.toLowerCase()) {
                 window.saveToRecentSearches(window.currentSearchedDishName);
             }
