@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0a0a0a">
     <title>Customers' Favourites | IMPACT Kitchen</title>
     <meta name="title" content="Eat Better | Foodstorytvc">
     <meta name="description" content="Taste beyond the guesswork. Discover the highest-rated dishes in town and help restaurants serve you better. Eat Better With Foodstorytvc.">
@@ -19,7 +21,7 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
     
     <script>
         tailwind.config = {
@@ -30,276 +32,393 @@
                         'brand-card-black': '#141414',
                         'brand-gold': '#e8c064',        
                         'brand-gold-muted': '#e8c06440',
+                        'danger-red': '#ef4444',
+                        'success-green': '#4ade80'
                     },
                 },
             },
         }
     </script>
     <style>
-        /* 🟢 STRICT MOBILE OVERFLOW LOCK */
+        .hidden { display: none !important; }
+        html, body {
+            overflow-x: clip;
+        }
         body { 
             font-family: 'Inter', sans-serif; 
             background-color: #0a0a0a; 
             color: #e8c064; 
-            overflow-x: clip; 
-            width: 100vw;
+            -webkit-font-smoothing: antialiased;
         }
-        
         .tagline-font { font-family: 'Playfair Display', serif; }
+        .tabular-nums { font-variant-numeric: tabular-nums; }
         
-        .page-textured-overlay { background-image: linear-gradient(rgba(10, 10, 10, 0.95), rgba(10, 10, 10, 0.95)), url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"); }
-        table { border-collapse: collapse; width: 100%; }
-        th { color: #e8c064a0; font-weight: 700; text-transform: uppercase; font-size: 9px; letter-spacing: 0.05em; border-bottom: 1px solid rgba(232, 192, 100, 0.2); padding: 12px 4px; text-align: left; transition: color 0.2s; cursor: pointer; white-space: nowrap;}
-        td { border-bottom: 1px solid rgba(255, 255, 255, 0.04); transition: background-color 0.2s;}
-        tr:hover td { background-color: rgba(255, 255, 255, 0.02); }
-        .loading-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
-        input[type="text"] { background-color: #0d0d0d; border: 1px solid #e8c06440; color: #e8c064; outline: none; transition: border-color 0.3s; }
-        input[type="text"]:focus { border-color: #e8c064; }
+        .page-textured-overlay { 
+            background-image: linear-gradient(rgba(10, 10, 10, 0.95), rgba(10, 10, 10, 0.95)), url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"); 
+        }
 
-        .tooltip-container { position: relative; display: inline-flex; cursor: pointer;}
-        
+        /* Obsidian Specular Card Depth */
+        .luxury-card {
+            background: linear-gradient(180deg, #171717 0%, #111111 100%);
+            box-shadow: 0 18px 35px -12px rgba(0, 0, 0, 0.78), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+            position: relative;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .spotlight-card::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                border-radius: inherit;
+                background: radial-gradient(
+                    500px circle at var(--mouse-x, -500px) var(--mouse-y, -500px),
+                    rgba(232, 192, 100, 0.07),
+                    transparent 40%
+                );
+                pointer-events: none;
+                z-index: 0;
+                opacity: 0;
+                transition: opacity 0.35s ease;
+            }
+            .spotlight-card:hover::before { opacity: 1; }
+            .spotlight-card:hover {
+                border-color: rgba(232, 192, 100, 0.35) !important;
+            }
+        }
+
+        @keyframes bento-reveal {
+            0% { opacity: 0; transform: translate3d(0, 14px, 0); }
+            100% { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
+        .animate-bento {
+            opacity: 0;
+            will-change: transform, opacity;
+            animation: bento-reveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .bg-orb-gold {
+            position: fixed; top: -12%; left: -12%; width: 420px; height: 420px;
+            background: radial-gradient(circle, rgba(232, 192, 100, 0.12) 0%, transparent 70%);
+            z-index: 0; pointer-events: none;
+        }
+        .bg-orb-emerald {
+            position: fixed; bottom: -12%; right: -12%; width: 450px; height: 450px;
+            background: radial-gradient(circle, rgba(74, 222, 128, 0.07) 0%, transparent 70%);
+            z-index: 0; pointer-events: none;
+        }
+
+        .custom-scroll {
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #262626 transparent;
+        }
+        .custom-scroll::-webkit-scrollbar { width: 4px; height: 0px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+
+        table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+        th { cursor: pointer; user-select: none; transition: background 0.2s, color 0.2s; }
+        th:hover { background-color: rgba(232, 192, 100, 0.08); }
+
+        .tooltip-container { position: relative; display: inline-flex; cursor: pointer; }
         .tooltip-text {
             visibility: hidden;
             width: max-content;
             max-width: 220px;
-            background-color: #1a1a1a;
-            color: #e8c064;
+            background-color: rgba(18, 18, 20, 0.96);
+            backdrop-filter: blur(12px);
+            color: #f3f4f6;
             text-align: center;
-            border: 1px solid #e8c06440;
+            border: 1px solid rgba(232, 192, 100, 0.28);
             border-radius: 12px;
             padding: 10px 14px;
             position: absolute;
-            z-index: 60;
+            z-index: 9999;
             bottom: 135%; 
             left: 50%;
             transform: translateX(-50%);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.9), 0 0 15px rgba(232,192,100,0.08);
             font-size: 11px;
             font-family: 'Inter', sans-serif;
-            font-weight: 600;
-            line-height: 1.5;
-            letter-spacing: 0.02em;
+            font-weight: 500;
+            line-height: 1.45;
+            letter-spacing: 0.01em;
             opacity: 0;
-            transition: opacity 0.3s, bottom 0.3s, visibility 0.3s;
+            transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), bottom 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s;
         }
-
-        .tooltip-text::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%); 
-            border-width: 6px;
-            border-style: solid;
-            border-color: #e8c06440 transparent transparent transparent;
-        }
-
         .tooltip-container:hover .tooltip-text,
         .tooltip-container.active .tooltip-text {
             visibility: visible;
             opacity: 1;
-            bottom: 150%;
+            bottom: 145%;
         }
-
         .tooltip-left-edge .tooltip-text { left: 0; transform: none; text-align: left; }
-        .tooltip-left-edge .tooltip-text::after { left: 15px; transform: none; }
-
         @media (max-width: 640px) {
-            .tooltip-text { max-width: 200px; }
+            .tooltip-text { max-width: 205px; }
             .tooltip-project-left .tooltip-text { left: auto; right: -10px; transform: none; }
-            .tooltip-project-left .tooltip-text::after { left: auto; right: 14px; transform: none; }
         }
     </style>
 </head>
-<body class="min-h-screen p-4 sm:p-8 page-textured-overlay flex flex-col items-center overflow-x-hidden">
+<body class="min-h-screen p-3 sm:p-6 lg:p-8 page-textured-overlay flex flex-col items-center overflow-x-hidden">
 
-    <div class="w-full max-w-6xl flex flex-col justify-between items-center mb-8 text-center pt-2">
-        <h1 class="whitespace-nowrap text-white" style="font-family: 'Playfair Display', serif; font-style: italic; font-weight: 600; font-size: min(10vw, 3.75rem); line-height: 1.1;">FOODSTORYTVC</h1>
-        <div class="flex items-center justify-center w-full max-w-[95vw] gap-2 sm:gap-4 opacity-90 mt-1">
-            <div class="h-[1px] flex-grow max-w-[3rem] bg-gradient-to-l from-[#e8c064] to-transparent"></div>
-            <p class="font-sans font-bold tracking-[0.2em] uppercase text-brand-gold whitespace-nowrap shrink-0" style="font-size: min(2.5vw, 11px);">Customers' Favourites at IMPACT Kitchen</p>
-            <div class="h-[1px] flex-grow max-w-[3rem] bg-gradient-to-r from-[#e8c064] to-transparent"></div>
+    <!-- Ambient Background Glow Orbs -->
+    <div class="bg-orb-gold"></div>
+    <div class="bg-orb-emerald"></div>
+
+    <!-- Editorial Luxury Header -->
+    <div class="w-full max-w-5xl flex flex-col items-center mb-5 sm:mb-8 text-center pt-1 sm:pt-2 relative z-10 border-b border-brand-gold/20 pb-4 sm:pb-6">
+        <div class="inline-flex items-center gap-1.5 bg-[#141414] border border-white/[0.08] px-3 py-1 rounded-full mb-2.5 shadow-sm">
+            <span class="w-1.5 h-1.5 rounded-full bg-success-green animate-pulse"></span>
+            <span class="text-[8.5px] sm:text-[9.5px] font-bold uppercase tracking-[0.18em] text-gray-300">Live Diner Guide • Verified Ratings</span>
+        </div>
+        <h1 class="whitespace-nowrap text-white tracking-tight" style="font-family: 'Playfair Display', serif; font-style: italic; font-weight: 600; font-size: min(9.5vw, 3.4rem); line-height: 1.08;">FOODSTORYTVC</h1>
+        <div class="flex items-center justify-center w-full max-w-[92vw] gap-2.5 sm:gap-4 opacity-95 mt-1.5">
+            <div class="h-[1px] flex-grow max-w-[2.5rem] sm:max-w-[4rem] bg-gradient-to-l from-[#e8c064] to-transparent"></div>
+            <p class="font-sans font-extrabold tracking-[0.2em] uppercase text-brand-gold whitespace-nowrap shrink-0 text-[9px] sm:text-[11px]">Customers' Favourites at IMPACT Kitchen</p>
+            <div class="h-[1px] flex-grow max-w-[2.5rem] sm:max-w-[4rem] bg-gradient-to-r from-[#e8c064] to-transparent"></div>
         </div>
     </div>
 
-    <div id="loading-screen" class="w-full max-w-6xl flex flex-col items-center justify-center py-20">
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="w-full max-w-5xl min-h-[65vh] flex flex-col items-center justify-start pt-20 sm:pt-28 text-center px-4 relative z-10">
         <div class="w-12 h-12 border-4 border-[#141414] border-t-brand-gold rounded-full animate-spin mb-4"></div>
-        <p class="text-brand-gold/70 font-bold tracking-widest uppercase text-sm loading-pulse">Syncing Live Data...</p>
+        <p class="text-brand-gold/80 font-bold tracking-widest uppercase text-xs sm:text-sm animate-pulse">Syncing Live Menu Ratings...</p>
     </div>
 
-    <div id="dashboard-content" class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 hidden animate-in fade-in duration-500">
-        
-        <div class="bg-brand-card-black rounded-3xl shadow-2xl border border-brand-gold-muted p-6 flex flex-col h-full">
-            <div class="flex items-center justify-center w-full gap-2 mb-6 text-center shrink-0">
-                <svg class="w-5 h-5 text-brand-gold" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108-.966 3.99-2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0"></path></svg>
-                <h2 class="text-lg font-extrabold text-gray-200">Highest Rated Dishes</h2>
-                <div id="info-top" class="tooltip-container tooltip-project-left ml-1" onclick="toggleDishTooltip('info-top', event)">
-                    <svg class="w-4 h-4 text-brand-gold/60 hover:text-brand-gold transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"></path></svg>
-                    <span class="tooltip-text">The highest average ratings calculated from all verified customer reviews.</span>
+    <!-- Main Dashboard Content -->
+    <div id="dashboard-content" class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 hidden relative z-10">
+
+        <!-- 🟢 NEW: Curated Executive Discovery Strip (Top 3 Instant Recommendations) -->
+        <div class="lg:col-span-2 luxury-card spotlight-card rounded-2xl border border-brand-gold/30 p-4 sm:p-5">
+            <div class="flex items-center justify-between gap-2 pb-3 mb-3.5 border-b border-white/[0.07]">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-gradient-to-b from-brand-gold/20 to-brand-gold/5 border border-brand-gold/35 flex items-center justify-center shrink-0">
+                        <svg class="w-3.5 h-3.5 text-brand-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.912 5.813a2 2 0 001.275 1.275L21 12l-5.813 1.912a2 2 0 00-1.275 1.275L12 21l-1.912-5.813a2 2 0 00-1.275-1.275L3 12l5.813-1.912a2 2 0 001.275-1.275L12 3z"/></svg>
+                    </div>
+                    <span class="text-white text-xs sm:text-sm font-black tracking-[0.15em] uppercase">What To Order Today</span>
+                </div>
+                <span id="hero-total-reviews-badge" class="text-[8.5px] sm:text-[9.5px] font-bold uppercase tracking-wider text-brand-gold bg-brand-gold/10 border border-brand-gold/25 px-2.5 py-1 rounded-full tabular-nums">Verified Picks</span>
+            </div>
+            <div id="curated-highlights-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3"></div>
+        </div>
+
+        <!-- 1. Highest Rated Dishes Bar Chart -->
+        <div class="luxury-card spotlight-card rounded-2xl border border-gray-800 p-4 sm:p-6 flex flex-col">
+            <div class="flex items-center justify-center w-full gap-2 mb-1.5 text-center shrink-0">
+                <span class="w-6 h-6 rounded-lg bg-success-green/10 border border-success-green/30 text-success-green flex items-center justify-center shrink-0">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+                </span>
+                <h2 class="text-xs sm:text-sm font-bold tracking-widest uppercase text-white">Highest Rated Dishes</h2>
+                <div id="info-top" class="tooltip-container tooltip-project-left" onclick="toggleDishTooltip('info-top', event)">
+                    <span class="text-gray-500 hover:text-brand-gold transition-colors text-xs ml-0.5">ⓘ</span>
+                    <span class="tooltip-text">Top 5 dishes with the highest average star rating from verified diners (<span class="text-brand-gold font-bold">min. 5 reviews</span>).</span>
                 </div>
             </div>
-            <div class="relative h-[300px] lg:h-[360px] w-full my-auto">
+            <p class="text-center text-[9px] sm:text-[10px] text-gray-500 mb-4">All-time highest satisfaction scores (out of 5.0★)</p>
+            <div class="relative h-[260px] sm:h-[300px] w-full my-auto">
                 <canvas id="topRatedChart"></canvas>
             </div>
         </div>
 
-        <div class="bg-brand-card-black rounded-3xl shadow-2xl border border-brand-gold-muted p-6">
-            <div class="flex items-center justify-center w-full gap-2 mb-6 text-center">
-                <svg class="w-5 h-5 text-brand-gold" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"></path></svg>
-                <h2 class="text-lg font-extrabold text-gray-200">Most Loved Dishes</h2>
-                <div id="info-pop" class="tooltip-container tooltip-project-left ml-1" onclick="toggleDishTooltip('info-pop', event)">
-                    <svg class="w-4 h-4 text-brand-gold/60 hover:text-brand-gold transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"></path></svg>
-                    <span class="tooltip-text">Shows which dishes received the highest volume of 4 and 5-star ratings (⭐ 4+).</span>
+        <!-- 2. Most Loved Dishes Doughnut with Live Center HUD -->
+        <div class="luxury-card spotlight-card rounded-2xl border border-gray-800 p-4 sm:p-6 flex flex-col">
+            <div class="flex items-center justify-center w-full gap-2 mb-1.5 text-center">
+                <span class="w-6 h-6 rounded-lg bg-brand-gold/10 border border-brand-gold/30 text-brand-gold flex items-center justify-center shrink-0">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </span>
+                <h2 class="text-xs sm:text-sm font-bold tracking-widest uppercase text-white">Most Loved Dishes</h2>
+                <div id="info-pop" class="tooltip-container tooltip-project-left" onclick="toggleDishTooltip('info-pop', event)">
+                    <span class="text-gray-500 hover:text-brand-gold transition-colors text-xs ml-0.5">ⓘ</span>
+                    <span class="tooltip-text">Crowd favourites with the highest volume of <span class="text-brand-gold font-bold">4★ and 5★ ratings</span>. Tap any slice or pill below to inspect.</span>
                 </div>
             </div>
-            <div class="relative h-[280px] sm:h-[320px] w-full flex justify-center">
-                <canvas id="popularityChart"></canvas>
+            <p class="text-center text-[9px] sm:text-[10px] text-gray-500 mb-3">Tap any ring slice or dish pill below to inspect</p>
+            <div class="relative h-[230px] sm:h-[260px] w-full flex items-center justify-center">
+                <canvas id="popularityChart" class="relative z-10"></canvas>
+                <!-- Interactive Center HUD inside Doughnut Cutout -->
+                <div id="doughnut-center-hud" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-10 z-0">
+                    <span id="hud-rank" class="text-[8.5px] font-black uppercase tracking-widest text-brand-gold/80">#1 Crowd Pick</span>
+                    <span id="hud-name" class="text-xs sm:text-sm font-extrabold text-white leading-tight line-clamp-2 mt-0.5 max-w-[125px]">--</span>
+                    <span id="hud-likes" class="text-sm sm:text-base font-black text-brand-gold mt-1 tabular-nums">--</span>
+                    <span id="hud-pct" class="text-[8.5px] font-bold uppercase tracking-wider text-gray-400 mt-0.5 tabular-nums">--</span>
+                </div>
             </div>
-            <div id="popularity-legend" class="mt-5 flex flex-wrap justify-center gap-1.5 sm:gap-2.5 w-full max-w-[320px] sm:max-w-[440px] mx-auto px-1"></div>
+            <div id="popularity-legend" class="mt-4 flex flex-wrap justify-center gap-1.5 sm:gap-2 w-full mx-auto"></div>
         </div>
 
-        <div class="bg-gradient-to-r from-[#141414] to-[#1a1a1a] rounded-3xl shadow-2xl border border-brand-gold p-6 flex flex-col justify-center items-center text-center lg:col-span-2">
-            <div class="flex items-center justify-center w-full gap-2 mb-2">
-                <svg class="w-4 h-4 text-brand-gold" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"></path></svg>
-                <p class="text-[10px] text-brand-gold uppercase font-black tracking-widest">Hidden Gem Discovered By Voters</p>
-                <div id="info-gem" class="tooltip-container tooltip-project-left ml-1" onclick="toggleDishTooltip('info-gem', event)">
-                    <svg class="w-3.5 h-3.5 text-brand-gold/60 hover:text-brand-gold transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"></path></svg>
-                    <span class="tooltip-text">A highly-rated dish that deserves more attention based on its perfect score ratio.</span>
+        <!-- 3. Most Improved Dishes (Owner-Dashboard-Grade Delta Callout Chart) -->
+        <div id="trendChartContainer" class="luxury-card spotlight-card rounded-2xl border border-gray-800 p-4 sm:p-6 lg:col-span-2 hidden">
+            <div class="flex items-center justify-center w-full gap-2 mb-1.5 text-center">
+                <span class="w-6 h-6 rounded-lg bg-success-green/10 border border-success-green/30 text-success-green flex items-center justify-center shrink-0">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                </span>
+                <h2 class="text-xs sm:text-sm font-bold tracking-widest uppercase text-white">Trending Upward This Week</h2>
+                <div id="info-trend" class="tooltip-container tooltip-project-left" onclick="toggleDishTooltip('info-trend', event)">
+                    <span class="text-gray-500 hover:text-brand-gold transition-colors text-xs ml-0.5">ⓘ</span>
+                    <span class="tooltip-text">Dishes with the strongest surge in guest ratings over the last 7 days (<span class="text-brand-gold font-bold">4.0★+ this week</span>).</span>
                 </div>
             </div>
-            <div id="hidden-gem-container" class="flex flex-col items-center justify-center w-full">
-                <h3 class="text-xl sm:text-2xl font-extrabold text-white mb-1">Loading...</h3>
+            <div class="flex justify-center gap-4 mb-3 mt-2 text-[9px] sm:text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-[#27272a] border border-gray-600 rounded-sm"></div> Last Week</div>
+                <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-[#4ade80] rounded-sm shadow-[0_0_8px_rgba(74,222,128,0.4)]"></div> Gained (+★)</div>
             </div>
-        </div>
-
-        <div id="trendChartContainer" class="bg-brand-card-black rounded-3xl shadow-2xl border border-brand-gold-muted p-6 lg:col-span-2 hidden">
-            <div class="flex items-center justify-center w-full gap-2 mb-6 text-center">
-                <svg class="w-5 h-5 text-brand-gold" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"></path></svg>
-                <h2 class="text-lg font-extrabold text-gray-200">Most Improved Dishes</h2>
-                <div id="info-trend" class="tooltip-container tooltip-project-left ml-1" onclick="toggleDishTooltip('info-trend', event)">
-                    <svg class="w-4 h-4 text-brand-gold/60 hover:text-brand-gold transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"></path></svg>
-                    <span class="tooltip-text">Dishes that saw the biggest surge in star ratings over the last 7 days.</span>
-                </div>
-            </div>
-            <div class="relative h-[300px] w-full">
+            <div class="relative h-[250px] sm:h-[270px] w-full">
                 <canvas id="trendChart"></canvas>
             </div>
-            <div id="trend-legend" class="mt-4 flex flex-col items-center justify-center gap-2.5 w-full text-[10px] sm:text-xs"></div>
         </div>
 
-        <div class="bg-brand-card-black rounded-3xl shadow-2xl border border-brand-gold-muted p-6 lg:col-span-2">
-            <div class="flex flex-col items-center justify-center w-full gap-3 mb-6 text-center">
+        <!-- 4. Live Customer Reviews & Smart Order Builder (Zero Horizontal Scroll!) -->
+        <div id="reviews-section-card" class="luxury-card spotlight-card rounded-2xl border border-gray-800 p-4 sm:p-6 lg:col-span-2">
+            <div class="flex flex-col items-center justify-center w-full gap-3 mb-4 text-center">
                 <div class="flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5 text-brand-gold" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"></path></svg>
-                    <h2 class="text-lg font-extrabold text-gray-200">Live Customer Reviews</h2>
-                    <div id="info-table" class="tooltip-container tooltip-project-left ml-1" onclick="toggleDishTooltip('info-table', event)">
-                        <svg class="w-4 h-4 text-brand-gold/60 hover:text-brand-gold transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"></path></svg>
-                        <span class="tooltip-text">A real-time, sortable breakdown of every rated dish. Tap the '+' button to build a Smart Order for your table.</span>
+                    <span class="w-6 h-6 rounded-lg bg-brand-gold/10 border border-brand-gold/30 text-brand-gold flex items-center justify-center shrink-0">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    </span>
+                    <h2 class="text-xs sm:text-sm font-bold tracking-widest uppercase text-white">Live Customer Reviews</h2>
+                    <div id="info-table" class="tooltip-container tooltip-project-left" onclick="toggleDishTooltip('info-table', event)">
+                        <span class="text-gray-500 hover:text-brand-gold transition-colors text-xs ml-0.5">ⓘ</span>
+                        <span class="tooltip-text">Sortable breakdown of every rated dish (<span class="text-brand-gold font-bold">min. 4 reviews</span>). Tap <span class="text-brand-gold font-bold">+</span> to shortlist dishes for your table's Smart Order.</span>
                     </div>
                 </div>
-                
-                <div class="w-full sm:w-80 relative mt-1">
-                    <input type="text" id="searchInput" placeholder="Search for a dish..." class="w-full px-4 py-2.5 rounded-xl text-sm text-center placeholder:text-gray-500 shadow-inner" oninput="renderTable()">
+
+                <!-- Search Input with Vector Icon & Instant Clear Button -->
+                <div class="relative w-full max-w-md mx-auto flex items-center">
+                    <input type="text" id="searchInput" placeholder="Search for a dish..." autocomplete="off"
+                           class="w-full bg-[#0a0a0a] border border-gray-800 text-white rounded-full pl-5 pr-11 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:border-brand-gold/60 transition-all placeholder-gray-500 shadow-inner"
+                           oninput="handleSearchInput()">
+                    <button id="clear-search-btn" onclick="clearDishSearch()" class="hidden absolute right-3.5 w-6 h-6 flex items-center justify-center rounded-full bg-gray-800/90 text-gray-300 hover:text-white text-sm leading-none focus:outline-none transition-colors z-10">&times;</button>
+                    <span id="search-icon" class="absolute right-4 text-gray-500 pointer-events-none flex items-center">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </span>
+                </div>
+
+                <!-- 1-Tap Mood / Category Filter Pills -->
+                <div id="table-filter-pills" class="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 w-full pt-0.5">
+                    <button onclick="setTableFilter('all')" data-filter="all" class="filter-pill bg-brand-gold text-black border-brand-gold font-black border text-[9px] sm:text-[10px] uppercase tracking-wider px-3 py-1 rounded-full transition-all active:scale-95">All Rated</button>
+                    <button onclick="setTableFilter('top')" data-filter="top" class="filter-pill bg-[#0a0a0a] text-gray-300 border-gray-800 hover:border-brand-gold/40 font-bold border text-[9px] sm:text-[10px] uppercase tracking-wider px-3 py-1 rounded-full transition-all active:scale-95">★ 4.5+ Must-Try</button>
+                    <button onclick="setTableFilter('pick')" data-filter="pick" class="filter-pill bg-[#0a0a0a] text-gray-300 border-gray-800 hover:border-brand-gold/40 font-bold border text-[9px] sm:text-[10px] uppercase tracking-wider px-3 py-1 rounded-full transition-all active:scale-95">♥ 100% Liked</button>
+                    <button onclick="setTableFilter('photo')" data-filter="photo" class="filter-pill bg-[#0a0a0a] text-gray-300 border-gray-800 hover:border-brand-gold/40 font-bold border text-[9px] sm:text-[10px] uppercase tracking-wider px-3 py-1 rounded-full transition-all active:scale-95">📸 With Photo</button>
                 </div>
             </div>
-            
-            <div class="overflow-x-auto">
-                <div class="flex items-center justify-between w-full pb-3 px-1">
-                    <p class="text-[10px] sm:text-xs text-gray-400 font-medium tracking-wide flex items-center gap-1 opacity-80">
-                        Tap <svg class="w-3.5 h-3.5 inline text-brand-gold" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"></path><circle cx="12" cy="12.75" r="3.25"></circle></svg> for photos
-                    </p>
-                    <div class="flex sm:hidden items-center justify-end gap-1 text-brand-gold/80 font-bold text-[9px] uppercase tracking-[0.15em] animate-pulse">
-                        <span>Swipe for Smart Order</span> 
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3"></path></svg>
-                    </div>
-                </div>
-                
-                <table class="w-full">
+
+            <div class="flex items-center justify-between w-full pb-2.5 px-1 text-[9.5px] sm:text-[11px] text-gray-400">
+                <span class="flex items-center gap-1.5">
+                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand-gold/10 border border-brand-gold/30 text-brand-gold">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><circle cx="12" cy="12.75" r="3.25"/></svg>
+                    </span>
+                    <span>Tap camera icon for dish photo</span>
+                </span>
+                <span class="text-brand-gold/80 font-bold uppercase tracking-wider text-[8.5px] sm:text-[10px]">Tap + to shortlist</span>
+            </div>
+
+            <!-- Zero-Horizontal-Scroll 5-Column Luxury Table -->
+            <div class="rounded-xl border border-gray-800/80 overflow-hidden bg-[#0c0c0e]">
+                <table class="w-full text-left table-fixed">
                     <thead>
-                        <tr>
-                            <th onclick="handleSort('name')" class="hover:text-white select-none group leading-snug align-bottom pl-0">
-                                Dish Name <span id="sort-name" class="text-gray-600 group-hover:text-brand-gold inline-block w-3 text-center">↕</span>
+                        <tr class="text-[8.5px] sm:text-[10px] uppercase tracking-tight text-gray-400 border-b border-gray-800 bg-[#111113] whitespace-nowrap">
+                            <th onclick="handleSort('name')" class="py-3 pl-2.5 sm:pl-4 w-[44%] sm:w-[46%]">
+                                Dish Name <span id="sort-name" class="opacity-60 text-[8px] ml-0.5">⇅</span>
                             </th>
-                            <th onclick="handleSort('likedPct')" class="hover:text-white select-none group leading-snug align-bottom text-center">
-                                %<br>Liked <span id="sort-likedPct" class="text-gray-600 group-hover:text-brand-gold inline-block w-3 text-center">↕</span>
+                            <th onclick="handleSort('likedPct')" class="py-3 text-center w-[15%] sm:w-[14%]">
+                                % Liked <span id="sort-likedPct" class="opacity-60 text-[8px] ml-0.5">⇅</span>
                             </th>
-                            <th onclick="handleSort('rating')" class="hover:text-white select-none group leading-snug align-bottom text-center">
-                                Avg<br>Rating <span id="sort-rating" class="text-gray-600 group-hover:text-brand-gold inline-block w-3 text-center">↕</span>
+                            <th onclick="handleSort('rating')" class="py-3 text-center w-[15%] sm:w-[14%]">
+                                Avg <span id="sort-rating" class="text-brand-gold font-black">↓</span>
                             </th>
-                            <th onclick="handleSort('reviews')" class="hover:text-white select-none group leading-snug align-bottom text-center">
-                                Total<br>Votes <span id="sort-reviews" class="text-gray-600 group-hover:text-brand-gold inline-block w-3 text-center">↕</span>
+                            <th onclick="handleSort('reviews')" class="py-3 text-center w-[14%] sm:w-[14%]">
+                                Votes <span id="sort-reviews" class="opacity-60 text-[8px] ml-0.5">⇅</span>
                             </th>
-                            <th class="w-10 text-center align-bottom pb-4 pr-0">Add</th>
+                            <th class="py-3 text-center pr-2 w-[12%] sm:w-[12%] cursor-default hover:bg-transparent text-brand-gold/80">Order</th>
                         </tr>
                     </thead>
-                    <tbody id="table-body">
-                    </tbody>
+                    <tbody id="table-body"></tbody>
                 </table>
             </div>
         </div>
 
-        <div class="lg:col-span-2 mt-2 flex flex-col items-center justify-center w-full">
-            <div class="w-screen h-[1px] bg-gradient-to-r from-transparent via-brand-gold/60 to-transparent"></div>
+        <!-- Footer -->
+        <div class="lg:col-span-2 mt-4 flex flex-col items-center justify-center w-full">
+            <div class="w-full h-[1px] bg-gradient-to-r from-transparent via-brand-gold/60 to-transparent"></div>
             <div class="flex flex-col items-center gap-3 mt-8">
                 <p class="tagline-font text-white text-lg tracking-wide opacity-90">Eat Better With Foodstorytvc</p>
                 <img src="https://i.ibb.co/Xx2hfF5j/foostroytvc-logo-new.jpg" alt="FOODSTORYTVC Logo" class="w-20 h-20 rounded-full border-2 border-brand-gold object-cover shadow-[0_0_15px_rgba(232,192,100,0.2)]">
-                 <p class="text-[9px] sm:text-[10px] font-bold tracking-widest uppercase text-gray-500 mt-5 mb-1">Explore • Share • Save</p>
+                <p class="text-[9px] sm:text-[10px] font-bold tracking-widest uppercase text-gray-500 mt-5 mb-1">Explore • Share • Save</p>
             </div>
             <a href="https://www.foodstorytvc.com" target="_blank" class="text-brand-gold font-bold tracking-widest uppercase text-sm hover:text-white transition-colors duration-300 mt-1 mb-8">
                 www.foodstorytvc.com
             </a>
-            <div class="w-screen h-[1px] bg-gradient-to-r from-transparent via-brand-gold/60 to-transparent mb-24 sm:mb-24"></div>
+            <div class="w-full h-[1px] bg-gradient-to-r from-transparent via-brand-gold/60 to-transparent mb-24"></div>
         </div>
     </div>
 
-    <div id="smart-order-panel" class="fixed bottom-6 right-6 sm:bottom-10 sm:right-10 bg-[#0d0d0d] border border-brand-gold/50 rounded-2xl overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.8)] z-50 w-[calc(100%-3rem)] sm:w-80 transition-transform duration-300 translate-y-[150%] hidden flex-col max-h-[70vh]">
-        <div onclick="toggleCart()" class="p-4 border-b border-brand-gold/20 flex justify-between items-center bg-[#141414] cursor-pointer hover:bg-[#1a1a1a] transition-colors">
-            <h3 class="font-bold text-brand-gold flex items-center gap-2">
-                <svg class="w-4 h-4 text-brand-gold" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path></svg>
-                <span id="cart-title">Smart Order</span>
-            </h3>
-            <span id="cart-toggle-icon" class="text-brand-gold text-xs transition-transform duration-300">▼</span>
+    <!-- Floating Back-to-Top Button (Automatically sits above Smart Order bar) -->
+    <button id="scroll-top-btn" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })" class="hidden fixed bottom-20 right-4 z-[45] bg-[#141414]/95 hover:bg-brand-gold text-brand-gold hover:text-black border border-brand-gold/50 rounded-full px-3.5 py-2 text-[10px] font-black uppercase tracking-widest shadow-[0_10px_25px_rgba(0,0,0,0.85)] transition-all active:scale-90 flex items-center gap-1">
+        <span>↑</span> Top
+    </button>
+
+    <!-- Smart Order Floating Dock & Expandable Drawer -->
+    <div id="smart-order-panel" class="fixed bottom-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:bottom-6 sm:right-6 bg-[#111113]/95 backdrop-blur-md border border-brand-gold/60 rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.95)] z-50 w-[calc(100%-1.5rem)] max-w-md sm:w-88 transition-all duration-300 translate-y-[150%] hidden flex-col max-h-[75vh]">
+        <div onclick="toggleCart()" class="px-4 py-3.5 border-b border-brand-gold/20 flex justify-between items-center bg-gradient-to-r from-[#17171a] to-[#121214] cursor-pointer hover:bg-[#1c1c20] transition-colors select-none">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <span class="w-7 h-7 rounded-lg bg-brand-gold text-black flex items-center justify-center font-black text-xs shrink-0 shadow-[0_0_12px_rgba(232,192,100,0.4)]" id="cart-badge-count">0</span>
+                <div class="flex flex-col text-left min-w-0">
+                    <span id="cart-title" class="font-black text-white text-xs sm:text-sm tracking-wide uppercase leading-none">Smart Order</span>
+                    <span id="cart-subtitle" class="text-[9.5px] text-brand-gold/80 font-semibold mt-0.5 truncate">Tap to view or edit your table's list</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                <span id="cart-action-pill" class="text-[9px] font-black uppercase tracking-wider bg-brand-gold/15 text-brand-gold border border-brand-gold/30 px-2.5 py-1 rounded-full">View List</span>
+                <span id="cart-toggle-icon" class="text-brand-gold text-xs transition-transform duration-300">▲</span>
+            </div>
         </div>
         
         <div id="cart-body" class="flex flex-col overflow-hidden transition-all duration-300">
-            <div id="cart-items" class="p-4 overflow-y-auto flex flex-col gap-3 max-h-[40vh]"></div>
+            <div id="cart-items" class="p-3.5 overflow-y-auto custom-scroll flex flex-col gap-2 max-h-[38vh]"></div>
 
-            <div class="p-3 text-[10px] text-gray-400 bg-[#101010] border-t border-gray-800 leading-relaxed">
-                <strong class="text-brand-gold">Group Note:</strong> Smart Order helps groups avoid ordering confusion. Add everyone's dishes to this list, then simply read it to your waiter to place the order
+            <div class="px-3.5 py-2.5 text-[10px] text-gray-400 bg-[#0d0d0f] border-t border-gray-800/80 leading-relaxed">
+                <strong class="text-brand-gold">Table Shortlist:</strong> Build your group's order here so nothing is forgotten, then read it to your waiter when ordering.
             </div>
             
-            <div class="p-5 border-t border-gray-800 bg-[#0a0a0a] rounded-b-2xl flex flex-col items-center gap-5">
-                <button onclick="clearCart(event)" class="text-gray-500 hover:text-gray-300 text-[10px] uppercase tracking-[0.15em] font-bold transition-colors mt-1">
-                    Clear Entire Order
+            <div class="p-4 border-t border-gray-800 bg-[#0a0a0a] rounded-b-2xl flex flex-col items-center gap-3.5">
+                <button id="submit-order-btn" onclick="submitOrder()" class="w-full py-3.5 bg-brand-gold text-black rounded-xl font-black uppercase tracking-widest text-xs hover:bg-[#f3d382] transition-all active:scale-98 shadow-[0_0_20px_rgba(232,192,100,0.2)] hidden">
+                    Finalize Order Code
                 </button>
-                <button id="submit-order-btn" onclick="submitOrder()" class="w-full py-4 bg-brand-gold text-black rounded-xl font-black uppercase tracking-widest text-[13px] hover:bg-[#f3d382] transition-colors shadow-[0_0_15px_rgba(232,192,100,0.15)] hidden mb-1">
-                    Finalize Order
+                <button onclick="clearCart(event)" class="text-gray-500 hover:text-danger-red text-[10px] uppercase tracking-[0.15em] font-bold transition-colors py-1">
+                    Clear Entire Order
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- Dish Photo Modal -->
     <div id="image-modal" class="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md hidden flex-col justify-center items-center p-4 opacity-0 transition-opacity duration-300" onclick="closeImageModal()">
-        <button onclick="closeImageModal()" class="absolute top-6 right-6 w-10 h-10 bg-[#141414] border border-brand-gold/50 rounded-full text-brand-gold font-bold text-xl hover:bg-brand-gold hover:text-black transition-colors z-[101]">✕</button>
-        <div class="relative w-full max-w-lg aspect-square sm:aspect-[4/3] rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(232,192,100,0.15)] border border-brand-gold/30 bg-[#0a0a0a]" onclick="event.stopPropagation()">
+        <div class="relative w-full max-w-lg aspect-square sm:aspect-[4/3] rounded-2xl overflow-hidden shadow-[0_25px_70px_rgba(0,0,0,0.95)] border border-brand-gold/40 bg-[#0a0a0a]" onclick="event.stopPropagation()">
+            <button onclick="closeImageModal()" class="absolute top-3.5 right-3.5 w-9 h-9 bg-black/75 border border-brand-gold/50 rounded-full text-brand-gold font-bold text-lg hover:bg-brand-gold hover:text-black transition-colors z-40 flex items-center justify-center">&times;</button>
             <div id="modal-spinner" class="absolute inset-0 flex items-center justify-center bg-[#0a0a0a] z-10">
                 <div class="w-10 h-10 border-4 border-[#141414] border-t-brand-gold rounded-full animate-spin"></div>
             </div>
             <img id="modal-image" src="" alt="Dish Photo" class="w-full h-full object-cover opacity-0 transition-opacity duration-500 relative z-20">
-            <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent p-6 pt-16 flex flex-col gap-1 z-30">
-                <h3 id="modal-title" class="text-2xl font-extrabold text-white tracking-wide"></h3>
-                <p class="text-[8px] sm:text-xs text-gray-400 italic tracking-wider opacity-80">
-                    *Image for illustrative purposes only. Actual plating and portion size may vary.
-                </p>
+            <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black via-black/80 to-transparent p-5 pt-14 flex items-end justify-between gap-3 z-30">
+                <div class="min-w-0">
+                    <h3 id="modal-title" class="text-lg sm:text-2xl font-extrabold text-white tracking-tight leading-snug"></h3>
+                    <p class="text-[8.5px] sm:text-[10px] text-gray-400 italic mt-0.5 opacity-80">
+                        *Illustrative plating photo. Actual presentation may vary.
+                    </p>
+                </div>
+                <button id="modal-add-btn" class="shrink-0 bg-brand-gold hover:bg-white text-black font-black text-[10px] uppercase tracking-widest px-3.5 py-2.5 rounded-xl shadow-lg active:scale-95 transition-all">
+                    + Add Dish
+                </button>
             </div>
         </div>
     </div>
 
+    <!-- Order Token Modal -->
     <div id="token-modal" class="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm hidden flex-col justify-center items-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-[#0d0d0d] border border-brand-gold/20 rounded-3xl shadow-2xl w-full max-w-sm p-8 flex flex-col items-center text-center transform scale-95 transition-transform duration-300" id="token-box">
+        <div class="bg-[#121214] border border-brand-gold/35 rounded-3xl shadow-2xl w-full max-w-sm p-8 flex flex-col items-center text-center transform scale-95 transition-transform duration-300" id="token-box">
             <p class="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-brand-gold mb-3">Show this to waiter</p>
-            <span id="customer-token-display" class="text-[3.5rem] leading-none font-black text-white tracking-widest mb-6">#----</span>
+            <span id="customer-token-display" class="text-[3.5rem] leading-none font-black text-white tracking-widest mb-6 tabular-nums">#----</span>
             <div class="w-3/4 h-[1px] bg-gradient-to-r from-transparent via-gray-700 to-transparent mb-6"></div>
             <p class="text-sm text-gray-300 font-medium mb-1">Your order code is ready!</p>
             <p class="text-[15px] text-white font-bold mb-6">Please show it to your waiter to confirm your order.</p>
@@ -312,12 +431,13 @@
         </div>
     </div>
 
+    <!-- Error Modal -->
     <div id="error-modal" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden flex-col justify-center items-center p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-[#141414] border border-red-500/30 rounded-3xl shadow-2xl w-full max-w-sm p-6 sm:p-8 flex flex-col items-center text-center transform scale-95 transition-transform duration-300" id="error-box">
             <div class="w-16 h-16 rounded-full bg-red-950/30 border border-red-500/20 flex items-center justify-center mb-5 shadow-inner">
                 <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
             </div>
-            <h3 class="font-black text-xl text-white mb-2 tracking-tight">Oops!</h3>
+            <h3 class="font-black text-xl text-white mb-2 tracking-tight">Notice</h3>
             <p id="error-message" class="text-sm text-gray-400 font-medium leading-relaxed mb-8">Error message goes here</p>
             <button onclick="closeErrorModal()" class="w-full py-3.5 bg-transparent border border-gray-700 text-gray-400 rounded-xl font-bold uppercase tracking-widest text-xs hover:text-white hover:border-gray-500 transition-colors">
                 Close
@@ -325,6 +445,7 @@
         </div>
     </div>
 
+    <!-- Out of Stock Warning Modal -->
     <div id="oos-modal" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden flex-col justify-center items-center p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-[#141414] border border-brand-gold/30 rounded-3xl shadow-2xl w-full max-w-sm p-6 sm:p-8 flex flex-col items-center text-center transform scale-95 transition-transform duration-300" id="oos-box">
             <div class="w-16 h-16 rounded-full bg-red-950/30 border border-red-500/20 flex items-center justify-center mb-5 shadow-inner">
@@ -345,6 +466,7 @@
         </div>
     </div>
 
+    <!-- Clear Cart Confirmation Modal -->
     <div id="clear-confirm-modal" class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm hidden flex-col justify-center items-center p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-[#141414] border border-red-900/30 rounded-3xl shadow-2xl w-full max-w-sm p-6 sm:p-8 flex flex-col items-center text-center transform scale-95 transition-transform duration-300" id="clear-confirm-box">
             <div class="w-16 h-16 rounded-full bg-red-950/30 border border-red-500/20 flex items-center justify-center mb-5 shadow-inner">
@@ -372,9 +494,20 @@
         Chart.defaults.font.family = 'Inter';
         Chart.defaults.font.weight = '600';
 
+        // 🛡️ QA DIAGNOSTIC FIREWALL: Blocks all diagnostic/test dishes from appearing to guests
+        const diagnosticDishes = [
+            "diagnostic burger", "diagnostic block", "diagnostic spam", 
+            "dupe burger", "diagnostic double dip", "share burger", 
+            "loyalty burger", "shit burger"
+        ];
+
         function isValidDishName(name) {
             if (!name || typeof name !== 'string') return false;
-            if (/[<>]/.test(name)) return false;
+            const str = name.trim();
+            const lower = str.toLowerCase();
+            if (/[<>"'=;{}]/.test(str)) return false;
+            if (lower.startsWith("diagnostic ") || diagnosticDishes.includes(lower)) return false;
+            if (str.split(/\s+/).some(w => w.length > 22)) return false;
             return true;
         }
 
@@ -394,7 +527,31 @@
                 .replace(/"/g, '&quot;');
         }
 
-        // 🟢 SAFETY FIX: Strip the URL hash without triggering page reloads
+        // Splits multi-word dish names into 2 crisp horizontal lines (0° tilt, never cryptic initials like L.P.S.)
+        function formatHorizontalDishLabel(name, totalBars, isMobile) {
+            if (!name) return '';
+            const maxCharsPerLine = (isMobile && totalBars >= 5) ? 9 : 11;
+            const words = name.trim().split(/\s+/);
+
+            if (words.length === 1) {
+                return name.length > maxCharsPerLine ? name.slice(0, maxCharsPerLine - 1) + '…' : name;
+            }
+
+            let line1 = words[0];
+            let restWords = words.slice(1);
+
+            if (words.length >= 3 && (words[0].length + 1 + words[1].length) <= maxCharsPerLine) {
+                line1 = words[0] + ' ' + words[1];
+                restWords = words.slice(2);
+            }
+
+            let line2 = restWords.join(' ');
+            if (line1.length > maxCharsPerLine) line1 = line1.slice(0, maxCharsPerLine - 1) + '…';
+            if (line2.length > maxCharsPerLine) line2 = line2.slice(0, maxCharsPerLine - 1) + '…';
+
+            return line2 ? [line1, line2] : [line1];
+        }
+
         function removeHash() {
             try {
                 history.replaceState(null, document.title, window.location.pathname + window.location.search);
@@ -405,58 +562,71 @@
             try { window.history.pushState({ modal: hashName }, '', '#' + hashName); } catch (e) {}
         }
 
-        Chart.Tooltip.positioners.doughnutCenter = function(elements) {
-            if (!elements.length) return false;
-            return { x: this.chart.width / 2, y: this.chart.height / 2 };
-        };
-        Chart.Tooltip.positioners.topEdge = function(elements) {
-            if (!elements.length) return false;
-            return { x: elements[0].element.x, y: 10 }; 
-        };
-        Chart.Tooltip.positioners.middleGreen = function(elements) {
-            if (!elements.length) return false;
-            let el = elements[0].element; 
-            let middleY = el.y + ((el.base - el.y) / 2);
-            return { x: el.x, y: middleY + 15 }; 
-        };
-
         let topRatedChartInstance = null;
         let popularityChartInstance = null;
         let trendChartInstance = null;
         
         let globalTableData = [];
+        let globalMostLiked = [];
+        let activeTableFilter = 'all';
         let currentSort = { column: 'rating', direction: 'desc' };
+
+        function updateDoughnutCenterHUD(index) {
+            if (!globalMostLiked || !globalMostLiked[index]) return;
+            const d = globalMostLiked[index];
+            document.getElementById('hud-rank').innerText = `#${index + 1} Most Loved`;
+            document.getElementById('hud-name').innerText = d.name;
+            document.getElementById('hud-likes').innerText = `${d.likes} Likes`;
+            document.getElementById('hud-pct').innerText = `${parseFloat(d.likedPct) ? Math.round(parseFloat(d.likedPct)) + '%' : d.likedPct} Approval`;
+
+            document.querySelectorAll('[data-pop-pill]').forEach((el, idx) => {
+                if (idx === index) {
+                    el.classList.add('border-brand-gold', 'bg-[#1f1d16]', 'scale-105');
+                    el.classList.remove('border-white/5', 'bg-[#161618]');
+                } else {
+                    el.classList.remove('border-brand-gold', 'bg-[#1f1d16]', 'scale-105');
+                    el.classList.add('border-white/5', 'bg-[#161618]');
+                }
+            });
+        }
 
         function highlightPieSlice(index, event) {
             if (event) event.stopPropagation();
             if (!popularityChartInstance) return;
             popularityChartInstance.setActiveElements([{ datasetIndex: 0, index: index }]);
-            popularityChartInstance.tooltip.setActiveElements([{ datasetIndex: 0, index: index }], {x: 0, y: 0});
             popularityChartInstance.update();
+            updateDoughnutCenterHUD(index);
         }
 
         function openImageModal(imgUrl, dishName) {
             const modal = document.getElementById('image-modal');
             const imgEl = document.getElementById('modal-image');
             const spinner = document.getElementById('modal-spinner');
+            const addBtn = document.getElementById('modal-add-btn');
 
             imgEl.classList.add('opacity-0');
             spinner.classList.remove('hidden');
             
-            // 🟢 UX FIX: Serve the heavily compressed Cloudinary image
             imgEl.src = optimizeCloudinaryUrl(imgUrl); 
             document.getElementById('modal-title').innerText = dishName;
+            if (addBtn) {
+                const qty = smartCart[dishName] || 0;
+                addBtn.innerText = qty > 0 ? `In Order (${qty}) • +1` : `+ Add Dish`;
+                addBtn.onclick = (e) => {
+                    addToCart(dishName, e);
+                    const newQty = smartCart[dishName] || 0;
+                    addBtn.innerText = `In Order (${newQty}) • +1`;
+                };
+            }
             
             imgEl.onload = function() {
                 spinner.classList.add('hidden');
                 imgEl.classList.remove('opacity-0');
             };
 
-            // 🟢 UX FIX: Fallback handler to prevent infinite spinning if image link is broken
             imgEl.onerror = function() {
                 spinner.classList.add('hidden');
                 imgEl.classList.remove('opacity-0');
-                // Failsafe: Shows your brand logo if the dish image URL is dead
                 imgEl.src = "https://res.cloudinary.com/dr6xhnhor/image/upload/f_auto,q_auto,w_800/v1781864406/big_size_Logo_without_background_new_ubp9mn.png";
             };
             
@@ -473,28 +643,21 @@
                 modal.classList.remove('flex');
                 modal.classList.add('hidden');
             }, 300);
-            
             if (!fromPopState) removeHash();
         }
 
-        // 🟢 UNIVERSAL ANDROID BACK-BUTTON MANAGER
-        window.addEventListener('popstate', function(event) {
-            // Evaluates top-down to close the most recent modal first
+        window.addEventListener('popstate', function() {
             if (!document.getElementById('image-modal').classList.contains('hidden')) { closeImageModal(true); return; }
             if (!document.getElementById('token-modal').classList.contains('hidden')) { closeTokenModal(true); return; }
             if (!document.getElementById('error-modal').classList.contains('hidden')) { closeErrorModal(true); return; }
             if (!document.getElementById('oos-modal').classList.contains('hidden')) { closeOosModal(true); return; }
             if (!document.getElementById('clear-confirm-modal').classList.contains('hidden')) { closeClearConfirmModal(true); return; }
-            
-            // If no modals are open, check if the cart is maximized
             if (isCartOpen) { toggleCart(true); return; }
         });
 
-        // 🟢 UX FIX: Cloudinary Auto-Optimizer
         function optimizeCloudinaryUrl(url) {
             if (!url) return "";
             if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
-                // Prevent double-injecting if parameters already exist
                 if (url.includes('f_auto') || url.includes('q_auto')) return url;
                 return url.replace('/upload/', '/upload/f_auto,q_auto,w_800,c_limit/');
             }
@@ -504,7 +667,7 @@
         function preloadImage(url) {
             if (!url) return;
             const img = new Image();
-            img.src = optimizeCloudinaryUrl(url); // Preload the heavily compressed version
+            img.src = optimizeCloudinaryUrl(url);
         }
 
         function getStorage() {
@@ -518,7 +681,6 @@
         const isStorageAvailable = getStorage();
         let smartCart = {};
         let isCartOpen = false; 
-        let hasUserManuallyClosedCart = false; 
 
         if (isStorageAvailable) {
             const savedStr = localStorage.getItem('impactCart');
@@ -528,7 +690,7 @@
             if (savedData && savedData.timestamp) {
                 const now = new Date().getTime();
                 if (now - savedData.timestamp < ONE_HOUR) {
-                    smartCart = savedData.cart;
+                    smartCart = savedData.cart || {};
                 } else {
                     localStorage.removeItem('impactCart');
                 }
@@ -540,24 +702,25 @@
         function toggleCart(fromPopState = false) {
             const body = document.getElementById('cart-body');
             const icon = document.getElementById('cart-toggle-icon');
+            const actionPill = document.getElementById('cart-action-pill');
             
             if (isCartOpen) {
                 isCartOpen = false;
-                hasUserManuallyClosedCart = true;
                 body.style.display = 'none';
-                icon.style.transform = 'rotate(180deg)';
+                icon.style.transform = 'rotate(0deg)';
+                if (actionPill) actionPill.innerText = 'View List';
                 if (!fromPopState) removeHash();
             } else {
                 isCartOpen = true;
-                hasUserManuallyClosedCart = false;
                 if (!fromPopState) safePushState('smart-order');
                 body.style.display = 'flex';
-                icon.style.transform = 'rotate(0deg)';
+                icon.style.transform = 'rotate(180deg)';
+                if (actionPill) actionPill.innerText = 'Hide';
             }
         }
 
         function flyToCartAnimation(event) {
-            if (!event || isCartOpen) return; 
+            if (!event || !event.currentTarget || isCartOpen) return; 
             const button = event.currentTarget;
             const buttonRect = button.getBoundingClientRect();
             const cartHeader = document.querySelector('#smart-order-panel > div');
@@ -566,28 +729,26 @@
 
             const flyingDot = document.createElement('div');
             flyingDot.innerHTML = '+';
-            flyingDot.className = 'fixed rounded-full bg-brand-gold text-black font-black text-lg flex items-center justify-center shadow-[0_0_15px_#e8c064] z-[200] pointer-events-none pb-0.5';
+            flyingDot.className = 'fixed rounded-full bg-brand-gold text-black font-black text-sm flex items-center justify-center shadow-[0_0_15px_#e8c064] z-[200] pointer-events-none';
             flyingDot.style.width = buttonRect.width + 'px';
             flyingDot.style.height = buttonRect.height + 'px';
             flyingDot.style.top = buttonRect.top + 'px';
             flyingDot.style.left = buttonRect.left + 'px';
-            flyingDot.style.transition = 'all 0.6s cubic-bezier(0.25, 1, 0.5, 1)'; 
+            flyingDot.style.transition = 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)'; 
             document.body.appendChild(flyingDot);
 
             setTimeout(() => {
-                flyingDot.style.width = '15px';
-                flyingDot.style.height = '15px';
+                flyingDot.style.width = '16px';
+                flyingDot.style.height = '16px';
                 flyingDot.style.fontSize = '10px';
-                flyingDot.style.opacity = '0.5';
-                flyingDot.style.top = (cartRect.top + (cartRect.height / 2) - 7.5) + 'px';
-                flyingDot.style.left = (cartRect.left + (cartRect.width / 2) - 7.5) + 'px';
+                flyingDot.style.opacity = '0.6';
+                flyingDot.style.top = (cartRect.top + (cartRect.height / 2) - 8) + 'px';
+                flyingDot.style.left = (cartRect.left + 24) + 'px';
             }, 10);
 
             setTimeout(() => {
                 flyingDot.remove();
-                cartHeader.classList.add('bg-brand-gold/20');
-                setTimeout(() => cartHeader.classList.remove('bg-brand-gold/20'), 200);
-            }, 600); 
+            }, 500); 
         }
 
         function closeOosModal(fromPopState = false) {
@@ -600,7 +761,6 @@
                 modal.classList.remove('flex');
                 modal.classList.add('hidden');
             }, 300);
-            
             if (!fromPopState) removeHash();
         }
 
@@ -610,6 +770,7 @@
         }
 
         function addToCart(dishName, event) {
+            if (event) event.stopPropagation();
             if (globalStockData[dishName] === "No" && !smartCart[dishName]) {
                 const modal = document.getElementById('oos-modal');
                 const box = document.getElementById('oos-box');
@@ -617,7 +778,6 @@
                 document.getElementById('oos-confirm-btn').onclick = () => forceAddToCart(dishName, event);
                 
                 safePushState('oos');
-                
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
                 setTimeout(() => {
@@ -637,8 +797,9 @@
                 smartCart[dishName] = 1;
             }
             if (event && !isCartOpen) flyToCartAnimation(event);
-            if (!hasUserManuallyClosedCart && !isCartOpen) toggleCart(); 
             updateCartUI();
+            renderTable();
+            renderCuratedHighlights();
         }
 
         function removeFromCart(dishName) {
@@ -647,6 +808,8 @@
                 if(smartCart[dishName] <= 0) delete smartCart[dishName];
             }
             updateCartUI();
+            renderTable();
+            renderCuratedHighlights();
         }
 
         function closeClearConfirmModal(fromPopState = false) {
@@ -659,7 +822,6 @@
                 modal.classList.remove('flex');
                 modal.classList.add('hidden');
             }, 300);
-            
             if (!fromPopState) removeHash();
         }
 
@@ -668,9 +830,7 @@
             if (Object.keys(smartCart).length > 0) {
                 const modal = document.getElementById('clear-confirm-modal');
                 const box = document.getElementById('clear-confirm-box');
-                
                 safePushState('clear');
-                
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
                 setTimeout(() => {
@@ -688,10 +848,19 @@
             smartCart = {};
             if (isStorageAvailable) localStorage.removeItem('impactToken');
             assignedToken = null;
-            setTimeout(() => { updateCartUI(); }, 100);
+            setTimeout(() => {
+                updateCartUI();
+                renderTable();
+                renderCuratedHighlights();
+            }, 100);
         }
 
         function updateCartUI() {
+            // Purge any diagnostic test dishes that might have been saved in localStorage earlier
+            Object.keys(smartCart).forEach(k => {
+                if (!isValidDishName(k)) delete smartCart[k];
+            });
+
             if (isStorageAvailable) {
                 localStorage.setItem('impactCart', JSON.stringify({
                     cart: smartCart,
@@ -702,48 +871,54 @@
             const panel = document.getElementById('smart-order-panel');
             const itemsContainer = document.getElementById('cart-items');
             const title = document.getElementById('cart-title');
+            const subtitle = document.getElementById('cart-subtitle');
+            const badgeCount = document.getElementById('cart-badge-count');
+            const actionPill = document.getElementById('cart-action-pill');
             const body = document.getElementById('cart-body');
             const icon = document.getElementById('cart-toggle-icon');
             const dishNames = Object.keys(smartCart);
             const totalItems = Object.values(smartCart).reduce((a, b) => a + b, 0);
             
             if(dishNames.length === 0) {
-                if (isCartOpen) {
-                    removeHash();
-                }
-                
+                if (isCartOpen) removeHash();
                 panel.classList.add('translate-y-[150%]');
                 setTimeout(() => panel.classList.add('hidden'), 300);
                 panel.classList.remove('flex');
                 isCartOpen = false; 
                 body.style.display = 'none';
-                icon.style.transform = 'rotate(180deg)';
+                icon.style.transform = 'rotate(0deg)';
                 return;
             }
 
             panel.classList.remove('hidden');
             panel.classList.add('flex');
-            title.innerText = `Smart Order (${totalItems})`;
+            if (badgeCount) badgeCount.innerText = totalItems;
+            title.innerText = `Smart Order (${totalItems} ${totalItems === 1 ? 'Item' : 'Items'})`;
+            if (subtitle) {
+                subtitle.innerText = dishNames.slice(0, 2).join(', ') + (dishNames.length > 2 ? ` +${dishNames.length - 2} more` : '');
+            }
             setTimeout(() => panel.classList.remove('translate-y-[150%]'), 10);
 
             if (isCartOpen) {
                 body.style.display = 'flex';
-                icon.style.transform = 'rotate(0deg)';
+                icon.style.transform = 'rotate(180deg)';
+                if (actionPill) actionPill.innerText = 'Hide';
             } else {
                 body.style.display = 'none';
-                icon.style.transform = 'rotate(180deg)';
+                icon.style.transform = 'rotate(0deg)';
+                if (actionPill) actionPill.innerText = 'View List';
             }
 
             itemsContainer.innerHTML = dishNames.map(name => {
                 const htmlName = sanitizeHTML(name);
                 const jsName = escapeJS(name);
                 return `
-                <div class="flex justify-between items-center bg-[#141414] p-2 sm:p-3 rounded-lg border border-gray-800 shadow-sm">
-                    <span class="text-sm sm:text-base text-gray-200 truncate pr-2 font-semibold" title="${htmlName}">${htmlName}</span>
-                    <div class="flex items-center gap-3 shrink-0 bg-[#0a0a0a] rounded-full px-2 py-1 border border-brand-gold/20">
-                        <button onclick="removeFromCart('${jsName}')" class="text-brand-gold hover:text-white w-6 h-6 flex items-center justify-center font-bold text-lg">-</button>
-                        <span class="text-white text-sm font-bold w-4 text-center">${smartCart[name]}</span>
-                        <button onclick="addToCart('${jsName}')" class="text-brand-gold hover:text-white w-6 h-6 flex items-center justify-center font-bold text-lg">+</button>
+                <div class="flex justify-between items-center bg-[#18181b] px-3 py-2.5 rounded-xl border border-white/[0.06]">
+                    <span class="text-xs sm:text-sm text-gray-100 font-bold leading-snug pr-2 break-words" title="${htmlName}">${htmlName}</span>
+                    <div class="flex items-center gap-2.5 shrink-0 bg-[#0a0a0a] rounded-full px-2 py-1 border border-brand-gold/30 tabular-nums">
+                        <button onclick="removeFromCart('${jsName}')" class="text-brand-gold hover:text-white w-6 h-6 flex items-center justify-center font-black text-base active:scale-90">&minus;</button>
+                        <span class="text-white text-xs sm:text-sm font-black w-4 text-center">${smartCart[name]}</span>
+                        <button onclick="addToCart('${jsName}')" class="text-brand-gold hover:text-white w-6 h-6 flex items-center justify-center font-black text-base active:scale-90">+</button>
                     </div>
                 </div>
                 `;
@@ -758,7 +933,6 @@
             const box = document.getElementById('token-box');
             
             safePushState('token');
-
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             setTimeout(() => {
@@ -769,16 +943,14 @@
             
             if (isCartOpen) {
                 isCartOpen = false;
-                hasUserManuallyClosedCart = true;
                 document.getElementById('cart-body').style.display = 'none';
-                document.getElementById('cart-toggle-icon').style.transform = 'rotate(180deg)';
+                document.getElementById('cart-toggle-icon').style.transform = 'rotate(0deg)';
             }
         }
 
         function closeTokenModal(fromPopState = false) {
             const modal = document.getElementById('token-modal');
             const box = document.getElementById('token-box');
-            
             modal.classList.add('opacity-0');
             box.classList.remove('scale-100');
             box.classList.add('scale-95');
@@ -786,7 +958,6 @@
                 modal.classList.remove('flex');
                 modal.classList.add('hidden');
             }, 300);
-            
             if (!fromPopState) removeHash();
         }
 
@@ -794,9 +965,7 @@
             document.getElementById('error-message').innerText = message;
             const modal = document.getElementById('error-modal');
             const box = document.getElementById('error-box');
-            
             safePushState('error');
-
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             setTimeout(() => {
@@ -809,7 +978,6 @@
         function closeErrorModal(fromPopState = false) {
             const modal = document.getElementById('error-modal');
             const box = document.getElementById('error-box');
-            
             modal.classList.add('opacity-0');
             box.classList.remove('scale-100');
             box.classList.add('scale-95');
@@ -817,7 +985,6 @@
                 modal.classList.remove('flex');
                 modal.classList.add('hidden');
             }, 300);
-            
             if (!fromPopState) removeHash();
         }
 
@@ -844,7 +1011,7 @@
                     if (isStorageAvailable) localStorage.setItem('impactToken', assignedToken);
                     showTokenModal(assignedToken);
                 } else if (data.errorCode === "LOCKED") {
-                     showErrorModal(data.message);
+                    showErrorModal(data.message);
                 } else {
                     showErrorModal("Error: " + data.message);
                 }
@@ -857,6 +1024,8 @@
         }
 
         let isOrderingEnabled = false;
+        let globalStockData = {};
+        let globalHiddenGemRaw = "";
 
         async function fetchDashboardData() {
             const controller = new AbortController();
@@ -877,83 +1046,152 @@
                     }
                     processData(data.data);
                 } else {
-                    alert("Error loading data: " + data.message);
+                    showErrorModal("Error loading data: " + data.message);
                 }
             } catch (err) {
-                console.error("Fetch Error:", err);
                 const loadingContainer = document.getElementById('loading-screen');
-                
-                let errorTitle = "";
-                if (err.name === 'AbortError') {
-                    errorTitle = "Slow Internet Detected";
-                } else {
-                    errorTitle = "You Appear To Be Offline";
-                }
+                const errorTitle = err.name === 'AbortError' ? "Slow Internet Detected" : "You Appear To Be Offline";
 
                 loadingContainer.innerHTML = `
-                    <div class="flex flex-col items-center justify-center text-center px-4 animate-in fade-in duration-500">
-                        <svg class="w-10 h-10 sm:w-12 sm:h-12 text-brand-gold/40 mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                        </svg>
-                        <h3 class="text-brand-gold font-extrabold text-base sm:text-lg tracking-wide mb-1.5 uppercase">${errorTitle}</h3>
-                        <p class="text-gray-400 text-[11px] sm:text-xs font-medium tracking-widest uppercase opacity-80">Please check your connection and try again</p>
-                        
-                        <button onclick="window.location.reload()" class="mt-8 px-8 py-2.5 rounded-full bg-brand-card-black border border-brand-gold/30 text-brand-gold hover:bg-brand-gold hover:text-black hover:border-brand-gold font-bold text-[10px] uppercase tracking-widest shadow-[0_0_15px_rgba(232,192,100,0.1)] transition-all duration-300">
-                            Refresh Dashboard
+                    <div class="flex flex-col items-center justify-center text-center px-4">
+                        <div class="w-14 h-14 rounded-2xl bg-danger-red/10 border border-danger-red/30 flex items-center justify-center mb-4">
+                            <svg class="w-7 h-7 text-danger-red" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        </div>
+                        <h3 class="text-white font-black text-base sm:text-lg tracking-wider mb-1.5 uppercase">${errorTitle}</h3>
+                        <p class="text-gray-400 text-xs font-medium max-w-xs leading-relaxed">Please check your internet connection and tap Refresh.</p>
+                        <button onclick="window.location.reload()" class="mt-6 px-7 py-3 rounded-xl bg-brand-gold text-black font-black text-xs uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+                            Refresh Menu
                         </button>
                     </div>
                 `;
             }
         }
 
-        let globalStockData = {};
+        function renderCuratedHighlights() {
+            const container = document.getElementById('curated-highlights-grid');
+            if (!container || globalTableData.length === 0) return;
+
+            const topRatedDish = [...globalTableData].filter(d => d.reviews >= 5).sort((a, b) => b.rating - a.rating || b.reviews - a.reviews)[0] || globalTableData[0];
+            const mostLovedDish = globalMostLiked[0] || globalTableData[0];
+
+            // Parse Hidden Gem & strip any leading cartoon trophy/emoji
+            let gemName = "Chef's Special";
+            let gemSub = "Highly Rated Pick";
+            let rawGem = (globalHiddenGemRaw || "").replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\s]+/gu, '').trim();
+            if (rawGem && rawGem !== "Not enough data yet" && isValidDishName(rawGem)) {
+                if (rawGem.includes('(')) {
+                    const idx = rawGem.indexOf('(');
+                    gemName = rawGem.substring(0, idx).trim();
+                    gemSub = rawGem.substring(idx).replace(/[()]/g, '').replace(/⭐/g, '★').trim();
+                } else {
+                    gemName = rawGem;
+                }
+            } else if (globalTableData.length > 2) {
+                const altGem = [...globalTableData].filter(d => d.rating >= 4.4 && d.name !== topRatedDish?.name && d.name !== mostLovedDish?.name)[0] || globalTableData[1];
+                if (altGem) {
+                    gemName = altGem.name;
+                    gemSub = `Votes: ${altGem.reviews}, Avg: ${Number(altGem.rating).toFixed(2)}★`;
+                }
+            }
+            const gemDishObj = globalTableData.find(d => d.name.toLowerCase() === gemName.toLowerCase());
+
+            const cards = [
+                {
+                    eyebrow: "Highest Rated",
+                    dot: "bg-success-green shadow-[0_0_8px_#4ade80]",
+                    badge: `${Number(topRatedDish.rating).toFixed(2)}★ Avg`,
+                    badgeClass: "bg-success-green/15 text-success-green border-success-green/30",
+                    name: topRatedDish.name,
+                    sub: `${topRatedDish.likedPct} positive across ${topRatedDish.reviews} ratings`,
+                    img: topRatedDish.imageUrl
+                },
+                {
+                    eyebrow: "Crowd Favourite",
+                    dot: "bg-brand-gold shadow-[0_0_8px_#e8c064]",
+                    badge: `${mostLovedDish.likes} Likes`,
+                    badgeClass: "bg-brand-gold/15 text-brand-gold border-brand-gold/30",
+                    name: mostLovedDish.name,
+                    sub: `#1 most loved dish (${mostLovedDish.likedPct} approval)`,
+                    img: mostLovedDish.imageUrl
+                },
+                {
+                    eyebrow: "Hidden Gem",
+                    dot: "bg-[#60a5fa] shadow-[0_0_8px_#60a5fa]",
+                    badge: gemDishObj ? `${Number(gemDishObj.rating).toFixed(2)}★ Gem` : "Voter Pick",
+                    badgeClass: "bg-[#3b82f6]/15 text-[#93c5fd] border-[#3b82f6]/30",
+                    name: gemName,
+                    sub: gemSub,
+                    img: gemDishObj ? gemDishObj.imageUrl : ""
+                }
+            ];
+
+            container.innerHTML = cards.map(c => {
+                const safeName = sanitizeHTML(c.name);
+                const jsName = escapeJS(c.name);
+                const inCartQty = smartCart[c.name] || 0;
+                const photoBtn = c.img
+                    ? `<button onclick="openImageModal('${c.img}', '${jsName}')" title="View Dish Photo" class="w-7 h-7 rounded-full bg-white/[0.05] border border-white/[0.1] hover:border-brand-gold text-brand-gold flex items-center justify-center shrink-0 active:scale-90 transition-all">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><circle cx="12" cy="12.75" r="3.25"/></svg>
+                       </button>`
+                    : '';
+                const addBtnClass = inCartQty > 0
+                    ? 'bg-brand-gold text-black border-brand-gold font-black'
+                    : 'bg-white/[0.04] text-brand-gold border-brand-gold/35 hover:bg-brand-gold hover:text-black font-bold';
+
+                return `
+                    <div class="bg-[#111113] border border-white/[0.07] rounded-xl p-3.5 flex flex-col justify-between gap-2 shadow-sm">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-1.5 min-w-0">
+                                <span class="w-1.5 h-1.5 rounded-full ${c.dot} shrink-0"></span>
+                                <span class="text-[9px] font-extrabold uppercase tracking-[0.13em] text-gray-400 truncate">${c.eyebrow}</span>
+                            </div>
+                            <span class="${c.badgeClass} border text-[9px] font-bold px-2 py-0.5 rounded-md whitespace-nowrap tabular-nums">${c.badge}</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 pt-0.5">
+                            <div class="text-white text-sm sm:text-[15px] font-extrabold tracking-tight leading-snug truncate" title="${safeName}">${safeName}</div>
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                ${photoBtn}
+                                <button onclick="addToCart('${jsName}', event)" class="${addBtnClass} border text-[9.5px] uppercase tracking-wider px-2.5 py-1 rounded-full transition-all active:scale-95 tabular-nums">
+                                    ${inCartQty > 0 ? `Added (${inCartQty})` : '+ Order'}
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-gray-400 font-medium leading-snug m-0">${sanitizeHTML(c.sub)}</p>
+                    </div>
+                `;
+            }).join('');
+        }
 
         function processData(data) {
             const dishes = (data.dishes || []).filter(d => isValidDishName(d.name));
-            const preFilteredTopDishes = (data.topDishes || []).filter(d => isValidDishName(d.name)); 
             const trends = (data.trends || []).filter(d => isValidDishName(d.name));
 
             dishes.forEach(d => {
                 globalStockData[d.name] = d.inStock || "Yes"; 
-                // 🟢 UX FIX: Silently preload all optimized images into browser RAM immediately!
                 if (d.imageUrl && d.imageUrl.trim() !== "") {
                     preloadImage(d.imageUrl);
                 }
             });
 
-            renderBarChart(preFilteredTopDishes);
+            // Recompute Top 5 Highest Rated from clean, non-diagnostic dishes
+            const cleanTopDishes = [...dishes]
+                .filter(d => d.reviews >= 5 && d.rating >= 3.5)
+                .sort((a, b) => b.rating - a.rating || b.reviews - a.reviews)
+                .slice(0, 5);
 
-            const mostLiked = [...dishes]
+            renderBarChart(cleanTopDishes);
+
+            globalMostLiked = [...dishes]
                 .filter(d => d.reviews > 1 && d.likes > 0 && parseFloat(d.likedPct) >= 50)
                 .sort((a, b) => b.likes - a.likes)
                 .slice(0, 10); 
-            renderPieChart(mostLiked);
+            renderPieChart(globalMostLiked);
 
-            let gemRaw = data.hiddenGem || "Not enough data yet";
-            const gemContainer = document.getElementById('hidden-gem-container');
-
-            if (gemRaw !== "Not enough data yet" && !isValidDishName(gemRaw)) {
-                gemRaw = "Not enough data yet";
-            }
-
-            if (gemRaw !== "Not enough data yet" && gemRaw.includes('(')) {
-                const splitIndex = gemRaw.indexOf('(');
-                const dishName = gemRaw.substring(0, splitIndex).trim();
-                const details = gemRaw.substring(splitIndex).replace('(', '').replace(')', '').trim();
-                const safeGemName = sanitizeHTML(dishName);
-
-                gemContainer.innerHTML = `
-                    <h3 class="text-xl sm:text-2xl font-extrabold text-white mb-2">${safeGemName}</h3>
-                    <span class="px-5 py-2 rounded-full bg-[#0d0d0d] border border-brand-gold-muted text-brand-gold text-xs sm:text-sm font-bold tracking-wide shadow-inner">${details}</span>
-                `;
-            } else {
-                const safeGemRaw = sanitizeHTML(gemRaw);
-                gemContainer.innerHTML = `<h3 class="text-xl sm:text-2xl font-extrabold text-white mb-1">${safeGemRaw}</h3>`;
-            }
+            globalHiddenGemRaw = data.hiddenGem || "Not enough data yet";
 
             const topImprovements = [...trends]
                 .sort((a, b) => b.change - a.change) 
-                .slice(0, 10);
+                .slice(0, 7);
             
             const trendContainer = document.getElementById('trendChartContainer');
             if (topImprovements.length > 0) {
@@ -964,10 +1202,50 @@
             }
 
             globalTableData = [...dishes].filter(d => d.reviews >= 4);
+            const totalReviewsSum = dishes.reduce((sum, d) => sum + (Number(d.reviews) || 0), 0);
+            const badgeEl = document.getElementById('hero-total-reviews-badge');
+            if (badgeEl && totalReviewsSum > 0) {
+                badgeEl.innerText = `${totalReviewsSum.toLocaleString()} Verified Ratings`;
+            }
+
+            renderCuratedHighlights();
             renderTable();
 
             document.getElementById('loading-screen').classList.add('hidden');
             document.getElementById('dashboard-content').classList.remove('hidden');
+            initSpotlightAndMotion();
+        }
+
+        function setTableFilter(filterKey) {
+            activeTableFilter = filterKey;
+            document.querySelectorAll('.filter-pill').forEach(btn => {
+                if (btn.getAttribute('data-filter') === filterKey) {
+                    btn.className = "filter-pill bg-brand-gold text-black border-brand-gold font-black border text-[9px] sm:text-[10px] uppercase tracking-wider px-3 py-1 rounded-full transition-all active:scale-95";
+                } else {
+                    btn.className = "filter-pill bg-[#0a0a0a] text-gray-300 border-gray-800 hover:border-brand-gold/40 font-bold border text-[9px] sm:text-[10px] uppercase tracking-wider px-3 py-1 rounded-full transition-all active:scale-95";
+                }
+            });
+            renderTable();
+        }
+
+        function handleSearchInput() {
+            const val = document.getElementById('searchInput').value;
+            const clearBtn = document.getElementById('clear-search-btn');
+            const searchIcon = document.getElementById('search-icon');
+            if (val.length > 0) {
+                clearBtn.classList.remove('hidden');
+                searchIcon.classList.add('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+                searchIcon.classList.remove('hidden');
+            }
+            renderTable();
+        }
+
+        function clearDishSearch() {
+            const input = document.getElementById('searchInput');
+            input.value = '';
+            handleSearchInput();
         }
 
         function handleSort(column) {
@@ -975,16 +1253,23 @@
                 currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
             } else {
                 currentSort.column = column;
-                currentSort.direction = 'desc'; 
+                currentSort.direction = (column === 'name') ? 'asc' : 'desc'; 
             }
             renderTable();
         }
 
         function renderTable() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
+            const query = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
             const tableBody = document.getElementById('table-body');
+            if (!tableBody) return;
             
-            let displayData = globalTableData.filter(d => String(d.name || '').toLowerCase().includes(query));
+            let displayData = globalTableData.filter(d => {
+                if (query && !String(d.name || '').toLowerCase().includes(query)) return false;
+                if (activeTableFilter === 'top') return Number(d.rating) >= 4.5;
+                if (activeTableFilter === 'pick') return String(d.likedPct) === '100%' && Number(d.reviews) >= 3;
+                if (activeTableFilter === 'photo') return Boolean(d.imageUrl && d.imageUrl.trim() !== '');
+                return true;
+            });
 
             displayData.sort((a, b) => {
                 let valA = a[currentSort.column];
@@ -993,20 +1278,19 @@
                 if (currentSort.column === 'likedPct') {
                     valA = parseFloat(String(valA || '0').replace('%', '')) || 0;
                     valB = parseFloat(String(valB || '0').replace('%', '')) || 0;
-                }
-                else if (currentSort.column === 'name') {
+                } else if (currentSort.column === 'name') {
                     valA = String(valA || '').toLowerCase();
                     valB = String(valB || '').toLowerCase();
-                    if (currentSort.direction === 'asc') return valA.localeCompare(valB);
-                    return valB.localeCompare(valA);
-                }
-                else {
+                    return currentSort.direction === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                } else {
                     valA = parseFloat(valA) || 0;
                     valB = parseFloat(valB) || 0;
                 }
 
-                if (currentSort.direction === 'asc') return valA - valB;
-                return valB - valA;
+                if (valA !== valB) {
+                    return currentSort.direction === 'asc' ? valA - valB : valB - valA;
+                }
+                return (b.reviews || 0) - (a.reviews || 0);
             });
 
             const sortColumns = ['name', 'likedPct', 'rating', 'reviews'];
@@ -1015,21 +1299,24 @@
                 if (icon) {
                     if (currentSort.column === col) {
                         icon.innerText = currentSort.direction === 'asc' ? '↑' : '↓';
-                        icon.className = "text-brand-gold font-black inline-block w-3 text-center"; 
+                        icon.className = "text-brand-gold font-black ml-0.5"; 
                     } else {
-                        icon.innerText = '↕';
-                        icon.className = "text-gray-600 group-hover:text-brand-gold inline-block w-3 text-center";
+                        icon.innerText = '⇅';
+                        icon.className = "opacity-60 text-[8px] ml-0.5";
                     }
                 }
             });
             
             if (displayData.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-gray-500 py-8 pl-0 pr-0">No dishes match your criteria.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-gray-500 py-10 text-xs">No dishes match your filter.</td></tr>`;
                 return;
             }
 
-            const heartSvg = `<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>`;
-            const flameSvg = `<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12.963 2.286a.75.75 0 00-1.071-.136 9.742 9.742 0 00-3.539 6.177A7.547 7.547 0 016.648 6.61a.75.75 0 00-1.152-.082A9 9 0 1015.68 4.534a7.46 7.46 0 01-2.717-2.248zM15.75 14.25a3.75 3.75 0 11-7.313-1.172c.628.465 1.35.81 2.133 1a5.99 5.99 0 011.925-3.545 3.75 3.75 0 013.255 3.717z" clip-rule="evenodd"></path></svg>`;
+            let maxR = 0;
+            displayData.forEach(d => { if (d.reviews > maxR) maxR = d.reviews; });
+
+            const heartSvg = `<svg class="w-2.5 h-2.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>`;
+            const flameSvg = `<svg class="w-2.5 h-2.5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12.963 2.286a.75.75 0 00-1.071-.136 9.742 9.742 0 00-3.539 6.177A7.547 7.547 0 016.648 6.61a.75.75 0 00-1.152-.082A9 9 0 1015.68 4.534a7.46 7.46 0 01-2.717-2.248zM15.75 14.25a3.75 3.75 0 11-7.313-1.172c.628.465 1.35.81 2.133 1a5.99 5.99 0 011.925-3.545 3.75 3.75 0 013.255 3.717z" clip-rule="evenodd"></path></svg>`;
 
             tableBody.innerHTML = displayData.map((d, index) => {
                 const safeId = `safe-${index}`;
@@ -1039,21 +1326,30 @@
                 const displayHtmlName = sanitizeHTML(rawName);
                 const jsSafeName = escapeJS(rawName);
 
-                const likedPctStr = d.likedPct !== undefined && d.likedPct !== null ? String(d.likedPct) : '-';
-                const ratingStr = Number(d.rating || 0).toFixed(2);
+                const rawPctNum = parseFloat(String(d.likedPct || '0').replace('%', ''));
+                const likedPctStr = !isNaN(rawPctNum) ? `${Math.round(rawPctNum)}%` : '-';
+                const ratingNum = Number(d.rating || 0);
+                const ratingStr = ratingNum.toFixed(2);
                 const reviewsNum = Number(d.reviews || 0);
                 const recent5 = Number(d.recent5Stars || 0);
                 const recent4 = Number(d.recent4Plus || 0);
 
+                // Dynamic color-coding for rating pills so low-rated dishes are NEVER bright green
+                const ratingPillClass = ratingNum >= 4.2
+                    ? 'bg-success-green/15 text-success-green border-success-green/35'
+                    : (ratingNum >= 3.7 ? 'bg-brand-gold/15 text-brand-gold border-brand-gold/35' : 'bg-danger-red/15 text-danger-red border-danger-red/35');
+
+                const volRatio = maxR > 0 ? (reviewsNum / maxR) : 0;
+                const volPillStyle = `background-color: rgba(56, 189, 248, ${(0.06 + volRatio * 0.22).toFixed(2)}); border-color: rgba(56, 189, 248, ${(0.18 + volRatio * 0.35).toFixed(2)});`;
+
                 const isSafeBet = (likedPctStr === '100%' && reviewsNum >= 3);
-                
                 const safeBetHtml = isSafeBet 
                     ? `
                     <div id="${safeId}" class="tooltip-container tooltip-left-edge" onclick="toggleDishTooltip('${safeId}', event)">
-                        <span class="inline-flex items-center whitespace-nowrap rounded bg-[#1A2E1A] text-[#86EFAC] border border-[#22543D] tracking-wider uppercase gap-1.5 py-1 px-2.5 text-[8px] sm:text-[9px] font-bold shadow-sm">
+                        <span class="inline-flex items-center whitespace-nowrap rounded bg-success-green/10 text-success-green border border-success-green/30 tracking-wider uppercase gap-1 py-0.5 px-1.5 text-[7.5px] sm:text-[8.5px] font-extrabold">
                             ${heartSvg} Voters' Pick
                         </span>
-                        <span class="tooltip-text">A local favourite! 100% Liked based on ${reviewsNum} verifiable reviews.</span>
+                        <span class="tooltip-text">100% Liked across ${reviewsNum} verified guest reviews.</span>
                     </div>
                     ` : '';
 
@@ -1061,54 +1357,63 @@
                 if (recent5 >= 3) {
                     trendingHtml = `
                     <div id="${trendId}" class="tooltip-container tooltip-left-edge" onclick="toggleDishTooltip('${trendId}', event)">
-                        <span class="inline-flex items-center whitespace-nowrap rounded bg-[#3f1d0b] text-[#f97316] border border-[#9a3412] tracking-wider uppercase gap-1 py-1 px-2.5 text-[8px] sm:text-[9px] font-bold shadow-sm">
-                            <span class="mx-0.5">Trending Top</span><span class="italic font-black text-[#fbbf24] leading-none tracking-tighter">💯</span>${flameSvg}
+                        <span class="inline-flex items-center whitespace-nowrap rounded bg-[#3f1d0b] text-[#fb923c] border border-[#9a3412] tracking-wider uppercase gap-1 py-0.5 px-1.5 text-[7.5px] sm:text-[8.5px] font-extrabold">
+                            ${flameSvg}<span>Hot 5★ Streak</span>
                         </span>
-                        <span class="tooltip-text">Absolute perfection! ${recent5} people rated this 5-stars in the last 48 hours.</span>
+                        <span class="tooltip-text">${recent5} diners rated this 5★ in the last 48 hours!</span>
                     </div>`;
                 } else if (recent4 >= 3) {
                     trendingHtml = `
                     <div id="${trendId}" class="tooltip-container tooltip-left-edge" onclick="toggleDishTooltip('${trendId}', event)">
-                        <span class="inline-flex items-center whitespace-nowrap rounded bg-[#2e1605] text-[#fba159] border border-[#7c2d12] tracking-wider uppercase gap-1.5 py-1 px-2.5 text-[8px] sm:text-[9px] font-bold shadow-sm">
-                            <span>Trending</span>
-                            ${flameSvg}
+                        <span class="inline-flex items-center whitespace-nowrap rounded bg-[#2e1605] text-[#fba159] border border-[#7c2d12] tracking-wider uppercase gap-1 py-0.5 px-1.5 text-[7.5px] sm:text-[8.5px] font-extrabold">
+                            ${flameSvg}<span>Trending</span>
                         </span>
-                        <span class="tooltip-text">Hot right now! 🚀 ${recent4} people loved this dish in the last 48 hours. Don't miss out!</span>
+                        <span class="tooltip-text">${recent4} diners loved this dish in the last 48 hours!</span>
                     </div>`;
                 }
 
-               // 🟢 UX FIX: Removed useless mobile onmouseenter; global preloading handles this now.
-                const cameraHtml = d.imageUrl 
-                    ? `<button onclick="openImageModal('${d.imageUrl}', '${jsSafeName}')" class="group flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/5 border border-white/5 hover:bg-brand-gold hover:border-brand-gold transition-all flex-shrink-0 ml-1" title="View Dish Photo">
-                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-gold group-hover:text-black transition-colors" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"></path><circle cx="12" cy="12.75" r="3.25"></circle></svg>
-                       </button>` 
-                    : `<div class="w-7 h-7 sm:w-8 sm:h-8 ml-1 flex-shrink-0"></div>`;
-
                 const isOut = globalStockData[rawName] === "No";
                 const outOfStockBadge = isOut 
-                    ? `<span class="inline-flex items-center rounded bg-orange-950/40 text-orange-400 border border-orange-900/50 tracking-wider uppercase px-1.5 py-0.5 text-[7px] sm:text-[8px] font-black mt-1 shadow-sm">MAY BE SOLD OUT</span>`
+                    ? `<span class="inline-flex items-center rounded bg-orange-950/50 text-orange-400 border border-orange-800/50 tracking-wider uppercase px-1.5 py-0.5 text-[7.5px] font-black">May Be Sold Out</span>`
                     : '';
 
+                const hasBadges = safeBetHtml || trendingHtml || outOfStockBadge;
+                const badgesRow = hasBadges ? `<div class="flex flex-wrap items-center gap-1 mt-1">${safeBetHtml}${trendingHtml}${outOfStockBadge}</div>` : '';
+
+                const cameraHtml = d.imageUrl 
+                    ? `<button onclick="openImageModal('${d.imageUrl}', '${jsSafeName}')" class="group flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-brand-gold/10 border border-brand-gold/30 hover:bg-brand-gold transition-all shrink-0" title="View Dish Photo">
+                        <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-brand-gold group-hover:text-black transition-colors" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"></path><circle cx="12" cy="12.75" r="3.25"></circle></svg>
+                       </button>` 
+                    : '';
+
+                const qtyInCart = smartCart[rawName] || 0;
+                const addButtonHtml = qtyInCart > 0
+                    ? `<button onclick="addToCart('${jsSafeName}', event)" title="Tap to add another" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-brand-gold text-black font-black text-xs sm:text-sm flex items-center justify-center shadow-[0_0_12px_rgba(232,192,100,0.4)] mx-auto active:scale-90 transition-all tabular-nums">${qtyInCart}</button>`
+                    : `<button onclick="addToCart('${jsSafeName}', event)" title="Add to Smart Order" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#17171a] border ${isOut ? 'border-orange-500/40 text-orange-400' : 'border-white/15 text-brand-gold hover:bg-brand-gold hover:text-black'} font-black text-lg flex items-center justify-center shadow-sm mx-auto active:scale-90 transition-all leading-none">+</button>`;
+
                 return `
-                <tr class="group/row">
-                    <td class="pl-0 pr-1 w-[125px] max-w-[135px] sm:w-[240px] sm:max-w-[240px] py-4 align-top">
-                        <div class="flex items-start justify-between w-full">
-                            <div class="flex flex-col items-start gap-1 flex-grow min-w-0 pr-1 sm:pr-2">
-                                <span class="leading-snug font-extrabold text-[14px] sm:text-[15px] text-gray-100 group-hover/row:text-brand-gold text-left w-full transition-colors duration-300" style="white-space: normal; word-break: break-word;" title="${displayHtmlName}">${displayHtmlName}</span>
-                                <div class="flex flex-wrap gap-1.5 mt-1">
-                                    ${safeBetHtml}
-                                    ${trendingHtml}
+                <tr class="border-b border-white/[0.05] last:border-0 sm:hover:bg-white/[0.02] transition-colors">
+                    <td class="py-3 pl-2.5 sm:pl-4 pr-1 align-middle">
+                        <div class="flex items-start justify-between gap-1.5 min-w-0">
+                            <div class="flex items-start gap-1.5 min-w-0 flex-1">
+                                <span class="text-gray-500 font-semibold shrink-0 w-4 sm:w-5 text-right text-[10px] leading-snug tabular-nums mt-0.5">${index + 1}.</span>
+                                <div class="min-w-0 flex-1">
+                                    <div class="text-white font-bold text-[11px] sm:text-xs leading-snug break-words">${displayHtmlName}</div>
+                                    ${badgesRow}
                                 </div>
-                                ${outOfStockBadge}
                             </div>
                             ${cameraHtml}
                         </div>
                     </td>
-                    <td class="text-center text-gray-300 px-0.5 sm:px-2 font-bold text-xs sm:text-sm align-top py-4 pt-[18px]">${likedPctStr}</td>
-                    <td class="text-center px-0.5 sm:px-2 align-top py-4 pt-4"><span class="inline-flex items-center justify-center bg-[#143314]/40 border border-[#166534]/50 text-[#4ade80] rounded-md px-1.5 py-1 text-xs font-bold shadow-sm">${ratingStr}</span></td>
-                    <td class="text-center text-gray-300 px-0.5 sm:px-2 font-bold text-xs sm:text-sm align-top py-4 pt-[18px]">${reviewsNum}</td>
-                    <td class="text-right pr-0 pl-1 sm:px-2 align-top py-4">
-                        <button onclick="addToCart('${jsSafeName}', event)" class="add-btn w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#1a1a1a] border ${isOut ? 'border-orange-500/50 text-orange-400 hover:bg-orange-950/40' : 'border-white/10 text-brand-gold hover:bg-brand-gold hover:text-black'} transition-all duration-300 font-black text-xl sm:text-2xl flex items-center justify-center shadow-lg relative z-10 shrink-0 pb-0.5">+</button>
+                    <td class="py-3 text-center text-gray-300 font-semibold text-[10.5px] sm:text-xs whitespace-nowrap align-middle tabular-nums">${likedPctStr}</td>
+                    <td class="py-3 text-center align-middle">
+                        <span class="inline-flex items-center justify-center ${ratingPillClass} border font-extrabold text-[10px] sm:text-[11px] w-11 py-0.5 rounded-md tabular-nums">${ratingStr}</span>
+                    </td>
+                    <td class="py-3 text-center align-middle">
+                        <span class="inline-flex items-center justify-center text-[#bae6fd] border font-bold text-[10px] sm:text-[11px] w-10 sm:w-11 py-0.5 rounded-md tabular-nums" style="${volPillStyle}">${reviewsNum}</span>
+                    </td>
+                    <td class="py-3 text-center pr-2 align-middle">
+                        ${addButtonHtml}
                     </td>
                 </tr>
                 `;
@@ -1118,6 +1423,7 @@
         function toggleDishTooltip(uniqueId, event) {
             event.stopPropagation(); 
             const tooltipContainer = document.getElementById(uniqueId);
+            if (!tooltipContainer) return;
 
             if (tooltipContainer.classList.contains('active')) {
                 tooltipContainer.classList.remove('active');
@@ -1135,88 +1441,105 @@
                     el.classList.remove('active');
                 });
             }
-            if (window.innerWidth < 640 && !event.target.closest('canvas') && !event.target.closest('#popularity-legend')) {
-                if (topRatedChartInstance) topRatedChartInstance.tooltip.setActiveElements([], {x:0,y:0});
-                if (popularityChartInstance) popularityChartInstance.tooltip.setActiveElements([], {x:0,y:0});
-                if (trendChartInstance) trendChartInstance.tooltip.setActiveElements([], {x:0,y:0});
-                if (topRatedChartInstance) topRatedChartInstance.update();
-                if (popularityChartInstance) popularityChartInstance.update();
-                if (trendChartInstance) trendChartInstance.update();
-            }
         });
 
+        let scrollTopBtnTimer = null;
         document.addEventListener('scroll', () => {
-             document.querySelectorAll('.tooltip-container.active').forEach(el => {
-                 el.classList.remove('active');
-             });
-        });
+            document.querySelectorAll('.tooltip-container.active').forEach(el => {
+                el.classList.remove('active');
+            });
+            const topBtn = document.getElementById('scroll-top-btn');
+            if (topBtn) {
+                if (window.scrollY > 700) {
+                    topBtn.classList.remove('hidden');
+                    clearTimeout(scrollTopBtnTimer);
+                    scrollTopBtnTimer = setTimeout(() => topBtn.classList.add('hidden'), 1800);
+                } else {
+                    topBtn.classList.add('hidden');
+                }
+            }
+        }, { passive: true });
 
         function renderBarChart(topRated) {
-            const ctx = document.getElementById('topRatedChart').getContext('2d');
+            const canvas = document.getElementById('topRatedChart');
+            const ctx = canvas.getContext('2d');
             if(topRatedChartInstance) topRatedChartInstance.destroy();
             
+            const isMobile = window.innerWidth < 640;
+            const labelsArray = topRated.map(d => formatHorizontalDishLabel(d.name, topRated.length, isMobile));
+            const valuesArray = topRated.map(d => Number(d.rating || 0));
+
+            const topBarCalloutPlugin = {
+                id: 'topBarCalloutPlugin',
+                afterDatasetsDraw(chart) {
+                    const { ctx } = chart;
+                    const meta = chart.getDatasetMeta(0);
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'bottom';
+                    meta.data.forEach((bar, i) => {
+                        const val = valuesArray[i];
+                        ctx.font = '900 10.5px Inter, sans-serif';
+                        ctx.fillStyle = '#4ade80';
+                        ctx.fillText(`${val.toFixed(2)}★`, bar.x, bar.y - 5);
+                    });
+                    ctx.restore();
+                }
+            };
+
             topRatedChartInstance = new Chart(ctx, {
                 type: 'bar',
+                plugins: [topBarCalloutPlugin],
                 data: {
-                    labels: topRated.map(d => sanitizeHTML(d.name)),
+                    labels: labelsArray,
                     datasets: [{
                         label: 'Avg Rating',
-                        data: topRated.map(d => d.rating),
-                        backgroundColor: '#4ade80', 
-                        borderRadius: 6,
-                        barPercentage: 0.9, 
-                        categoryPercentage: 0.9,
+                        data: valuesArray,
+                        backgroundColor: 'rgba(74, 222, 128, 0.85)',
+                        hoverBackgroundColor: '#4ade80',
+                        borderColor: '#4ade80',
+                        borderWidth: { top: 2, left: 0, right: 0, bottom: 0 },
+                        borderRadius: { topLeft: 6, topRight: 6 },
+                        barThickness: isMobile ? 28 : 38
                     }]
                 },
-                plugins: [ChartDataLabels], 
                 options: {
-                    responsive: true, maintainAspectRatio: false,
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 24 } },
                     plugins: { 
                         legend: { display: false },
+                        datalabels: { display: false },
                         tooltip: {
-                            position: 'topEdge', 
-                            yAlign: 'top',       
-                            caretSize: 0,        
-                            backgroundColor: 'rgba(26, 26, 26, 0.95)',
-                            titleFont: { size: 13, family: 'Inter' },
-                            bodyFont: { size: 14, weight: 'bold', family: 'Inter' },
-                            padding: 12,
-                            borderColor: '#e8c06440',
+                            displayColors: false,
+                            backgroundColor: '#141414',
+                            titleColor: '#4ade80',
+                            borderColor: '#4ade80',
                             borderWidth: 1,
-                        },
-                        datalabels: {
-                            display: true,
-                            color: '#0a0a0a', 
-                            font: { weight: '800', size: window.innerWidth < 640 ? 11 : 13, family: 'Inter' },
-                            anchor: 'end',
-                            align: 'bottom',
-                            offset: 4,
-                            formatter: (value) => value.toFixed(2)
+                            padding: 12,
+                            callbacks: {
+                                title: (ctxs) => topRated[ctxs[0].dataIndex].name,
+                                label: (c) => `Avg Rating: ${Number(c.raw).toFixed(2)}★`
+                            }
                         }
                     },
                     scales: {
-                        y: { max: 5, grid: { color: '#e8c06415' }, border: { display: false } },
+                        y: {
+                            min: 0,
+                            max: 5.2,
+                            grid: { color: 'rgba(255,255,255,0.03)' },
+                            border: { display: false },
+                            ticks: { color: '#6b7280', font: { size: 10 }, stepSize: 1, callback: (v) => v <= 5 ? v.toFixed(1) : '' }
+                        },
                         x: { 
-                            grid: { display: false }, border: { display: false }, 
+                            grid: { display: false },
+                            border: { display: false }, 
                             ticks: { 
-                                font: {size: 10, family: 'Inter'}, color: '#9CA3AF',
-                                maxRotation: 0, minRotation: 0, 
-                                callback: function(value) {
-                                    const label = this.getLabelForValue(value);
-                                    if (window.innerWidth < 640) {
-                                        const words = label.split(' ').filter(w => w.trim().length > 0);
-                                        if (words.length >= 3) {
-                                            return words.map(w => w[0].toUpperCase()).join('.') + '.';
-                                        } else if (words.length === 2) {
-                                            let w1 = words[0]; let w2 = words[1];
-                                            if (w1.length > 9) w1 = w1.substring(0, 8) + '..';
-                                            if (w2.length > 9) w2 = w2.substring(0, 8) + '..';
-                                            return [w1, w2]; 
-                                        }
-                                        return label.length > 10 ? label.substring(0, 9) + '..' : label;
-                                    }
-                                    return label;
-                                }
+                                color: '#d4d4d8',
+                                font: { size: isMobile ? 8.5 : 9.5, weight: 'bold', lineHeight: 1.15 },
+                                autoSkip: false,
+                                maxRotation: 0,
+                                minRotation: 0
                             } 
                         }
                     }
@@ -1228,17 +1551,17 @@
             const ctx = document.getElementById('popularityChart').getContext('2d');
             if(popularityChartInstance) popularityChartInstance.destroy();
 
-            const premiumColors = ['#e8c064', '#c9a250', '#a8853b', '#d4a373', '#8b5a2b', '#6b8e23', '#8fbc8f', '#4682b4', '#5f9ea0', '#a9a9a9'];
+            const premiumColors = ['#e8c064', '#4ade80', '#38bdf8', '#f59e0b', '#a78bfa', '#34d399', '#fb923c', '#60a5fa', '#f472b6', '#94a3b8'];
 
             popularityChartInstance = new Chart(ctx, {
                 type: 'doughnut', 
                 data: {
-                    labels: mostLiked.map(d => sanitizeHTML(d.name)),
+                    labels: mostLiked.map(d => d.name),
                     datasets: [{
                         data: mostLiked.map(d => d.likes),
                         backgroundColor: premiumColors.slice(0, mostLiked.length),
                         borderWidth: 2,
-                        borderColor: '#141414',
+                        borderColor: '#111113',
                         hoverOffset: 8 
                     }]
                 },
@@ -1246,50 +1569,31 @@
                 options: {
                     responsive: true, 
                     maintainAspectRatio: false,
-                    cutout: '65%', 
-                    layout: { padding: 10 },
+                    cutout: '66%', 
+                    layout: { padding: 8 },
+                    onClick: (evt, elements) => {
+                        if (elements && elements.length > 0) {
+                            updateDoughnutCenterHUD(elements[0].index);
+                        }
+                    },
                     plugins: {
                         legend: { display: false }, 
-                        tooltip: { 
-                            enabled: true,
-                            position: 'doughnutCenter', 
-                            xAlign: 'center', 
-                            yAlign: 'center',            
-                            caretSize: 0,                
-                            backgroundColor: 'rgba(20, 20, 20, 0.95)',
-                            titleFont: { size: 13, family: 'Inter' },
-                            bodyFont: { size: 14, weight: 'bold', family: 'Inter' },
-                            bodyAlign: 'center', 
-                            padding: 12,
-                            borderColor: '#e8c06440',
-                            borderWidth: 1,
-                            callbacks: { 
-                                title: function() { return null; }, 
-                                label: function(context) { 
-                                    const dish = mostLiked[context.dataIndex];
-                                    const safeName = sanitizeHTML(dish.name);
-                                    return [
-                                        ` ${safeName}`,
-                                        ` ${dish.likes} Likes (${dish.likedPct})`
-                                    ]; 
-                                } 
-                            } 
-                        },
+                        tooltip: { enabled: false },
                         datalabels: {
-                            color: '#ffffff',
-                            textStrokeColor: 'rgba(0, 0, 0, 0.8)',
-                            textStrokeWidth: 3,
+                            color: '#0a0a0a',
+                            backgroundColor: 'rgba(255,255,255,0.88)',
+                            borderRadius: 4,
+                            padding: { top: 2, bottom: 2, left: 4, right: 4 },
                             anchor: 'center', 
                             align: 'center', 
-                            offset: 0, 
-                            font: function(context) {
+                            font: function() {
                                 const isMobile = window.innerWidth < 640;
-                                return { weight: '900', family: 'Inter', size: isMobile ? 13 : 16 };
+                                return { weight: '900', family: 'Inter', size: isMobile ? 10 : 11 };
                             },
                             formatter: (value, context) => {
                                 const total = context.chart._metasets[context.datasetIndex].total;
                                 const percentage = (value / total) * 100;
-                                return percentage >= 4 ? value : ''; 
+                                return percentage >= 6 ? value : ''; 
                             }
                         }
                     }
@@ -1301,123 +1605,121 @@
                 legendContainer.innerHTML = mostLiked.map((d, i) => {
                     const safeName = sanitizeHTML(d.name);
                     return `
-                    <div onclick="highlightPieSlice(${i}, event)" class="flex items-center gap-1.5 bg-[#1a1a1a] border border-white/5 hover:border-brand-gold/40 transition-colors duration-300 rounded-full px-2 py-1 sm:px-3 sm:py-1.5 cursor-pointer shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
-                        <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full shrink-0" style="background-color: ${premiumColors[i]}; box-shadow: 0 0 6px ${premiumColors[i]}80;"></span>
-                        <span class="text-gray-300 truncate max-w-[85px] sm:max-w-[130px] font-medium tracking-wide text-[8.5px] sm:text-[10px]" title="${safeName}">${safeName}</span>
-                    </div>
+                    <button data-pop-pill="${i}" onclick="highlightPieSlice(${i}, event)" class="flex items-center gap-1.5 bg-[#161618] border border-white/5 hover:border-brand-gold/40 transition-all duration-200 rounded-full px-2.5 py-1 cursor-pointer shadow-sm focus:outline-none">
+                        <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${premiumColors[i]};"></span>
+                        <span class="text-gray-200 truncate max-w-[95px] sm:max-w-[130px] font-semibold text-[9px] sm:text-[10px]" title="${safeName}">${safeName}</span>
+                        <span class="text-gray-400 font-bold text-[8.5px] tabular-nums">${d.likes}</span>
+                    </button>
                     `;
                 }).join('');
             }
+            if (mostLiked.length > 0) updateDoughnutCenterHUD(0);
         }
 
         function renderTrendChart(trends) {
             const ctx = document.getElementById('trendChart').getContext('2d');
             if(trendChartInstance) trendChartInstance.destroy();
 
+            const isMobile = window.innerWidth < 640;
+            const labelsArray = trends.map(d => formatHorizontalDishLabel(d.name, trends.length, isMobile));
+            const lastWkArray = trends.map(d => Number(d.lastWeek || 0));
+            const changeArray = trends.map(d => Number(d.change || 0));
+
+            const improvedDeltaPlugin = {
+                id: 'improvedDeltaPlugin',
+                afterDatasetsDraw(chart) {
+                    const { ctx } = chart;
+                    const metaTop = chart.getDatasetMeta(1);
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'bottom';
+                    metaTop.data.forEach((bar, i) => {
+                        const val = changeArray[i];
+                        const prev = lastWkArray[i];
+                        const curr = prev + val;
+                        if (val > 0) {
+                            ctx.font = '900 10.5px Inter, sans-serif';
+                            ctx.fillStyle = '#4ade80';
+                            ctx.fillText(`▲ +${val.toFixed(1)}★`, bar.x, bar.y - 14);
+
+                            ctx.font = '700 9px Inter, sans-serif';
+                            ctx.fillStyle = '#9ca3af';
+                            ctx.fillText(`${prev.toFixed(1)} → ${curr.toFixed(1)}`, bar.x, bar.y - 2);
+                        }
+                    });
+                    ctx.restore();
+                }
+            };
+
             trendChartInstance = new Chart(ctx, {
                 type: 'bar',
+                plugins: [improvedDeltaPlugin],
                 data: {
-                    labels: trends.map(d => sanitizeHTML(d.name)),
+                    labels: labelsArray,
                     datasets: [
                         {
-                            label: 'Last Week Avg Rating',
-                            data: trends.map(d => d.lastWeek),
-                            backgroundColor: '#4ade80', 
-                            hoverBackgroundColor: '#86efac', 
-                            hoverBorderWidth: 0,             
-                            borderSkipped: false,
-                            barPercentage: 0.9,
-                            categoryPercentage: 0.9,
-                            borderRadius: { bottomLeft: 6, bottomRight: 6, topLeft: 0, topRight: 0 }
+                            label: "Last Week's Avg",
+                            data: lastWkArray,
+                            backgroundColor: '#27272a', 
+                            borderColor: '#3f3f46',
+                            borderWidth: { top: 0, left: 1, right: 1, bottom: 0 },
+                            stack: 'Stack 0',
+                            barThickness: isMobile ? 26 : 36
                         },
                         {
-                            label: 'Change From Last Week',
-                            data: trends.map(d => d.change),
-                            backgroundColor: '#e8c064', 
-                            hoverBackgroundColor: '#fef08a', 
-                            hoverBorderColor: '#141414',     
-                            hoverBorderWidth: { bottom: 5, top: 0, left: 0, right: 0 }, 
-                            borderSkipped: false,
-                            barPercentage: 0.9,
-                            categoryPercentage: 0.9,
-                            borderRadius: { bottomLeft: 0, bottomRight: 0, topLeft: 6, topRight: 6 }
+                            label: 'Gained',
+                            data: changeArray,
+                            backgroundColor: '#4ade80', 
+                            stack: 'Stack 0',
+                            borderRadius: { topLeft: 5, topRight: 5 },
+                            barThickness: isMobile ? 26 : 36
                         }
                     ]
                 },
                 options: {
-                    responsive: true, maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    layout: {
-                        padding: { top: window.innerWidth < 640 ? 10 : 0 }
-                    },
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 32 } },
                     scales: {
                         x: { 
-                            stacked: true, grid: { display: false }, border: { display: false }, 
+                            stacked: true,
+                            grid: { display: false },
+                            border: { display: false }, 
                             ticks: { 
-                                font: {size: 10, family: 'Inter'}, color: '#9CA3AF',
-                                maxRotation: 0, minRotation: 0,
-                                callback: function(value) {
-                                    const label = this.getLabelForValue(value);
-                                    if (window.innerWidth < 640) {
-                                        const words = label.split(' ').filter(w => w.trim().length > 0);
-                                        if (words.length >= 3) {
-                                            return words.map(w => w[0].toUpperCase()).join('.') + '.';
-                                        } else if (words.length === 2) {
-                                            let w1 = words[0]; let w2 = words[1];
-                                            if (w1.length > 9) w1 = w1.substring(0, 8) + '..';
-                                            if (w2.length > 9) w2 = w2.substring(0, 8) + '..';
-                                            return [w1, w2]; 
-                                        }
-                                        return label.length > 10 ? label.substring(0, 9) + '..' : label;
-                                    }
-                                    return label;
-                                }
+                                color: '#d4d4d8',
+                                font: { size: isMobile ? 8.5 : 9.5, weight: 'bold', lineHeight: 1.15 },
+                                autoSkip: false,
+                                maxRotation: 0,
+                                minRotation: 0
                             } 
                         },
                         y: { 
                             stacked: true, 
-                            max: 5, 
-                            grid: { color: '#e8c06415' }, 
+                            min: 0,
+                            max: 5.5, 
+                            grid: { color: 'rgba(255,255,255,0.03)' }, 
                             border: { display: false },
-                            ticks: {
-                                callback: function(value) { return value.toFixed(2); }
-                            }
+                            ticks: { color: '#6b7280', font: { size: 10 }, stepSize: 1, callback: (v) => v <= 5 ? v.toFixed(1) : '' }
                         }
                     },
                     plugins: {
                         legend: { display: false }, 
                         datalabels: { display: false },
                         tooltip: {
-                            position: 'middleGreen', 
-                            yAlign: 'center',
-                            caretSize: 0,            
-                            backgroundColor: 'rgba(20, 20, 20, 0.95)',
-                            titleFont: { size: 14, weight: 'bold', family: 'Inter' },
-                            bodyFont: { size: 13, family: 'Inter' },
-                            footerFont: { size: 11, family: 'Inter', weight: 'bold' },
-                            footerColor: '#e8c064', 
-                            padding: 12,
-                            borderColor: '#e8c06440',
+                            displayColors: false,
+                            backgroundColor: '#141414',
+                            titleColor: '#4ade80',
+                            borderColor: '#4ade80',
                             borderWidth: 1,
+                            padding: 12,
                             callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed.y !== null) {
-                                        label += context.parsed.y.toFixed(2);
-                                    }
-                                    return label;
-                                },
-                                footer: function(tooltipItems) {
-                                    const dataIndex = tooltipItems[0].dataIndex;
-                                    const dish = trends[dataIndex];
+                                title: (ctxs) => trends[ctxs[0].dataIndex].name,
+                                label: function(c) {
+                                    const d = trends[c.dataIndex];
                                     return [
-                                        '', 
-                                        `✨ Certified Comeback:`,
-                                        `• Surged from ${dish.lastWeek.toFixed(2)} to ${dish.thisWeek.toFixed(2)} ⭐`,
-                                        `• Verified by ${dish.votesThisWeek} recent votes`
+                                        `This Week: ${Number(d.thisWeek).toFixed(2)}★`,
+                                        `Gained: +${Number(d.change).toFixed(2)}★`,
+                                        `Last Week: ${Number(d.lastWeek).toFixed(2)}★`
                                     ];
                                 }
                             }
@@ -1425,23 +1727,35 @@
                     }
                 }
             });
+        }
 
-            const trendLegend = document.getElementById('trend-legend');
-            if (trendLegend) {
-                trendLegend.innerHTML = `
-                    <div class="flex items-center justify-center gap-2">
-                        <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0 bg-[#4ade80]"></span>
-                        <span class="text-brand-muted font-medium tracking-wide">Last Week Avg Rating</span>
-                    </div>
-                    <div class="flex items-center justify-center gap-2">
-                        <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0 bg-[#e8c064]"></span>
-                        <span class="text-brand-muted font-medium tracking-wide">Change From Last Week</span>
-                    </div>
-                `;
+        function initSpotlightAndMotion() {
+            const blocks = document.querySelectorAll('#dashboard-content > div');
+            blocks.forEach((block, index) => {
+                if (!block.classList.contains('hidden')) {
+                    block.classList.add('animate-bento');
+                    block.style.animationDelay = `${index * 60}ms`;
+                    block.addEventListener('animationend', () => {
+                        block.classList.remove('animate-bento');
+                        block.style.animationDelay = '';
+                    }, { once: true });
+                }
+            });
+
+            if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+                document.getElementById('dashboard-content').addEventListener('mousemove', (e) => {
+                    window.requestAnimationFrame(() => {
+                        const cards = document.querySelectorAll('.spotlight-card');
+                        for (let i = 0; i < cards.length; i++) {
+                            const rect = cards[i].getBoundingClientRect();
+                            cards[i].style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+                            cards[i].style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+                        }
+                    });
+                });
             }
         }
 
-        // 🟢 Forces the cart to build itself immediately if data exists from a previous session
         document.addEventListener("DOMContentLoaded", () => {
             updateCartUI(); 
             fetchDashboardData();
