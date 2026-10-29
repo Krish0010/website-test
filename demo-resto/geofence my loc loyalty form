@@ -1,0 +1,1828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0a0a0a">
+    <title>Feedback & Secret Reward | FOODSTORYTVC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-black': '#0a0a0a', 
+                        'brand-card': '#141414',
+                        'brand-gold': '#e8c064',
+                        'brand-gold-hover': '#f3d382',
+                        'brand-red': '#ef4444',
+                        'success-green': '#4ade80'
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        .hidden { display: none !important; }
+        html, body {
+            overflow-x: clip;
+            background-color: #0a0a0a;
+            color: #e5e7eb;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+        }
+        .tabular-nums { font-variant-numeric: tabular-nums; }
+
+        .page-textured-overlay { 
+            background-image: linear-gradient(rgba(10, 10, 10, 0.94), rgba(10, 10, 10, 0.96)), url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"); 
+        }
+
+        /* Cinematic Breathing Ambient Orbs */
+        @keyframes float-orb {
+            0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.26; }
+            50% { transform: translate3d(30px, 20px, 0) scale(1.18); opacity: 0.42; }
+        }
+        .ambient-orb {
+            position: fixed; border-radius: 50%; filter: blur(65px); z-index: 0; pointer-events: none;
+            will-change: transform, opacity;
+        }
+        .orb-1 { top: -8%; left: -12%; width: 340px; height: 340px; background: radial-gradient(circle, rgba(232, 192, 100, 0.28) 0%, rgba(0,0,0,0) 70%); animation: float-orb 11s ease-in-out infinite; }
+        .orb-2 { bottom: -8%; right: -12%; width: 420px; height: 420px; background: radial-gradient(circle, rgba(74, 222, 128, 0.14) 0%, rgba(0,0,0,0) 70%); animation: float-orb 15s ease-in-out infinite reverse; }
+
+        /* Specular Obsidian Luxury Card */
+        .glass-card {
+            background: linear-gradient(180deg, rgba(24, 24, 27, 0.9) 0%, rgba(15, 15, 17, 0.96) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(232, 192, 100, 0.22);
+            box-shadow: 0 25px 55px -12px rgba(0, 0, 0, 0.85), inset 0 1px 0 0 rgba(255, 255, 255, 0.09);
+            position: relative;
+            transition: border-color 0.35s ease, box-shadow 0.35s ease;
+        }
+
+        /* Shimmering Liquid Gold CTA Button */
+        @keyframes gold-shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .btn-gold-ignite {
+            background: linear-gradient(110deg, #e8c064 35%, #fff3d1 50%, #e8c064 65%);
+            background-size: 200% 100%;
+            animation: gold-shimmer 4.5s infinite linear;
+            color: #050505;
+            box-shadow: 0 10px 30px -5px rgba(232, 192, 100, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+
+        /* Directional 3D Spring Card Transitions */
+        @keyframes card-enter-right {
+            0% { opacity: 0; transform: translate3d(28px, 0, 0) scale(0.98); }
+            100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+        }
+        @keyframes card-enter-left {
+            0% { opacity: 0; transform: translate3d(-28px, 0, 0) scale(0.98); }
+            100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+        }
+        @keyframes view-reveal {
+            0% { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.98); }
+            100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+        }
+        .anim-slide-next { animation: card-enter-right 0.36s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .anim-slide-prev { animation: card-enter-left 0.36s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+
+        /* Apple-Style Error Shake */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+        .animate-shake { animation: shake 0.38s cubic-bezier(.36,.07,.19,.97) both; }
+
+        /* Form Inputs */
+        input[type="text"], input[type="email"], select {
+            background-color: rgba(10, 10, 12, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #fff;
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6);
+        }
+        input:focus, textarea:focus, select:focus {
+            border-color: #e8c064;
+            background-color: #050505;
+            box-shadow: 0 0 0 3px rgba(232, 192, 100, 0.16), inset 0 2px 6px rgba(0, 0, 0, 0.8);
+        }
+
+        /* OTP Boxes */
+        .otp-input {
+            width: 52px;
+            height: 58px;
+            font-size: 23px;
+            font-weight: 900;
+            text-align: center;
+            background-color: #0a0a0c;
+            border: 1.5px solid rgba(255, 255, 255, 0.14);
+            color: #e8c064;
+            border-radius: 14px;
+            transition: all 0.2s ease;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.7);
+        }
+        .otp-input:focus {
+            border-color: #e8c064;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px -4px rgba(232, 192, 100, 0.25), 0 0 0 3px rgba(232, 192, 100, 0.15);
+        }
+
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Tactile Star Rating Choreography (Hover restricted to desktop pointers so mobile never sticks) */
+        .star-container { display: flex; justify-content: center; gap: 10px; direction: rtl; }
+        .star-svg {
+            width: 44px;
+            height: 44px;
+            cursor: pointer;
+            fill: rgba(255, 255, 255, 0.03);
+            stroke: #52525b;
+            stroke-width: 1.6;
+            transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), fill 0.2s ease, stroke 0.2s ease, filter 0.25s ease;
+        }
+        .star-svg:active { transform: scale(0.85) !important; }
+        @media (hover: hover) and (pointer: fine) {
+            .star-svg:hover, .star-svg:hover ~ .star-svg {
+                fill: #e8c064;
+                stroke: #e8c064;
+                filter: drop-shadow(0 0 10px rgba(232, 192, 100, 0.55));
+                transform: scale(1.12);
+            }
+        }
+        .star-container[data-rating="5"] .star-svg:nth-child(n+1),
+        .star-container[data-rating="4"] .star-svg:nth-child(n+2),
+        .star-container[data-rating="3"] .star-svg:nth-child(n+3),
+        .star-container[data-rating="2"] .star-svg:nth-child(n+4),
+        .star-container[data-rating="1"] .star-svg:nth-child(5) {
+            fill: #e8c064;
+            stroke: #e8c064;
+            filter: drop-shadow(0 0 10px rgba(232, 192, 100, 0.55));
+            transform: scale(1.12);
+        }
+
+        /* Yes / No Choice Buttons */
+        .choice-btn {
+            flex: 1;
+            padding: 13.5px 14px;
+            border-radius: 14px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-size: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.03);
+            color: #a1a1aa;
+            transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .choice-btn:active { transform: scale(0.96); }
+        .choice-btn.yes:hover, .choice-btn.yes.active {
+            background: rgba(74, 222, 128, 0.15);
+            border-color: #4ade80;
+            color: #4ade80;
+            box-shadow: 0 0 25px rgba(74, 222, 128, 0.2);
+        }
+        .choice-btn.no:hover, .choice-btn.no.active {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: #ef4444;
+            color: #fca5a5;
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.2);
+        }
+
+        /* Strict View Visibility Lock so inactive sections NEVER leak below active cards */
+        .view-section:not(.active) { display: none !important; }
+        .view-section.active { display: block; animation: view-reveal 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        #view-success.active { display: flex !important; }
+
+        @keyframes toast-drop {
+            0% { transform: translate(-50%, -28px) scale(0.95); opacity: 0; }
+            100% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+        }
+        @media (max-width: 640px) {
+            @keyframes toast-drop {
+                0% { transform: translateY(-28px) scale(0.95); opacity: 0; }
+                100% { transform: translateY(0) scale(1); opacity: 1; }
+            }
+        }
+        .animate-toast { animation: toast-drop 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    </style>
+</head>
+<body class="antialiased h-[100dvh] w-screen overflow-hidden flex flex-col relative page-textured-overlay">
+
+    <!-- Honeypot Bot Trap -->
+    <input type="text" id="website_url" name="website_url" tabindex="-1" autocomplete="off" class="hidden absolute -left-[9999px]">
+    
+    <!-- Ambient Background Glow Orbs -->
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+
+    <!-- Celebration Confetti Canvas (Activates on Final Reward Screen) -->
+    <canvas id="reward-confetti" class="fixed inset-0 pointer-events-none z-50 hidden"></canvas>
+
+    <!-- Flagship Architectural Header (Consistent Left Axis, Zero Jumping, Zero Truncation) -->
+    <div class="w-full px-4 sm:px-6 pt-5 sm:pt-7 pb-2 flex flex-col gap-2.5 z-40 relative max-w-xl mx-auto shrink-0">
+        <div class="flex justify-between items-center">
+            <!-- 3D Pop-Out Brand Avatar + Precision Wordmark Lockup -->
+            <div class="flex items-center gap-3">
+                <div class="relative w-11 h-11 sm:w-12 sm:h-12 shrink-0 flex items-end justify-center">
+                    <div class="absolute inset-0 rounded-full border-2 border-brand-gold shadow-[0_0_15px_rgba(232,192,100,0.3)] bg-black"></div>
+                    <img src="https://res.cloudinary.com/dr6xhnhor/image/upload/v1781864406/big_size_Logo_without_background_new_ubp9mn.png" alt="Logo" class="w-full h-full object-cover scale-[1.28] -translate-y-1.5 relative z-10 rounded-b-full">
+                </div>
+                <div class="flex flex-col justify-center text-left">
+                    <div class="font-black text-white text-[16px] sm:text-[18px] leading-none tracking-[0.06em] whitespace-nowrap">
+                        FOODSTORY<span class="text-brand-gold">TVC</span>
+                    </div>
+                    <span class="text-[8.5px] sm:text-[9px] font-bold uppercase tracking-[0.16em] text-brand-gold/85 mt-1.5 whitespace-nowrap">
+                        Impact Loyalty Portal
+                    </span>
+                </div>
+            </div>
+
+            <!-- Enterprise Live Network Connectivity Widget -->
+            <div id="network-status-badge" class="flex flex-col items-end shrink-0">
+                <div class="inline-flex items-center gap-1.5 bg-[#141416] border border-white/10 px-3 py-1 rounded-full shadow-sm transition-colors duration-300">
+                    <span id="network-dot" class="w-1.5 h-1.5 rounded-full bg-success-green animate-pulse"></span>
+                    <span id="network-text" class="text-[9px] font-black text-gray-300 uppercase tracking-[0.13em] tabular-nums whitespace-nowrap">Online</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6-Segment Dish Progress Bar -->
+        <div class="w-full flex items-center gap-1.5 pt-0.5" id="segmented-progress-track">
+            <div class="h-1 flex-1 rounded-full bg-white/10 overflow-hidden"><div id="seg-0" class="h-full bg-brand-gold w-0 transition-all duration-500"></div></div>
+            <div class="h-1 flex-1 rounded-full bg-white/10 overflow-hidden"><div id="seg-1" class="h-full bg-brand-gold w-0 transition-all duration-500"></div></div>
+            <div class="h-1 flex-1 rounded-full bg-white/10 overflow-hidden"><div id="seg-2" class="h-full bg-brand-gold w-0 transition-all duration-500"></div></div>
+            <div class="h-1 flex-1 rounded-full bg-white/10 overflow-hidden"><div id="seg-3" class="h-full bg-brand-gold w-0 transition-all duration-500"></div></div>
+            <div class="h-1 flex-1 rounded-full bg-white/10 overflow-hidden"><div id="seg-4" class="h-full bg-brand-gold w-0 transition-all duration-500"></div></div>
+            <div class="h-1 flex-1 rounded-full bg-white/10 overflow-hidden"><div id="seg-5" class="h-full bg-brand-gold w-0 transition-all duration-500"></div></div>
+        </div>
+        <div class="hidden"><div id="progress-bar"></div></div>
+    </div>
+
+    <!-- Main Scrollable Viewport -->
+    <div class="flex-1 w-full max-w-xl mx-auto relative px-4 sm:px-6 flex flex-col overflow-y-auto hide-scroll pt-2 sm:pt-5 pb-8 z-30 transition-all duration-300" id="app-container">
+
+        <!-- VIEW 1: SETUP -->
+        <div id="view-setup" class="view-section active w-full shrink-0">
+            <div class="glass-card rounded-3xl p-5 sm:p-8 mb-4 relative overflow-hidden">
+                <div class="absolute -top-20 -right-20 w-44 h-44 bg-brand-gold/[0.07] rounded-full blur-2xl pointer-events-none"></div>
+
+                <!-- Luxury Reward Eyebrow Pill -->
+                <div class="inline-flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/30 rounded-full px-3 py-1 mb-3.5">
+                    <svg class="w-3.5 h-3.5 text-brand-gold shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+                    <span class="text-[9px] sm:text-[9.5px] font-black uppercase tracking-[0.15em] text-brand-gold">30 seconds towards your reward</span>
+                </div>
+
+                <h1 class="text-2xl sm:text-3xl font-black text-white mb-1.5 leading-tight tracking-tight">
+                    Genuine Feedback.<br>
+                    <span class="text-brand-gold">Unlock Secret Reward.</span>
+                </h1>
+                <p class="text-xs sm:text-sm text-gray-400 mb-5 font-medium leading-relaxed">
+                    Share your feedback and progress towards a loyalty reward.
+                </p>
+
+                <div class="space-y-3.5">
+                    <div>
+                        <label id="location-label" class="hidden block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 pl-1">Restaurant <span id="location-asterisk" class="text-brand-red">*</span></label>
+                        <!-- Multi-location dropdown wrapper (stays hidden when only 1 restaurant is configured so there is zero load flash) -->
+                        <div id="resto-select-wrapper" class="hidden relative">
+                            <select id="setup-resto" class="appearance-none cursor-pointer pr-10" onchange="validateSetup()">
+                                <option value="" disabled hidden>Select your restaurant...</option>
+                                <option value="Temp New" selected>Temp New</option>
+                            </select>
+                            <div id="resto-arrow" class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-brand-gold">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
+                        <!-- Authoritative Restaurant Showcase Card (Visible immediately on load with zero layout shift) -->
+                        <div id="resto-featured-card" class="flex items-center px-4 py-3.5 rounded-2xl bg-gradient-to-r from-brand-gold/[0.09] via-brand-gold/[0.03] to-white/[0.01] border border-brand-gold/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+                            <div class="flex items-center gap-3.5 min-w-0">
+                                <div class="w-10 h-10 rounded-xl bg-brand-gold/15 border border-brand-gold/35 flex items-center justify-center shrink-0 text-brand-gold shadow-[0_0_15px_rgba(232,192,100,0.15)]">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                                </div>
+                                <div class="flex flex-col min-w-0 text-left">
+                                    <span class="text-[9px] font-extrabold uppercase tracking-[0.18em] text-brand-gold/80 leading-none mb-1">Restaurant</span>
+                                    <span id="resto-featured-name" class="text-[17px] sm:text-lg font-black text-white tracking-tight leading-tight truncate">Temp New</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 pl-1">Your Email <span class="text-brand-red">*</span></label>
+                        <input type="email" id="setup-email" placeholder="Where should we send your reward?" maxlength="100" oninput="this.value = this.value.toLowerCase().replace(/\s/g, '').replace(/\+/g, ''); validateSetup(false);" onblur="validateSetup(true)" autocomplete="email">
+                        <p id="email-error" class="text-brand-red text-[10px] font-bold mt-1.5 hidden uppercase tracking-wider pl-1">Valid email address required.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 pl-1">Receipt Number <span class="text-brand-red">*</span></label>
+                        <input type="text" id="setup-bill" name="receipt_verify_code" placeholder="Last 4 digits of your bill" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="one-time-code" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" class="tabular-nums" oninput="this.value = this.value.replace(/[^0-9]/g, ''); validateSetup(false);" onblur="validateSetup(true)">
+                        <p id="bill-error" class="text-brand-red text-[10px] font-bold mt-1.5 hidden uppercase tracking-wider pl-1">Must be exactly 4 digits.</p>
+                    </div>
+                </div>
+            </div>
+
+            <button id="btn-start" onclick="requestOTP()" disabled class="w-full py-4 rounded-2xl font-black text-gray-500 bg-white/5 border border-white/10 cursor-not-allowed uppercase tracking-widest text-xs sm:text-sm transition-all duration-300">
+                Verify Identity
+            </button>
+        </div>
+
+        <!-- VIEW 2: OTP VERIFICATION -->
+        <div id="view-otp" class="view-section w-full shrink-0">
+            <div class="glass-card rounded-3xl p-5 sm:p-8 mb-4 text-center relative overflow-hidden">
+                <!-- Vector Security Shield Badge -->
+                <div class="w-12 h-12 sm:w-14 sm:h-14 bg-brand-gold/10 border border-brand-gold/35 rounded-2xl flex items-center justify-center mx-auto mb-2.5 shadow-[0_0_25px_rgba(232,192,100,0.15)]">
+                    <svg class="w-6 h-6 sm:w-7 sm:h-7 text-brand-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-black text-white mb-1 leading-tight">Integrity Check</h2>
+
+                <p class="text-xs sm:text-sm text-gray-400 mb-4 font-medium leading-relaxed">
+                    To guarantee 100% genuine reviews from real guests, enter the 4-digit code sent to
+                    <strong class="text-brand-gold block mt-0.5 text-sm truncate px-2" id="otp-display-email"></strong>
+                </p>
+
+                <div id="otp-input-wrapper" class="flex justify-center gap-3 mb-4 tabular-nums">
+                    <input type="tel" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" maxlength="1" class="otp-input" id="otp-1" oninput="handleOtpInput(this, 1, event)" onkeydown="handleOtpKeydown(this, 1, event)" onpaste="handleOtpPaste(event)" onfocus="this.select()">
+                    <input type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-input" id="otp-2" oninput="handleOtpInput(this, 2, event)" onkeydown="handleOtpKeydown(this, 2, event)" onpaste="handleOtpPaste(event)" onfocus="this.select()">
+                    <input type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-input" id="otp-3" oninput="handleOtpInput(this, 3, event)" onkeydown="handleOtpKeydown(this, 3, event)" onpaste="handleOtpPaste(event)" onfocus="this.select()">
+                    <input type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="otp-input" id="otp-4" oninput="handleOtpInput(this, 4, event)" onkeydown="handleOtpKeydown(this, 4, event)" onpaste="handleOtpPaste(event)" onfocus="this.select()">
+                </div>
+
+                <div class="flex flex-col gap-3 relative">
+                    <button id="btn-submit-otp" onclick="triggerManualVerify()" disabled class="w-full py-3.5 rounded-xl font-black text-gray-500 bg-white/10 cursor-not-allowed uppercase tracking-widest text-xs sm:text-sm transition-all duration-300">
+                        Verify Code
+                    </button>
+                </div>
+
+                <p id="otp-error" class="text-brand-red text-xs font-bold mt-3 hidden uppercase tracking-wider">Invalid Code. Try again.</p>
+
+                <div class="mt-4 pt-3.5 border-t border-white/[0.06] flex items-center justify-between text-[11px] font-bold uppercase tracking-widest">
+                    <button onclick="resetOtpUI(); switchView('setup')" class="text-gray-400 hover:text-white transition-colors">
+                        ← Change Email
+                    </button>
+                    <button id="btn-resend-otp" onclick="requestOTP()" class="text-brand-gold/90 hover:text-brand-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed tabular-nums">
+                        Resend Code
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: RATINGS -->
+        <div id="view-rating" class="view-section w-full shrink-0">
+            <div id="dynamic-dish-container"></div>
+        </div>
+
+        <!-- VIEW 4: SUCCESS -->
+        <div id="view-success" class="view-section w-full flex-col items-center text-center pt-7 sm:pt-10 pb-10 shrink-0">
+
+            <div id="state-loading" class="flex flex-col items-center py-16">
+                <div class="relative w-20 h-20 mb-8">
+                    <div class="absolute inset-0 rounded-full border-t-2 border-brand-gold animate-spin"></div>
+                    <div class="absolute inset-2 rounded-full border-r-2 border-white/20 animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+                    <div class="absolute inset-0 flex items-center justify-center text-brand-gold">
+                        <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </div>
+                </div>
+                <h2 class="text-2xl font-black text-white mb-2 tracking-tight">Securing Reward...</h2>
+                <p class="text-sm text-gray-400 font-medium">Writing verified rating to loyalty ledger.</p>
+            </div>
+
+            <div id="state-done" class="hidden flex-col items-center w-full">
+                <!-- Generous top & bottom breathing room around the glowing Star Crest -->
+                <div class="w-22 h-22 sm:w-24 sm:h-24 bg-gradient-to-b from-brand-gold/20 to-brand-gold/5 rounded-3xl flex items-center justify-center mt-3 mb-7 border border-brand-gold/40 relative shadow-[0_0_40px_rgba(232,192,100,0.22)] p-5">
+                    <div class="absolute inset-0 rounded-3xl bg-brand-gold/20 animate-ping opacity-25" style="animation-duration: 2.2s;"></div>
+                    <svg class="w-11 h-11 text-brand-gold relative z-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.912 5.813a2 2 0 001.275 1.275L21 12l-5.813 1.912a2 2 0 00-1.275 1.275L12 21l-1.912-5.813a2 2 0 00-1.275-1.275L3 12l5.813-1.912a2 2 0 001.275-1.275L12 3z"/></svg>
+                </div>
+
+                <h2 class="text-3xl sm:text-4xl font-black text-white mb-2.5 tracking-tight">Thank You!</h2>
+                <p class="text-xs sm:text-sm text-gray-400 mb-8 leading-relaxed max-w-[280px] mx-auto text-center">We have received your feedback and successfully updated your loyalty status.</p>
+
+                <!-- The Digital Receipt Card -->
+                <div class="glass-card p-6 sm:p-7 rounded-3xl w-full max-w-sm text-left border-brand-gold/40 shadow-[0_0_30px_rgba(232,192,100,0.1)] relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand-gold to-transparent opacity-70"></div>
+
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-2 h-2 rounded-full bg-success-green animate-pulse shadow-[0_0_10px_#4ade80]"></span>
+                        <p class="text-[10px] text-brand-gold font-black uppercase tracking-[0.2em] pt-0.5">Next Steps</p>
+                    </div>
+
+                    <p class="text-sm sm:text-[15px] text-gray-200 font-medium leading-relaxed mb-1">
+                        Check your inbox to view your current loyalty status. If you have unlocked a secret reward, please present the email and code to our staff.
+                    </p>
+
+                    <div class="mt-5 pt-4 border-t border-white/10 flex items-start gap-1.5">
+                        <span class="text-brand-gold font-bold text-[13px] leading-none pt-[1px]">*</span>
+                        <p class="text-[10px] text-[#A3A3A3] leading-relaxed font-medium m-0">
+                            Don't see the email? Please check your Promotions or Spam folder and mark it as 'Not Spam' to ensure you receive future rewards.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Positioned below the primary fold so the main viewport stays clean; visible when scrolling down -->
+                <div class="flex items-center justify-center gap-2 text-gray-400 bg-white/[0.03] px-5 py-3 rounded-full border border-white/10 shadow-inner mt-16 mb-8 opacity-80">
+                    <svg class="w-4 h-4 text-success-green shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="text-[10px] font-black uppercase tracking-[0.15em] pt-0.5">You may safely close this page</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTION BAR -->
+    <div id="action-bar" class="fixed bottom-0 left-0 right-0 p-3.5 sm:p-5 bg-gradient-to-t from-black via-[#0a0a0a]/95 to-transparent z-50 hidden pointer-events-none">
+        <div class="max-w-xl mx-auto flex gap-3 pointer-events-auto items-center">
+            <button id="btn-prev-dish" onclick="navigateDish(-1)" class="w-13 h-13 sm:w-14 sm:h-14 shrink-0 rounded-2xl bg-[#141416] border border-white/15 flex items-center justify-center text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-300 hidden active:scale-95 shadow-lg" style="width:52px;height:52px;" aria-label="Go Back">
+                <svg class="w-6 h-6 pr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+
+            <button id="btn-next-dish" onclick="navigateDish(1)" class="flex-1 rounded-2xl font-black text-black btn-gold-ignite uppercase tracking-widest text-xs sm:text-sm transition-all duration-300 hidden hover:scale-[1.01] active:scale-95" style="height:52px;">
+                Next Dish
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT ENGINE -->
+    <script>
+        // ==========================================
+        // ⚙️ CONFIGURATION
+        // ==========================================
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx6OcCIN6tzgPCvuwk3NWfAdzOTKUy06ifHB3OsNEtY3KhHjP55ehKh0HSMvTEaDtsJ/exec"; 
+
+        // 📍 ON-PREMISE GPS GEOFENCE CONFIGURATION
+        // Set enabled: true and paste the restaurant's Google Maps Latitude & Longitude.
+        // (Tester email testimpact7099@gmail.com automatically bypasses this so you can test from home!)
+        // 📍 ON-PREMISE GPS GEOFENCE CONFIGURATION
+        // Paste ANY Google Maps link for each restaurant (copied from browser address bar OR phone Share button).
+        // (Tester email testimpact7099@gmail.com automatically bypasses this so you can test from home!)
+        const VENUE_GEOFENCE = {
+            enabled: true,
+            radiusMeters: 500, // 500m radius + indoor accuracy cushion prevents false blocks inside the restaurant
+            locations: {
+                "Temp New": "https://maps.app.goo.gl/kFrNLRhwyycqwB6o7" // <-- Paste your restaurant's Google Maps link here
+            }
+        };
+
+        const MENU_CONFIG = [
+            { type: 'signature', name: "Fish mango curry" },
+            { type: 'signature', name: "Chicken Biriyani" },
+            { type: 'signature', name: "Malai Chicken" },
+            { type: 'signature', name: "Kerala Chicken" },
+            { type: 'custom', name: "Custom 1", prompt: "Did you try anything else?" },
+            { type: 'custom', name: "Custom 2", prompt: "Any other dish you'd like to rate?" }
+        ];
+
+        // 100% synced with the Restaurant Owner Dashboard AI Keyword Dictionary
+        const STAR_SENTIMENTS = {
+            5: { text: "Absolute Perfection! ★", color: "text-success-green border-success-green/35 bg-success-green/10", chips: ["Delicious", "Good portion", "Served hot", "Great service", "Worth it"] },
+            4: { text: "Really Loved It!", color: "text-brand-gold border-brand-gold/35 bg-brand-gold/10", chips: ["Tasty", "Good portion", "Very fresh", "Value for money", "Good service"] },
+            3: { text: "Good, Could Be Better", color: "text-brand-gold border-brand-gold/30 bg-brand-gold/10", chips: ["Below average", "Small portion", "Too salty", "Too spicy", "Overpriced"] },
+            2: { text: "Below Expectations", color: "text-brand-red border-brand-red/35 bg-brand-red/10", chips: ["Bland", "Small portion", "Served cold", "Overcooked", "Too oily"] },
+            1: { text: "Needs Urgent Attention", color: "text-brand-red border-brand-red/40 bg-brand-red/15", chips: ["Worst dish", "Small portion", "Served cold", "Undercooked", "Too oily"] }
+        };
+
+        const State = {
+            view: 'setup', currentDishIndex: 0, 
+            slideDirection: 'next',
+            payload: { restaurant: "", email: "", billNumber: "", ratings: [] },
+            globalMenu: []
+        };
+
+        function saveDraft() {
+            try { sessionStorage.setItem('impact_draft', JSON.stringify(State)); } catch (e) {}
+        }
+
+        async function fetchMenuData() {
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: "get_menu" })
+                });
+                const res = await response.json();
+                if (res.success && res.menu) {
+                    State.globalMenu = res.menu;
+                    saveDraft();
+                }
+            } catch (e) {
+                console.log("Menu pre-fetch failed silently.");
+            }
+        }
+
+        // Real-time network connectivity listener with reactive pill styling
+        function updateNetworkStatus() {
+            const dot = document.getElementById('network-dot');
+            const txt = document.getElementById('network-text');
+            const pill = dot?.parentElement;
+            if (!dot || !txt || !pill) return;
+            if (navigator.onLine) {
+                dot.className = "w-1.5 h-1.5 rounded-full bg-success-green animate-pulse";
+                txt.className = "text-[9px] font-black text-gray-300 uppercase tracking-[0.13em] tabular-nums whitespace-nowrap";
+                pill.className = "inline-flex items-center gap-1.5 bg-[#141416] border border-white/10 px-3 py-1 rounded-full shadow-sm transition-colors duration-300";
+                txt.innerText = "Online";
+            } else {
+                dot.className = "w-1.5 h-1.5 rounded-full bg-brand-red animate-pulse";
+                txt.className = "text-[9px] font-black text-red-200 uppercase tracking-[0.13em] tabular-nums whitespace-nowrap";
+                pill.className = "inline-flex items-center gap-1.5 bg-brand-red/10 border border-brand-red/40 px-3 py-1 rounded-full shadow-sm transition-colors duration-300";
+                txt.innerText = "Offline";
+            }
+        }
+        window.addEventListener('online', updateNetworkStatus);
+        window.addEventListener('offline', updateNetworkStatus);
+
+        // Automatically close custom dish dropdown if user taps outside
+        document.addEventListener('click', (e) => {
+            if (State.view !== 'rating') return;
+            const dropdown = document.getElementById(`custom-dropdown-${State.currentDishIndex}`);
+            const input = document.getElementById(`custom-name-${State.currentDishIndex}`);
+            if (dropdown && !dropdown.classList.contains('hidden')) {
+                if (input && !input.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            }
+        });
+
+        function initVenueSelector() {
+            const restoSelect = document.getElementById('setup-resto');
+            const validOptions = Array.from(restoSelect.options).filter(opt => !opt.disabled && opt.value !== "");
+            const selectWrapper = document.getElementById('resto-select-wrapper');
+            const featuredCard = document.getElementById('resto-featured-card');
+            const featuredName = document.getElementById('resto-featured-name');
+            const locLabel = document.getElementById('location-label');
+
+            if (validOptions.length === 1) {
+                const singleName = validOptions[0].value;
+                restoSelect.value = singleName;
+                State.payload.restaurant = singleName;
+                if (selectWrapper && featuredCard && featuredName) {
+                    selectWrapper.classList.add('hidden');
+                    featuredName.innerText = singleName;
+                    featuredCard.classList.remove('hidden');
+                    featuredCard.classList.add('flex');
+                    if (locLabel) locLabel.classList.add('hidden');
+                }
+            } else if (validOptions.length > 1) {
+                if (selectWrapper && featuredCard) {
+                    featuredCard.classList.add('hidden');
+                    featuredCard.classList.remove('flex');
+                    selectWrapper.classList.remove('hidden');
+                    if (locLabel) locLabel.classList.remove('hidden');
+                }
+            }
+        }
+        initVenueSelector();
+        updateNetworkStatus();
+
+        window.onload = () => {
+            updateNetworkStatus();
+            initVenueSelector();
+
+            const savedDraft = sessionStorage.getItem('impact_draft');
+            if (savedDraft) {
+                try {
+                    const parsed = JSON.parse(savedDraft);
+                    if (parsed && parsed.payload) {
+                        State.payload = parsed.payload;
+                        State.currentDishIndex = parsed.currentDishIndex || 0;
+                        State.view = parsed.view || 'setup';
+                        State.globalMenu = parsed.globalMenu || [];
+
+                        if(State.payload.email) document.getElementById('setup-email').value = State.payload.email;
+                        if(State.payload.billNumber) document.getElementById('setup-bill').value = State.payload.billNumber;
+
+                        if (State.view === 'rating') {
+                            document.getElementById('action-bar').classList.remove('hidden');
+                            renderDishCard();
+                        }
+                        switchView(State.view);
+                    }
+                } catch(e) {}
+            } else {
+                switchView('setup');
+            }
+            validateSetup(false);
+
+            if (State.globalMenu.length === 0) fetchMenuData();
+        };
+
+        function getStarHTML(score) {
+            return `<svg class="star-svg" onclick="setRating(${score})" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+        }
+
+        try {
+            if (!localStorage.getItem("impact_device_id")) {
+                localStorage.setItem("impact_device_id", Math.random().toString(36).substring(2) + Date.now().toString(36));
+            }
+        } catch (e) {}
+
+        function isValidEmail(e) { return /^[^@]+@[^@]+\.[a-zA-Z]{2,}$/.test(String(e).toLowerCase()); }
+        function getRatedCount() { return State.payload.ratings.filter(r => r.rating > 0 && r.name.length > 2).length; }
+
+        function updateSegmentedProgress(activeDishCount) {
+            for (let i = 0; i < 6; i++) {
+                const seg = document.getElementById(`seg-${i}`);
+                if (!seg) continue;
+                seg.style.width = i < activeDishCount ? '100%' : '0%';
+            }
+        }
+
+        function switchView(newView) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${newView}`).classList.add('active');
+            State.view = newView;
+
+            if (newView === 'setup') {
+                updateSegmentedProgress(0);
+            } else {
+                if (newView === 'otp') {
+                    updateSegmentedProgress(0);
+                } else if (newView === 'rating') {
+                    updateSegmentedProgress(State.currentDishIndex + 1);
+                } else {
+                    updateSegmentedProgress(6);
+                }
+            }
+
+            const appContainer = document.getElementById('app-container');
+            if (newView === 'rating') {
+                appContainer.classList.add('pb-[96px]');
+                appContainer.classList.remove('pb-8');
+            } else {
+                appContainer.classList.remove('pb-[96px]');
+                appContainer.classList.add('pb-8');
+            }
+
+            appContainer.scrollTo({ top: 0, behavior: 'instant' });
+        }
+
+        let cooldownTimer = null;
+        let cooldownSecondsLeft = 0;
+        let lastOtpEmail = "";
+
+        function stopOtpCooldown() {
+            clearInterval(cooldownTimer);
+            cooldownTimer = null;
+            cooldownSecondsLeft = 0;
+            const btnStart = document.getElementById('btn-start');
+            const btnResend = document.getElementById('btn-resend-otp');
+            if (btnStart) btnStart.innerText = "Verify Identity";
+            if (btnResend) {
+                btnResend.innerText = "Resend Code";
+                btnResend.disabled = false;
+            }
+        }
+
+        function validateSetup(showInlineErrors = false) {
+            const resto = document.getElementById('setup-resto').value;
+            const emailEl = document.getElementById('setup-email');
+            const billEl = document.getElementById('setup-bill');
+            const email = emailEl.value; 
+            const bill = billEl.value;
+            const btn = document.getElementById('btn-start');
+
+            if (cooldownSecondsLeft > 0 && email !== lastOtpEmail) {
+                stopOtpCooldown();
+            }
+
+            const emailValid = email.length > 0 && isValidEmail(email);
+            if (emailValid) {
+                document.getElementById('email-error').classList.add('hidden'); 
+                emailEl.classList.remove('border-brand-red');
+            } else if (showInlineErrors && email.length > 0) {
+                document.getElementById('email-error').classList.remove('hidden'); 
+                emailEl.classList.add('border-brand-red');
+            } else if (email.length === 0) {
+                document.getElementById('email-error').classList.add('hidden'); 
+                emailEl.classList.remove('border-brand-red');
+            }
+
+            const billValid = bill.length === 4;
+            if (billValid) {
+                document.getElementById('bill-error').classList.add('hidden'); 
+                billEl.classList.remove('border-brand-red');
+            } else if (showInlineErrors && bill.length > 0) {
+                document.getElementById('bill-error').classList.remove('hidden'); 
+                billEl.classList.add('border-brand-red');
+            } else if (bill.length === 0) {
+                document.getElementById('bill-error').classList.add('hidden'); 
+                billEl.classList.remove('border-brand-red');
+            }
+
+            if (resto !== "" && emailValid && billValid) {
+                State.payload.restaurant = resto; 
+                State.payload.email = email; 
+                State.payload.billNumber = bill;
+
+                if (cooldownSecondsLeft > 0 && email === lastOtpEmail) {
+                    btn.disabled = true;
+                    btn.className = "w-full py-4 rounded-2xl font-black text-gray-500 bg-white/5 border border-white/10 cursor-not-allowed uppercase tracking-widest text-xs sm:text-sm transition-all duration-300 tabular-nums";
+                } else {
+                    btn.disabled = false; 
+                    btn.innerText = "Verify Identity";
+                    btn.className = "w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs sm:text-sm transition-all duration-300 btn-gold-ignite hover:scale-[1.01] active:scale-95";
+                }
+            } else {
+                btn.disabled = true; 
+                if (cooldownSecondsLeft === 0) btn.innerText = "Verify Identity";
+                btn.className = "w-full py-4 rounded-2xl font-black text-gray-500 bg-white/5 border border-white/10 cursor-not-allowed uppercase tracking-widest text-xs sm:text-sm transition-all duration-300";
+            }
+            saveDraft();
+        }
+
+        // ==========================================
+        // OTP ENGINE 
+        // ==========================================
+        function resetOtpUI() {
+            const errEl = document.getElementById('otp-error');
+            if (errEl) errEl.classList.add('hidden');
+            document.querySelectorAll('.otp-input').forEach(input => {
+                input.value = '';
+                input.classList.remove('opacity-50', 'pointer-events-none');
+            });
+            const submitBtn = document.getElementById('btn-submit-otp');
+            if (submitBtn) submitBtn.innerText = "Verify Code";
+            updateOtpButtonState();
+        }
+
+        function startOtpCooldown(seconds) {
+            const btnStart = document.getElementById('btn-start');
+            const btnResend = document.getElementById('btn-resend-otp');
+            lastOtpEmail = State.payload.email;
+            cooldownSecondsLeft = seconds;
+
+            btnStart.disabled = true;
+            if(btnResend) btnResend.disabled = true;
+
+            btnStart.className = "w-full py-4 rounded-2xl font-black text-gray-500 bg-white/5 border border-white/10 cursor-not-allowed uppercase tracking-widest text-xs sm:text-sm transition-all duration-300 tabular-nums";
+            btnStart.innerText = `Wait ${cooldownSecondsLeft}s`;
+            if(btnResend) btnResend.innerText = `Resend in ${cooldownSecondsLeft}s`;
+
+            clearInterval(cooldownTimer);
+            cooldownTimer = setInterval(() => {
+                cooldownSecondsLeft--;
+                if (cooldownSecondsLeft > 0) {
+                    btnStart.innerText = `Wait ${cooldownSecondsLeft}s`;
+                    if(btnResend) btnResend.innerText = `Resend in ${cooldownSecondsLeft}s`;
+                } else {
+                    stopOtpCooldown();
+                    validateSetup(false);
+                }
+            }, 1000);
+        }
+
+        // Spherical Haversine distance calculator (in meters)
+        function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
+            const R = 6371000;
+            const toRad = deg => deg * (Math.PI / 180);
+            const dLat = toRad(lat2 - lat1);
+            const dLon = toRad(lon2 - lon1);
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+
+        // Extracts { lat, lng } from any Google Maps URL, coordinate string, or object
+        function extractCoordsFromMapInput(input) {
+            if (!input) return null;
+            if (typeof input === 'object' && typeof input.lat === 'number' && typeof input.lng === 'number') {
+                return { lat: input.lat, lng: input.lng };
+            }
+            const str = String(input).trim();
+            if (!str) return null;
+
+            // 1. Exact building pin in Google Maps URLs (!3dLAT!4dLNG)
+            let m = str.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+            if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+
+            // 2. Viewport center in Google Maps URLs (@LAT,LNG)
+            m = str.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+            if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+
+            // 3. Query parameter in Google Maps URLs (?q=LAT,LNG or &ll=LAT,LNG or &query=LAT,LNG)
+            m = str.match(/[?&](?:q|query|ll|center|daddr)=(-?\d+\.\d+)(?:,|%2C|\+|\s+)(-?\d+\.\d+)/i);
+            if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+
+            // 4. Raw "LAT, LNG" string
+            m = str.match(/^(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)$/);
+            if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+
+            return null;
+        }
+
+        // Resolves a restaurant's Google Maps link (including shortened maps.app.goo.gl links) into { lat, lng }
+        async function getTargetVenueCoords(resto) {
+            const rawConfig = VENUE_GEOFENCE.locations[resto];
+            if (!rawConfig) return null;
+
+            const directCoords = extractCoordsFromMapInput(rawConfig);
+            if (directCoords) return directCoords;
+
+            // If it's a shortened link (e.g., https://maps.app.goo.gl/...), check local cache or ask Code.gs to unshorten it
+            const cacheKey = "impact_geo_" + btoa(encodeURIComponent(String(rawConfig))).slice(0, 24);
+            try {
+                const cached = localStorage.getItem(cacheKey);
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    if (parsed && typeof parsed.lat === 'number') return parsed;
+                }
+            } catch (e) {}
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: "resolve_map_link", mapUrl: String(rawConfig).trim() })
+                });
+                const res = await response.json();
+                if (res.success && typeof res.lat === 'number' && typeof res.lng === 'number') {
+                    const resolved = { lat: res.lat, lng: res.lng };
+                    try { localStorage.setItem(cacheKey, JSON.stringify(resolved)); } catch (e) {}
+                    return resolved;
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        // On-Premise GPS Geofence Verifier (Blocks manipulators opening copied links from home)
+        async function verifyOnPremiseLocation() {
+            const email = (State.payload.email || "").toLowerCase().trim();
+            const resto = State.payload.restaurant;
+
+            // Bypass if disabled or developer test account (testimpact7099@gmail.com)
+            if (!VENUE_GEOFENCE.enabled || email.startsWith("testimpact7099")) {
+                return { allowed: true };
+            }
+
+            const targetCoords = await getTargetVenueCoords(resto);
+            if (!targetCoords) {
+                return { allowed: true };
+            }
+
+            // Reuse verified session coordinates if already checked during this session
+            if (State.payload.gps && State.payload.gps.verified) {
+                return { allowed: true };
+            }
+
+            if (!navigator.geolocation) {
+                return { allowed: false, message: "Location services are not supported by this browser. Please open the link in Chrome or Safari at the restaurant." };
+            }
+
+            return new Promise((resolve) => {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        const userLat = pos.coords.latitude;
+                        const userLng = pos.coords.longitude;
+                        const accuracy = pos.coords.accuracy || 0;
+                        const rawDist = calculateDistanceMeters(userLat, userLng, targetCoords.lat, targetCoords.lng);
+                        // Subtract indoor GPS drift (up to 250m) so guests inside the building are never falsely blocked
+                        const effectiveDist = Math.max(0, rawDist - Math.min(accuracy, 250));
+
+                        if (effectiveDist <= VENUE_GEOFENCE.radiusMeters) {
+                            State.payload.gps = { lat: userLat, lng: userLng, accuracy: Math.round(accuracy), verified: true };
+                            saveDraft();
+                            resolve({ allowed: true });
+                        } else {
+                            resolve({
+                                allowed: false,
+                                message: `On-Premise Verification: You appear to be away from ${resto}. Please scan the QR code while dining at the restaurant.`
+                            });
+                        }
+                    },
+                    (err) => {
+                        // If testing locally via WhatsApp content:// previewer where Android blocks geolocation, allow developer testing
+                        if (window.location.protocol === 'content:' || window.location.protocol === 'file:') {
+                            State.payload.gps = { lat: targetCoords.lat, lng: targetCoords.lng, accuracy: 10, verified: true };
+                            resolve({ allowed: true });
+                            return;
+                        }
+                        if (err.code === 1) {
+                            resolve({ allowed: false, message: `Location permission is required to verify your visit at ${resto}. Please allow location access in your browser and try again.` });
+                        } else {
+                            resolve({ allowed: false, message: "Unable to verify your location. Please ensure GPS/Location is turned on and try again." });
+                        }
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 120000 }
+                );
+            });
+        }
+
+        async function requestOTP() {
+            if (!isValidEmail(document.getElementById('setup-email').value)) {
+                validateSetup(true);
+                return;
+            }
+            if (!navigator.onLine) {
+                updateNetworkStatus();
+                showNotification("You appear to be offline. Please check your internet connection.", "error");
+                return;
+            }
+            const btn = document.getElementById('btn-start');
+            const btnResend = document.getElementById('btn-resend-otp');
+
+            // Clear any previous OTP error banner before requesting a new code
+            document.getElementById('otp-error')?.classList.add('hidden');
+
+            // 1. Verify On-Premise GPS Geofence before sending OTP
+            btn.innerText = "Verifying Location...";
+            btn.classList.add('animate-pulse');
+            const geoCheck = await verifyOnPremiseLocation();
+            if (!geoCheck.allowed) {
+                btn.classList.remove('animate-pulse');
+                btn.innerText = "Verify Identity";
+                showNotification(geoCheck.message, "error");
+                return;
+            }
+
+            btn.innerText = "Sending Secure Code...";
+            if(btnResend) btnResend.innerText = "Sending...";
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 25000);
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: "request_otp",
+                        email: State.payload.email,
+                        restaurant: State.payload.restaurant,
+                        gps: State.payload.gps || null
+                    }),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+                const res = await response.json();
+
+                if (res.success) {
+                    btn.classList.remove('animate-pulse');
+                    resetOtpUI();
+                    document.getElementById('otp-display-email').innerText = State.payload.email;
+
+                    if (res.isCooldown) {
+                        showNotification("A code was already sent recently. Please check your inbox or spam folder.", "gold");
+                    }
+
+                    if (State.view !== 'otp') {
+                        switchView('otp');
+                    }
+                    setTimeout(() => document.getElementById('otp-1').focus(), 350); 
+
+                    startOtpCooldown(60); 
+                } else {
+                    btn.classList.remove('animate-pulse');
+
+                    let displayMessage = res.message || "Unable to send code.";
+                    if (displayMessage.toLowerCase().includes("maximum") || displayMessage.toLowerCase().includes("limit")) {
+                        displayMessage = "Too many attempts. Please wait a while or use a different email address.";
+                    }
+
+                    showNotification(displayMessage, 'error');
+
+                    if (res.message && res.message.includes("60 seconds")) {
+                        startOtpCooldown(60);
+                    } else {
+                        btn.innerText = "Limit Reached";
+                        if(btnResend) btnResend.innerText = "Limit Reached";
+                    }
+                }
+            } catch (e) {
+                clearTimeout(timeoutId);
+                let errorMsg = e.message || String(e);
+
+                if (e.name === 'AbortError') {
+                    showNotification("Network timeout. Servers are busy. Please try again in a few seconds.", "error");
+                } else if (errorMsg.includes("Unexpected token '<'") || errorMsg.includes("Unexpected token <")) {
+                    showNotification("Deployment configuration mismatch detected. Please re-deploy backend container.", "error");
+                } else {
+                    showNotification("System Connection Error. Please verify your internet connection.", "error");
+                }
+
+                btn.innerText = "Verify Identity";
+                btn.classList.remove('animate-pulse');
+                if(btnResend) btnResend.innerText = "Resend Code";
+            }
+        }
+
+        function triggerManualVerify() {
+            const pin = document.getElementById('otp-1').value + document.getElementById('otp-2').value + document.getElementById('otp-3').value + document.getElementById('otp-4').value;
+            if (pin.length === 4) verifyOTP(pin);
+        }
+
+        function updateOtpButtonState() {
+            const pin = document.getElementById('otp-1').value + document.getElementById('otp-2').value + document.getElementById('otp-3').value + document.getElementById('otp-4').value;
+            const submitBtn = document.getElementById('btn-submit-otp');
+            if (pin.length > 0) {
+                submitBtn.disabled = false;
+                submitBtn.className = "w-full py-3.5 rounded-xl font-black uppercase tracking-widest text-xs sm:text-sm transition-all duration-300 btn-gold-ignite";
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.className = "w-full py-3.5 rounded-xl font-black text-gray-500 bg-white/10 cursor-not-allowed uppercase tracking-widest text-xs sm:text-sm transition-all duration-300";
+            }
+        }
+
+        function handleOtpInput(element, position) {
+            element.value = element.value.replace(/[^0-9]/g, '').slice(-1);
+            updateOtpButtonState();
+
+            if (element.value.length === 1 && position < 4) {
+                document.getElementById(`otp-${position + 1}`).focus();
+            }
+            const fullPin = document.getElementById('otp-1').value + document.getElementById('otp-2').value + document.getElementById('otp-3').value + document.getElementById('otp-4').value;
+            if (fullPin.length === 4) {
+                triggerManualVerify();
+            }
+        }
+
+        function handleOtpKeydown(element, position, e) {
+            if (e.key === "Backspace" && element.value === "" && position > 1) {
+                const prev = document.getElementById(`otp-${position - 1}`);
+                prev.value = "";
+                prev.focus();
+                updateOtpButtonState();
+            }
+        }
+
+        function handleOtpPaste(e) {
+            const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '').slice(0, 4);
+            if (pasted.length > 0) {
+                e.preventDefault();
+                for (let i = 0; i < 4; i++) {
+                    const box = document.getElementById(`otp-${i + 1}`);
+                    if (box) box.value = pasted[i] || '';
+                }
+                updateOtpButtonState();
+                if (pasted.length === 4) triggerManualVerify();
+            }
+        }
+
+        async function verifyOTP(pin) {
+            if (!navigator.onLine) {
+                updateNetworkStatus();
+                showNotification("You appear to be offline. Please check your internet connection.", "error");
+                return;
+            }
+            document.getElementById('otp-error').classList.add('hidden');
+            const submitBtn = document.getElementById('btn-submit-otp');
+
+            const otpInputs = document.querySelectorAll('.otp-input');
+            otpInputs.forEach(input => input.classList.add('opacity-50', 'pointer-events-none'));
+            submitBtn.innerText = "Verifying...";
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ action: "verify_otp", email: State.payload.email, pinAttempt: pin }),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+                const res = await response.json();
+
+                if (res.success) {
+                    document.getElementById('action-bar').classList.remove('hidden');
+                    State.slideDirection = 'next';
+                    renderDishCard();
+                    switchView('rating');
+                    saveDraft();
+                } else {
+                    triggerHaptic('heavy');
+                    const otpWrapper = document.getElementById('otp-input-wrapper');
+                    otpWrapper.classList.add('animate-shake');
+                    setTimeout(() => otpWrapper.classList.remove('animate-shake'), 400);
+
+                    otpInputs.forEach(input => input.classList.remove('opacity-50', 'pointer-events-none'));
+
+                    document.getElementById('otp-error').innerText = res.message || "Invalid Code. Try again.";
+                    document.getElementById('otp-error').classList.remove('hidden');
+                    document.getElementById('otp-1').value = ''; document.getElementById('otp-2').value = ''; document.getElementById('otp-3').value = ''; document.getElementById('otp-4').value = '';
+
+                    submitBtn.innerText = "Verify Code";
+                    updateOtpButtonState();
+                    document.getElementById('otp-1').focus();
+                }
+            } catch (e) {
+                clearTimeout(timeoutId);
+                let errorMsg = e.message || String(e);
+
+                otpInputs.forEach(input => input.classList.remove('opacity-50', 'pointer-events-none'));
+                submitBtn.innerText = "Verify Code";
+                updateOtpButtonState();
+
+                if (e.name === 'AbortError') {
+                    showNotification("Network timeout. Please try again in a few seconds.", "error");
+                } else if (errorMsg.includes("Unexpected token '<'") || errorMsg.includes("Unexpected token <")) {
+                    showNotification("Deployment configuration mismatch detected. Please re-deploy backend container.", "error");
+                } else {
+                    showNotification("Network timeout encountered while verifying code.", "error");
+                }
+            }
+        }
+
+        // ==========================================
+        // DYNAMIC WIZARD RENDERER & NAVIGATION
+        // ==========================================
+        function resetScrollAfterKeyboard() {
+            setTimeout(() => {
+                const appContainer = document.getElementById('app-container');
+                if (appContainer && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+                    appContainer.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            }, 120);
+        }
+
+        function handleCustomInputBlur(index) {
+            setTimeout(() => {
+                const dropdown = document.getElementById(`custom-dropdown-${index}`);
+                const input = document.getElementById(`custom-name-${index}`);
+                if (input) {
+                    const typed = input.value.trim();
+                    const exactMatch = State.globalMenu.find(d => d.toLowerCase() === typed.toLowerCase());
+                    if (exactMatch) {
+                        input.value = exactMatch;
+                        State.payload.ratings[index].name = exactMatch;
+                    }
+                }
+                if (dropdown) dropdown.classList.add('hidden');
+                checkCustomInput();
+                resetScrollAfterKeyboard();
+            }, 180);
+        }
+
+        function renderSentimentAndChips(idx, score) {
+            const pillEl = document.getElementById(`sentiment-pill-${idx}`);
+            const chipsEl = document.getElementById(`quick-chips-${idx}`);
+            if (!pillEl || !chipsEl || !STAR_SENTIMENTS[score]) return;
+
+            const cfg = STAR_SENTIMENTS[score];
+            pillEl.className = `inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest mt-2.5 transition-all ${cfg.color}`;
+            pillEl.innerText = cfg.text;
+            pillEl.classList.remove('hidden');
+
+            const currentComment = (document.getElementById(`dish-comment-${idx}`)?.value || '').toLowerCase();
+            chipsEl.innerHTML = cfg.chips.map(chip => {
+                const isUsed = currentComment.includes(chip.toLowerCase());
+                const chipClass = isUsed
+                    ? 'bg-brand-gold text-black border-brand-gold font-black shadow-[0_0_10px_rgba(232,192,100,0.3)]'
+                    : 'bg-white/[0.04] text-gray-300 border-white/10 hover:border-brand-gold/40 font-semibold';
+                return `<button type="button" onclick="appendQuickChip(${idx}, '${chip}')" class="${chipClass} border text-[10px] px-2.5 py-1 rounded-full transition-all active:scale-95">${isUsed ? '✓' : '+'} ${chip}</button>`;
+            }).join('');
+        }
+
+        function appendQuickChip(idx, chipText) {
+            triggerHaptic('light');
+            const textarea = document.getElementById(`dish-comment-${idx}`);
+            if (!textarea) return;
+            let current = textarea.value;
+            const escaped = chipText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(^|,\\s*|\\s+)${escaped}(?=,|\\s|$)`, 'i');
+
+            if (regex.test(current)) {
+                current = current
+                    .replace(new RegExp(`${escaped},\\s*`, 'ig'), '')
+                    .replace(new RegExp(`,\\s*${escaped}`, 'ig'), '')
+                    .replace(new RegExp(escaped, 'ig'), '')
+                    .replace(/^,\s*/, '')
+                    .replace(/\s+,/g, ',')
+                    .trim();
+                textarea.value = current;
+            } else {
+                let trimmed = current.trim();
+                const sep = trimmed.length > 0 ? (/[.,!]$/.test(trimmed) ? ' ' : ', ') : '';
+                if ((trimmed + sep + chipText).length <= 200) {
+                    textarea.value = trimmed + sep + chipText;
+                }
+            }
+            State.payload.ratings[idx].comment = textarea.value;
+            updateCharCount(idx);
+            saveDraft();
+            renderSentimentAndChips(idx, State.payload.ratings[idx].rating);
+        }
+
+        function renderDishCard() {
+            const container = document.getElementById('dynamic-dish-container');
+            const item = MENU_CONFIG[State.currentDishIndex];
+            const isLast = State.currentDishIndex === MENU_CONFIG.length - 1;
+            const currentRated = getRatedCount();
+            const nextBtn = document.getElementById('btn-next-dish');
+            const prevBtn = document.getElementById('btn-prev-dish');
+            const slideAnimClass = State.slideDirection === 'prev' ? 'anim-slide-prev' : 'anim-slide-next';
+
+            if (!State.payload.ratings[State.currentDishIndex]) {
+                State.payload.ratings[State.currentDishIndex] = { name: item.type === 'signature' ? item.name : "", rating: 0, comment: "", type: item.type };
+            }
+
+            if (State.currentDishIndex > 0) {
+                prevBtn.classList.remove('hidden');
+            } else {
+                prevBtn.classList.add('hidden');
+            }
+
+            let html = '';
+            if (item.type === 'signature') {
+                html = `
+                <div class="glass-card rounded-3xl p-5 sm:p-7 w-full ${slideAnimClass}">
+                    <div class="inline-flex items-center gap-1.5 bg-brand-gold/10 border border-brand-gold/30 rounded-full px-2.5 py-0.5 mb-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-brand-gold"></span>
+                        <span class="text-[9px] text-brand-gold font-black uppercase tracking-widest">Signature Dish ${State.currentDishIndex + 1} of 4</span>
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-black text-white mb-4 leading-snug">Did you try our famous <br><span class="text-brand-gold text-2xl sm:text-3xl">${item.name}</span>?</h2>
+                    <div class="flex gap-3 mb-1.5" id="choice-container-${State.currentDishIndex}">
+                        <button onclick="handleChoice('no', event)" class="choice-btn no whitespace-nowrap">
+                            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            <span>No, Skip</span>
+                        </button>
+                        <button onclick="handleChoice('yes', event)" class="choice-btn yes whitespace-nowrap">
+                            <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            <span>Yes, Tried It</span>
+                        </button>
+                    </div>
+
+                    <div id="evaluation-box-${State.currentDishIndex}" class="overflow-hidden max-h-0 opacity-0 transition-all duration-500 ease-in-out">
+                        <div class="pt-3 pb-0.5 text-center">
+                            <div class="w-full h-px bg-white/10 mb-3.5"></div>
+                            <p class="text-center text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2.5">Tap a star to rate</p>
+                            <div class="star-container" data-rating="0" id="stars-${State.currentDishIndex}">
+                                ${getStarHTML(5)}${getStarHTML(4)}${getStarHTML(3)}${getStarHTML(2)}${getStarHTML(1)}
+                            </div>
+                            <div id="sentiment-pill-${State.currentDishIndex}" class="hidden"></div>
+
+                            <div id="comment-box-${State.currentDishIndex}" class="hidden mt-4 text-left relative">
+                                <div class="text-[9.5px] font-bold uppercase tracking-wider text-gray-400 mb-1.5 pl-1">Tap quick tags or write your own (Optional):</div>
+                                <div id="quick-chips-${State.currentDishIndex}" class="flex flex-wrap gap-1.5 mb-2"></div>
+                                <div class="relative">
+                                    <textarea id="dish-comment-${State.currentDishIndex}" rows="2" maxlength="200" placeholder="Any specific thoughts for the chef? (Optional)" oninput="updateCharCount(${State.currentDishIndex})" onblur="resetScrollAfterKeyboard()" class="w-full bg-black/50 border border-white/15 text-white rounded-2xl text-[13px] sm:text-sm pt-3 px-4 pb-7 text-left resize-none focus:border-brand-gold outline-none transition-all duration-300 leading-relaxed block box-border break-words"></textarea>
+                                    <span id="char-count-${State.currentDishIndex}" class="absolute bottom-2 right-3.5 text-[10px] font-black text-gray-500 transition-colors duration-300 pointer-events-none tabular-nums">200 left</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+                nextBtn.classList.add('hidden');
+            } else {
+                let mustRateWarning = (isLast && currentRated === 0) ? `
+                    <div class="mt-4 p-3 rounded-xl bg-brand-red/10 border border-brand-red/30 flex items-center justify-center gap-2 text-brand-red text-[10.5px] font-bold uppercase tracking-wider">
+                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        <span>Please rate at least 1 dish to unlock your reward</span>
+                    </div>` : "";
+
+                html = `
+                <div class="glass-card rounded-3xl p-5 sm:p-7 w-full ${slideAnimClass} relative">
+                    <div class="inline-flex items-center gap-1.5 bg-white/[0.05] border border-white/10 rounded-full px-2.5 py-0.5 mb-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-brand-gold"></span>
+                        <span class="text-[9px] text-brand-gold font-black uppercase tracking-widest">Rate More Dishes</span>
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-black text-white mb-4 leading-snug">${item.prompt}</h2>
+
+                    <div class="relative w-full mb-4 z-50 flex items-center">
+                        <input type="text" id="custom-name-${State.currentDishIndex}" name="dish_search_query" role="combobox" aria-autocomplete="list" placeholder="Search or type dish name..." autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" maxlength="50" class="font-semibold text-base pr-10" oninput="filterCustomMenu(${State.currentDishIndex})" onblur="handleCustomInputBlur(${State.currentDishIndex})">
+                        <button type="button" id="clear-custom-${State.currentDishIndex}" onclick="clearCustomDish(${State.currentDishIndex})" class="hidden absolute right-3.5 w-6 h-6 rounded-full bg-white/10 text-gray-300 hover:text-white flex items-center justify-center text-sm leading-none">&times;</button>
+                        <div id="custom-dropdown-${State.currentDishIndex}" class="absolute left-0 right-0 top-[106%] max-h-[165px] overflow-y-auto rounded-xl border border-brand-gold/45 bg-[#0c0c0e] hidden hide-scroll shadow-[0_25px_60px_rgba(0,0,0,0.98)] z-50"></div>
+                    </div>
+
+                    <div id="evaluation-box-${State.currentDishIndex}" class="opacity-30 pointer-events-none transition-all duration-500 ease-in-out text-center">
+                        <p class="text-center text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Tap a star to rate</p>
+                        <div class="star-container" data-rating="0" id="stars-${State.currentDishIndex}">
+                            ${getStarHTML(5)}${getStarHTML(4)}${getStarHTML(3)}${getStarHTML(2)}${getStarHTML(1)}
+                        </div>
+                        <div id="sentiment-pill-${State.currentDishIndex}" class="hidden"></div>
+
+                        <div id="comment-box-${State.currentDishIndex}" class="hidden mt-3.5 text-left relative">
+                            <div class="text-[9.5px] font-bold uppercase tracking-wider text-gray-400 mb-1.5 pl-1">Tap quick tags or write your own (Optional):</div>
+                            <div id="quick-chips-${State.currentDishIndex}" class="flex flex-wrap gap-1.5 mb-2"></div>
+                            <div class="relative">
+                                <textarea id="dish-comment-${State.currentDishIndex}" rows="2" maxlength="200" placeholder="Any specific thoughts for the chef? (Optional)" oninput="updateCharCount(${State.currentDishIndex})" onblur="resetScrollAfterKeyboard()" class="w-full bg-black/50 border border-white/15 text-white rounded-2xl text-[13px] sm:text-sm pt-2.5 px-3.5 pb-6 text-left resize-none focus:border-brand-gold outline-none transition-all duration-300 leading-relaxed block box-border break-words"></textarea>
+                                <span id="char-count-${State.currentDishIndex}" class="absolute bottom-2 right-3.5 text-[10px] font-black text-gray-500 transition-colors duration-300 pointer-events-none tabular-nums">200 left</span>
+                            </div>
+                        </div>
+                    </div>
+                    ${mustRateWarning}
+                </div>`;
+
+                if (isLast && currentRated === 0) nextBtn.classList.add('hidden'); 
+                else nextBtn.classList.remove('hidden');
+                nextBtn.innerText = isLast ? "Claim Secret Reward" : "Skip Dish";
+            }
+            container.innerHTML = html;
+
+            const currentDraft = State.payload.ratings[State.currentDishIndex];
+            if (currentDraft && currentDraft.rating > 0) {
+                if (item.type === 'signature') {
+                    document.querySelector(`#choice-container-${State.currentDishIndex} .yes`).classList.add('active');
+                    const evalBox = document.getElementById(`evaluation-box-${State.currentDishIndex}`);
+                    evalBox.style.maxHeight = '520px';
+                    evalBox.classList.replace('opacity-0', 'opacity-100');
+                } else {
+                    document.getElementById(`custom-name-${State.currentDishIndex}`).value = currentDraft.name;
+                    document.getElementById(`clear-custom-${State.currentDishIndex}`)?.classList.remove('hidden');
+                    document.getElementById(`evaluation-box-${State.currentDishIndex}`).classList.remove('opacity-30', 'pointer-events-none');
+                }
+
+                document.getElementById(`stars-${State.currentDishIndex}`).setAttribute('data-rating', currentDraft.rating);
+                document.getElementById(`comment-box-${State.currentDishIndex}`).classList.remove('hidden');
+                if(currentDraft.comment) {
+                    document.getElementById(`dish-comment-${State.currentDishIndex}`).value = currentDraft.comment;
+                    updateCharCount(State.currentDishIndex);
+                }
+                renderSentimentAndChips(State.currentDishIndex, currentDraft.rating);
+
+                nextBtn.classList.remove('hidden');
+                nextBtn.innerText = isLast ? "Claim Secret Reward" : "Next Dish";
+            } else if (item.type !== 'signature' && currentDraft && currentDraft.name.length > 2) {
+                document.getElementById(`custom-name-${State.currentDishIndex}`).value = currentDraft.name;
+                document.getElementById(`clear-custom-${State.currentDishIndex}`)?.classList.remove('hidden');
+                document.getElementById(`evaluation-box-${State.currentDishIndex}`).classList.remove('opacity-30', 'pointer-events-none');
+                nextBtn.classList.add('hidden');
+            }
+        }
+
+        function handleChoice(choice, evt) {
+            triggerHaptic('light');
+            const evalBox = document.getElementById(`evaluation-box-${State.currentDishIndex}`);
+            const container = document.getElementById(`choice-container-${State.currentDishIndex}`);
+            container.querySelectorAll('.choice-btn').forEach(btn => btn.classList.remove('active'));
+            if (evt && evt.currentTarget) evt.currentTarget.classList.add('active');
+
+            if (choice === 'no') {
+                evalBox.style.maxHeight = '0px';
+                evalBox.classList.remove('opacity-100');
+                evalBox.classList.add('opacity-0');
+                State.payload.ratings[State.currentDishIndex].rating = 0;
+                saveDraft();
+
+                setTimeout(() => navigateDish(1), 320); 
+            } else {
+                evalBox.style.maxHeight = '520px';
+                evalBox.classList.remove('opacity-0');
+                evalBox.classList.add('opacity-100');
+                saveDraft();
+            }
+        }
+
+        function clearCustomDish(index) {
+            const input = document.getElementById(`custom-name-${index}`);
+            const dropdown = document.getElementById(`custom-dropdown-${index}`);
+            const clearBtn = document.getElementById(`clear-custom-${index}`);
+            const commentEl = document.getElementById(`dish-comment-${index}`);
+            if (input) input.value = '';
+            if (dropdown) dropdown.classList.add('hidden');
+            if (clearBtn) clearBtn.classList.add('hidden');
+            if (commentEl) commentEl.value = '';
+            State.payload.ratings[index].name = '';
+            State.payload.ratings[index].rating = 0;
+            State.payload.ratings[index].comment = '';
+            document.getElementById(`stars-${index}`)?.setAttribute('data-rating', 0);
+            document.getElementById(`sentiment-pill-${index}`)?.classList.add('hidden');
+            document.getElementById(`comment-box-${index}`)?.classList.add('hidden');
+            checkCustomInput();
+        }
+
+        function checkCustomInput() {
+            const idx = State.currentDishIndex;
+            const inputVal = document.getElementById(`custom-name-${idx}`).value.trim();
+            const clearBtn = document.getElementById(`clear-custom-${idx}`);
+            const evalBox = document.getElementById(`evaluation-box-${idx}`);
+            const nextBtn = document.getElementById('btn-next-dish');
+
+            if (clearBtn) {
+                if (inputVal.length > 0) clearBtn.classList.remove('hidden');
+                else clearBtn.classList.add('hidden');
+            }
+
+            State.payload.ratings[idx].name = inputVal;
+            const isLast = idx === MENU_CONFIG.length - 1;
+            const currentRated = getRatedCount();
+
+            if (inputVal.length > 2) {
+                evalBox.classList.remove('opacity-30', 'pointer-events-none');
+                if (State.payload.ratings[idx].rating > 0) {
+                    nextBtn.classList.remove('hidden');
+                    nextBtn.innerText = isLast ? "Claim Secret Reward" : "Next Dish";
+                } else {
+                    nextBtn.classList.add('hidden');
+                }
+            } else {
+                evalBox.classList.add('opacity-30', 'pointer-events-none');
+                State.payload.ratings[idx].rating = 0;
+                State.payload.ratings[idx].comment = '';
+                document.getElementById(`stars-${idx}`)?.setAttribute('data-rating', 0);
+                document.getElementById(`sentiment-pill-${idx}`)?.classList.add('hidden');
+                document.getElementById(`comment-box-${idx}`)?.classList.add('hidden');
+                const commentEl = document.getElementById(`dish-comment-${idx}`);
+                if (commentEl) commentEl.value = '';
+
+                if (isLast && currentRated === 0) nextBtn.classList.add('hidden');
+                else {
+                    nextBtn.classList.remove('hidden');
+                    nextBtn.innerText = isLast ? "Claim Secret Reward" : "Skip Dish";
+                }
+            }
+            saveDraft();
+        }
+
+        function setRating(score) {
+            triggerHaptic('light');
+            const idx = State.currentDishIndex;
+
+            const dropdown = document.getElementById(`custom-dropdown-${idx}`);
+            if (dropdown) dropdown.classList.add('hidden');
+            const customInput = document.getElementById(`custom-name-${idx}`);
+            if (customInput) {
+                const typed = customInput.value.trim();
+                const exactMatch = State.globalMenu.find(d => d.toLowerCase() === typed.toLowerCase());
+                if (exactMatch) {
+                    customInput.value = exactMatch;
+                    State.payload.ratings[idx].name = exactMatch;
+                }
+            }
+
+            const prevScore = State.payload.ratings[idx].rating;
+            State.payload.ratings[idx].rating = score;
+
+            // If user changed star rating, remove quick chips that belong exclusively to other star tiers
+            const commentEl = document.getElementById(`dish-comment-${idx}`);
+            if (commentEl && prevScore > 0 && prevScore !== score) {
+                const allowedChips = new Set((STAR_SENTIMENTS[score]?.chips || []).map(c => c.toLowerCase()));
+                const allOtherChips = Object.values(STAR_SENTIMENTS)
+                    .flatMap(s => s.chips)
+                    .filter(c => !allowedChips.has(c.toLowerCase()));
+
+                let text = commentEl.value;
+                allOtherChips.forEach(chipText => {
+                    const escaped = chipText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    text = text
+                        .replace(new RegExp(`${escaped},\\s*`, 'ig'), '')
+                        .replace(new RegExp(`,\\s*${escaped}`, 'ig'), '')
+                        .replace(new RegExp(`(^|\\s+)${escaped}(?=,|\\s|$)`, 'ig'), '');
+                });
+                text = text.replace(/^,\s*/, '').replace(/\s+,/g, ',').trim();
+                commentEl.value = text;
+                State.payload.ratings[idx].comment = text;
+                updateCharCount(idx);
+            }
+
+            document.getElementById(`stars-${idx}`).setAttribute('data-rating', score);
+            const commentBox = document.getElementById(`comment-box-${idx}`);
+            commentBox.classList.remove('hidden');
+            renderSentimentAndChips(idx, score);
+
+            const nextBtn = document.getElementById('btn-next-dish');
+            nextBtn.classList.remove('hidden');
+            nextBtn.innerText = (idx === MENU_CONFIG.length - 1) ? "Claim Secret Reward" : "Next Dish";
+            saveDraft();
+        }
+
+        function navigateDish(direction) {
+            const idx = State.currentDishIndex;
+            const commentEl = document.getElementById(`dish-comment-${idx}`);
+            if (commentEl) {
+                let rawComment = commentEl.value.trim();
+                State.payload.ratings[idx].comment = rawComment.slice(0, 200);
+            }
+
+            if (MENU_CONFIG[idx].type === 'custom' && State.payload.ratings[idx] && State.payload.ratings[idx].rating === 0) {
+                State.payload.ratings[idx].name = "";
+                State.payload.ratings[idx].comment = "";
+            }
+
+            State.slideDirection = direction === -1 ? 'prev' : 'next';
+
+            if (direction === 1) {
+                if (State.currentDishIndex < MENU_CONFIG.length - 1) {
+                    State.currentDishIndex++;
+                    renderDishCard();
+                    switchView('rating');
+                } else {
+                    submitPayload();
+                }
+            } else if (direction === -1) {
+                if (State.currentDishIndex > 0) {
+                    State.currentDishIndex--;
+                    renderDishCard();
+                    switchView('rating');
+                }
+            }
+            saveDraft();
+        }
+
+        // 360° Radial Gold Confetti Fountain on Final Reward Screen
+        function fireGoldConfetti() {
+            const canvas = document.getElementById('reward-confetti');
+            if (!canvas) return;
+            canvas.classList.remove('hidden');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const colors = ['#e8c064', '#f3d382', '#4ade80', '#ffffff', '#d4a373'];
+            const particles = Array.from({ length: 65 }, () => {
+                const angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.6;
+                const speed = 4 + Math.random() * 9.5;
+                return {
+                    x: canvas.width / 2 + (Math.random() - 0.5) * 24,
+                    y: canvas.height * 0.28 + (Math.random() - 0.5) * 20,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 2,
+                    size: Math.random() * 6 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rot: Math.random() * Math.PI * 2,
+                    vRot: (Math.random() - 0.5) * 0.22,
+                    alpha: 1
+                };
+            });
+
+            let frame = 0;
+            function step() {
+                frame++;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let alive = false;
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.28;
+                    p.rot += p.vRot;
+                    if (frame > 45) p.alpha -= 0.022;
+                    if (p.alpha > 0) {
+                        alive = true;
+                        ctx.save();
+                        ctx.globalAlpha = Math.max(0, p.alpha);
+                        ctx.translate(p.x, p.y);
+                        ctx.rotate(p.rot);
+                        ctx.fillStyle = p.color;
+                        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+                        ctx.restore();
+                    }
+                });
+                if (alive && frame < 120) {
+                    requestAnimationFrame(step);
+                } else {
+                    canvas.classList.add('hidden');
+                }
+            }
+            requestAnimationFrame(step);
+        }
+
+        async function submitPayload() {
+            if (!navigator.onLine) {
+                updateNetworkStatus();
+                showNotification("You appear to be offline. Please check your internet connection.", "error");
+                return;
+            }
+            const nextBtn = document.getElementById('btn-next-dish');
+            const prevBtn = document.getElementById('btn-prev-dish');
+            if (nextBtn.disabled) return;
+
+            nextBtn.disabled = true;
+            prevBtn.disabled = true;
+            nextBtn.innerText = "Processing...";
+
+            const commentEl = document.getElementById(`dish-comment-${State.currentDishIndex}`);
+            if (commentEl) State.payload.ratings[State.currentDishIndex].comment = commentEl.value.trim();
+
+            const cleanRatings = State.payload.ratings.filter(r => r.rating > 0 && r.name.length > 2);
+            if (cleanRatings.length === 0) { 
+                showNotification("Please select and rate at least one dish to claim your secret reward.", "gold");
+                nextBtn.disabled = false;
+                prevBtn.disabled = false;
+                nextBtn.innerText = "Claim Secret Reward";
+                return; 
+            }
+
+            const customDishes = cleanRatings.filter(r => r.type === 'custom');
+            const finalPayload = {
+                action: "submit_feedback",
+                deviceId: localStorage.getItem("impact_device_id") || "guest_device",
+                honeypot: document.getElementById('website_url').value, 
+                restaurant: State.payload.restaurant,
+                email: State.payload.email,
+                billNumber: State.payload.billNumber,
+                mobile: "",
+                gps: State.payload.gps || null, 
+                customDish1Name: customDishes[0] ? customDishes[0].name : "",
+                customDish2Name: customDishes[1] ? customDishes[1].name : "",
+                ratings: cleanRatings.map((d) => ({
+                    name: d.name, rating: d.rating, comment: d.comment,
+                    isCustom1: customDishes[0] && d.name === customDishes[0].name,
+                    isCustom2: customDishes[1] && d.name === customDishes[1].name
+                }))
+            };
+
+            document.getElementById('action-bar').classList.add('hidden');
+            switchView('success');
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+            try {
+                const response = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'text/plain' }, 
+                    body: JSON.stringify(finalPayload),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+                await response.json();
+
+                try { sessionStorage.removeItem('impact_draft'); } catch (e) {}
+
+                setTimeout(() => {
+                    document.getElementById('state-loading').classList.add('hidden');
+                    document.getElementById('state-done').classList.remove('hidden');
+                    document.getElementById('state-done').classList.add('flex');
+                    triggerHaptic('light');
+                    fireGoldConfetti();
+                }, 700);
+            } catch (error) {
+                clearTimeout(timeoutId);
+                let errorMsg = error.message || String(error);
+
+                if (error.name === 'AbortError') {
+                    showNotification("Network timeout. The server is taking too long to respond. Please try again.", "error");
+                } else if (errorMsg.includes("Unexpected token '<'") || errorMsg.includes("Unexpected token <")) {
+                    showNotification("Deployment configuration mismatch detected. Please re-deploy backend container.", "error");
+                } else {
+                    showNotification("Connection lost. Please check your internet connection and try submitting again.", "error");
+                }
+
+                document.getElementById('action-bar').classList.remove('hidden');
+                switchView('rating');
+
+                nextBtn.disabled = false;
+                prevBtn.disabled = false;
+                nextBtn.innerText = "Claim Secret Reward";
+            }
+        }
+
+        function updateCharCount(index) {
+            const textarea = document.getElementById(`dish-comment-${index}`);
+            const counter = document.getElementById(`char-count-${index}`);
+
+            if (textarea && counter) {
+                if (textarea.value.length > 200) {
+                    textarea.value = textarea.value.slice(0, 200);
+                }
+                State.payload.ratings[index].comment = textarea.value;
+                saveDraft();
+
+                const remaining = 200 - textarea.value.length;
+                counter.innerText = remaining + " left";
+
+                if (remaining <= 20) {
+                    counter.classList.replace('text-gray-500', 'text-brand-red');
+                } else {
+                    counter.classList.replace('text-brand-red', 'text-gray-500');
+                }
+
+                if (remaining === 0) {
+                    triggerHaptic('heavy');
+                    counter.classList.add('animate-shake');
+                    setTimeout(() => counter.classList.remove('animate-shake'), 400);
+                }
+            }
+        }
+
+        function triggerHaptic(intensity = 'light') {
+            if (navigator.vibrate) {
+                if (intensity === 'light') navigator.vibrate(10);
+                if (intensity === 'heavy') navigator.vibrate([30, 50, 30]);
+            }
+        }
+
+        function filterCustomMenu(index) {
+            const input = document.getElementById(`custom-name-${index}`);
+            const dropdown = document.getElementById(`custom-dropdown-${index}`);
+
+            if (input.value.length > 50) {
+                input.value = input.value.slice(0, 50);
+            }
+
+            if (input.value.length === 50) {
+                triggerHaptic('heavy');
+                input.classList.add('border-brand-red', 'animate-shake');
+                setTimeout(() => input.classList.remove('border-brand-red', 'animate-shake'), 400);
+            }
+
+            const query = input.value.toLowerCase().trim();
+            State.payload.ratings[index].name = input.value.trim();
+            saveDraft();
+
+            if (query.length < 1) {
+                dropdown.innerHTML = "";
+                dropdown.classList.add('hidden');
+                checkCustomInput();
+                return;
+            }
+
+            const excludedNames = new Set(
+                MENU_CONFIG.filter(m => m.type === 'signature').map(m => m.name.toLowerCase())
+            );
+            State.payload.ratings.forEach((r, idx) => {
+                if (idx !== index && r && r.name) excludedNames.add(r.name.toLowerCase());
+            });
+
+            const matches = State.globalMenu.filter(dish => {
+                const lower = dish.toLowerCase();
+                return lower.includes(query) && !excludedNames.has(lower);
+            });
+
+            if (matches.length === 1 && matches[0].toLowerCase() === query) {
+                input.value = matches[0];
+                State.payload.ratings[index].name = matches[0];
+                dropdown.classList.add('hidden');
+                checkCustomInput();
+                return;
+            }
+
+            if (matches.length === 0) {
+                dropdown.classList.add('hidden');
+                checkCustomInput();
+                return;
+            }
+
+            dropdown.innerHTML = matches.map(dish => `
+                <div onclick="selectCustomDish(${index}, '${dish.replace(/'/g, "\\'")}')" class="px-5 py-3 text-sm font-semibold text-left text-gray-200 hover:bg-brand-gold hover:text-black cursor-pointer transition-colors border-b border-white/5 last:border-0">${dish}</div>
+            `).join('');
+
+            dropdown.classList.remove('hidden');
+            checkCustomInput();
+        }
+
+        function selectCustomDish(index, name) {
+            triggerHaptic('light');
+            const input = document.getElementById(`custom-name-${index}`);
+            const dropdown = document.getElementById(`custom-dropdown-${index}`);
+
+            input.value = name;
+            dropdown.classList.add('hidden');
+            checkCustomInput();
+        }
+
+        // Enterprise Vector SVG Notification Toast Engine
+        function showNotification(message, type = 'error') {
+            triggerHaptic(type === 'error' ? 'heavy' : 'light');
+
+            const existing = document.getElementById('custom-notification');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.id = 'custom-notification';
+
+            let iconSvg = `<svg class="w-5 h-5 text-brand-red shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+            let borderClass = 'border-brand-red/40 shadow-[0_15px_35px_rgba(239,68,68,0.2)]';
+
+            if (type === 'success') {
+                iconSvg = `<svg class="w-5 h-5 text-success-green shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+                borderClass = 'border-success-green/40 shadow-[0_15px_35px_rgba(74,222,128,0.2)]';
+            } else if (type === 'gold') {
+                iconSvg = `<svg class="w-5 h-5 text-brand-gold shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>`;
+                borderClass = 'border-brand-gold/40 shadow-[0_15px_35px_rgba(232,192,100,0.2)]';
+            }
+
+            toast.className = `fixed top-5 left-4 right-4 sm:left-1/2 sm:right-auto sm:w-[420px] glass-card p-4 rounded-2xl border ${borderClass} flex items-center z-[9999] animate-toast pointer-events-auto`;
+
+            toast.innerHTML = `
+                <div class="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center shrink-0 mr-3">${iconSvg}</div>
+                <div class="text-xs sm:text-[13px] font-medium text-gray-200 leading-relaxed flex-1 text-left pr-2">${message}</div>
+                <button onclick="this.parentElement.remove()" class="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white transition-colors px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl shrink-0 whitespace-nowrap active:scale-95">OK</button>
+            `;
+
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                if (toast && toast.parentElement) {
+                    toast.style.opacity = '0';
+                    toast.style.transform = window.innerWidth > 640 ? 'translate(-50%, -20px)' : 'translateY(-20px)';
+                    toast.style.transition = 'all 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
