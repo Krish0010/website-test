@@ -244,7 +244,7 @@
     <div id="geo-permission-modal" class="fixed inset-0 z-[9998] hidden flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
         <div id="geo-modal-card" class="glass-card rounded-3xl p-5 sm:p-7 w-full max-w-sm text-center border-brand-gold/40 shadow-[0_25px_60px_rgba(0,0,0,0.95)] anim-slide-next">
             <!-- Icon Badge -->
-            <div id="geo-modal-badge" class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-brand-gold/15 border border-brand-gold/40 flex items-center justify-center mx-auto mb-3 text-brand-gold shadow-[0_0_25px_rgba(232,192,100,0.2)]">
+            <div id="geo-modal-badge" class="w-14 h-14 rounded-2xl bg-brand-gold/15 border border-brand-gold/40 flex items-center justify-center mx-auto mb-3 text-brand-gold shadow-[0_0_25px_rgba(232,192,100,0.2)]">
                 <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
             </div>
 
@@ -267,16 +267,16 @@
                 </p>
             </div>
 
-            <!-- Step-by-Step Browser Unblock Guide (Shown when user tapped "Never allow" or "Approximate") -->
+            <!-- Step-by-Step Browser Unblock Guide (Shown ONLY if user tapped "Block" / "Never allow") -->
             <div id="geo-unblock-steps" class="hidden bg-brand-gold/[0.07] border border-brand-gold/30 rounded-2xl p-3.5 mb-4 text-left space-y-2.5 transition-all duration-300">
-                <p id="geo-unblock-heading" class="text-[10px] font-black uppercase tracking-wider text-brand-gold">How to enable Precise Location in 2 taps:</p>
+                <p id="geo-unblock-heading" class="text-[10px] font-black uppercase tracking-wider text-brand-gold">How to enable location in 2 quick taps:</p>
                 <div class="flex items-start gap-2.5 text-[11.5px] text-gray-200 font-medium leading-snug">
                     <span class="w-4 h-4 rounded-full bg-brand-gold text-black font-black text-[10px] flex items-center justify-center shrink-0 mt-0.5">1</span>
                     <span>Tap the <strong class="text-brand-gold inline-flex items-center gap-1">Tune icon <svg class="w-3.5 h-3.5 inline text-brand-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></strong> on the left side of your top address bar (next to <span class="underline">foodstorytvc.com</span>).</span>
                 </div>
                 <div class="flex items-start gap-2.5 text-[11.5px] text-gray-200 font-medium leading-snug">
                     <span class="w-4 h-4 rounded-full bg-brand-gold text-black font-black text-[10px] flex items-center justify-center shrink-0 mt-0.5">2</span>
-                    <span>Tap <strong class="text-brand-gold">Permissions</strong> &rarr; turn on <strong class="text-brand-gold">Location (Precise)</strong>, then tap the button below.</span>
+                    <span>Tap <strong class="text-brand-gold">Permissions</strong> &rarr; turn on <strong class="text-brand-gold">Location</strong>, then tap the button below.</span>
                 </div>
             </div>
 
@@ -511,13 +511,12 @@
         // ==========================================
         // ⚙️ CONFIGURATION
         // ==========================================
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwmwbpmgopC9racF1bIPDmqUW-GRzpEgyDIj5aAnD4jagNW-ef4t2GlmCBur-VPlHP/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5PJntmuOPcG32lcGJ0m_lUOGg2Oht7GG55ERj90CK7g2UnE29C990Senqv8lIgv-q/exec"; 
 
         // 📍 CLIENT-SIDE GPS CAPTURE SETTINGS
         // (Restaurant map links and geofence radius are stored privately inside Code.gs SERVER_GEOFENCE!)
         const CLIENT_GEOFENCE = {
-            enabled: true,
-            maxPreciseAccuracy: 1200 // Blocks Android "Approximate / Neighbourhood" mode (>=2000m) while allowing indoor Precise GPS
+            enabled: true
         };
 
         const MENU_CONFIG = [
@@ -850,7 +849,7 @@
             });
         }
 
-        // Interactive Modal Controller (Zero-Blink + Instant Approximate Mode Detection + Live Permission Auto-Detect)
+        // Interactive Modal Controller (Zero-Blink + Race-Condition-Free Permission Recovery)
         function openLocationModalInteractive(initialMode, resto) {
             return new Promise(async (resolve) => {
                 const existingToast = document.getElementById('custom-notification');
@@ -866,34 +865,20 @@
 
                 let currentMode = initialMode;
                 let permStatusObj = null;
+                let isCheckingGPS = false;
 
-                function applyModalUI(mode, isStillInvalidRetry = false) {
+                function applyModalUI(mode, isStillBlockedRetry = false) {
                     currentMode = mode;
                     if (mode === 'pre_prompt') {
                         titleEl.innerText = "Confirm Your Visit";
-                        descEl.innerHTML = `To guarantee 100% genuine reviews from real guests at <strong class="text-brand-gold">${resto}</strong>, please tap <strong class="text-brand-gold">"Allow"</strong> (with <strong class="text-brand-gold">Precise</strong> enabled) on the next prompt.`;
+                        descEl.innerHTML = `To guarantee 100% genuine reviews from real guests at <strong class="text-brand-gold">${resto}</strong>, please tap <strong class="text-brand-gold">"Allow"</strong> on the next prompt.`;
                         stepsEl.classList.add('hidden');
                         primaryBtn.innerText = "Continue & Allow Location";
-                    } else if (mode === 'approximate_warning') {
-                        titleEl.innerText = "Precise Location Needed";
-                        descEl.innerHTML = `It looks like <strong class="text-brand-red">"Approximate"</strong> location was selected. Please switch to <strong class="text-brand-gold">"Precise"</strong> so we can accurately confirm your visit at <strong class="text-brand-gold">${resto}</strong>.`;
-                        stepsEl.classList.remove('hidden');
-                        if (isStillInvalidRetry) {
-                            headingEl.innerHTML = `<span class="text-brand-red">Still on Approximate!</span> Follow these 2 taps at the top of your screen first:`;
-                            stepsEl.classList.replace('border-brand-gold/30', 'border-brand-red/60');
-                            stepsEl.classList.remove('animate-shake');
-                            void stepsEl.offsetWidth;
-                            stepsEl.classList.add('animate-shake');
-                        } else {
-                            headingEl.innerText = "How to switch to Precise Location in 2 taps:";
-                            stepsEl.classList.replace('border-brand-red/60', 'border-brand-gold/30');
-                        }
-                        primaryBtn.innerText = "I've Switched to Precise — Verify Now";
                     } else {
                         titleEl.innerText = "Location Access Needed";
                         descEl.innerHTML = `Location access is required to verify your visit at <strong class="text-brand-gold">${resto}</strong>. We only check this once to keep reviews genuine and <strong class="text-white">never store your location</strong>.`;
                         stepsEl.classList.remove('hidden');
-                        if (isStillInvalidRetry) {
+                        if (isStillBlockedRetry) {
                             headingEl.innerHTML = `<span class="text-brand-red">Still blocked by browser!</span> Follow these 2 taps at the top of your screen first:`;
                             stepsEl.classList.replace('border-brand-gold/30', 'border-brand-red/60');
                             stepsEl.classList.remove('animate-shake');
@@ -916,22 +901,20 @@
                     resolve(result);
                 }
 
-                // Live Auto-Detection: When the user flips Location to "Allow" in the top address bar Tune menu, auto-verify!
+                // Live Auto-Detection: Only triggers if user was in 'recovery' mode and manually flipped Location to Allow in the address bar
                 if (navigator.permissions && navigator.permissions.query) {
                     try {
                         permStatusObj = await navigator.permissions.query({ name: 'geolocation' });
                         permStatusObj.onchange = async () => {
-                            if (permStatusObj.state === 'granted' && !modal.classList.contains('hidden')) {
+                            if (currentMode === 'recovery' && !isCheckingGPS && permStatusObj.state === 'granted' && !modal.classList.contains('hidden')) {
+                                isCheckingGPS = true;
+                                primaryBtn.disabled = true;
                                 primaryBtn.innerText = "Checking GPS...";
                                 const gpsRes = await requestBrowserGPS();
+                                isCheckingGPS = false;
+                                primaryBtn.disabled = false;
                                 if (gpsRes.ok) {
-                                    const acc = gpsRes.pos.coords.accuracy || 0;
-                                    if (acc > CLIENT_GEOFENCE.maxPreciseAccuracy) {
-                                        triggerHaptic('heavy');
-                                        applyModalUI('approximate_warning', false);
-                                    } else {
-                                        cleanupAndResolve({ ok: true, pos: gpsRes.pos });
-                                    }
+                                    cleanupAndResolve({ ok: true, pos: gpsRes.pos });
                                 }
                             }
                         };
@@ -939,21 +922,17 @@
                 }
 
                 primaryBtn.onclick = async () => {
+                    if (isCheckingGPS) return;
+                    isCheckingGPS = true;
                     primaryBtn.disabled = true;
                     const prevText = primaryBtn.innerText;
                     primaryBtn.innerText = "Checking Location...";
 
                     const gpsRes = await requestBrowserGPS();
+                    isCheckingGPS = false;
                     primaryBtn.disabled = false;
 
                     if (gpsRes.ok) {
-                        const acc = gpsRes.pos.coords.accuracy || 0;
-                        // Enforce Precise Location immediately (Android "Approximate" mode reports >= 2000m)
-                        if (acc > CLIENT_GEOFENCE.maxPreciseAccuracy) {
-                            triggerHaptic('heavy');
-                            applyModalUI('approximate_warning', currentMode === 'approximate_warning');
-                            return;
-                        }
                         cleanupAndResolve({ ok: true, pos: gpsRes.pos });
                     } else {
                         const err = gpsRes.err;
@@ -977,7 +956,7 @@
             });
         }
 
-        // Captures Precise GPS coordinates to send to Code.gs for authoritative server-side geofence verification
+        // Captures GPS coordinates to send to Code.gs for authoritative server-side geofence verification
         async function capturePreciseLocationForServer() {
             const email = (State.payload.email || "").toLowerCase().trim();
             const resto = State.payload.restaurant;
@@ -1010,12 +989,7 @@
             if (permState === 'granted') {
                 const directTry = await requestBrowserGPS();
                 if (directTry.ok) {
-                    const acc = directTry.pos.coords.accuracy || 0;
-                    if (acc > CLIENT_GEOFENCE.maxPreciseAccuracy) {
-                        gpsResult = await openLocationModalInteractive('approximate_warning', resto);
-                    } else {
-                        gpsResult = directTry;
-                    }
+                    gpsResult = directTry;
                 } else if (directTry.err && directTry.err.code === 1) {
                     gpsResult = await openLocationModalInteractive('recovery', resto);
                 } else {
@@ -1059,7 +1033,7 @@
 
             document.getElementById('otp-error')?.classList.add('hidden');
 
-            // 1. Capture Precise GPS on device before calling Code.gs
+            // 1. Capture GPS on device before calling Code.gs
             btn.innerText = "Verifying Location...";
             btn.classList.add('animate-pulse');
             const geoCapture = await capturePreciseLocationForServer();
@@ -1112,13 +1086,7 @@
                 } else {
                     btn.classList.remove('animate-pulse');
 
-                    // If Code.gs flagged Approximate Location or On-Premise Distance Block, reset button so guest can retry anytime
-                    if (res.geoApproximate) {
-                        btn.innerText = "Verify Identity";
-                        await openLocationModalInteractive('approximate_warning', State.payload.restaurant);
-                        return;
-                    }
-                    if (res.geoBlocked) {
+                    if (res.geoBlocked || res.geoApproximate) {
                         btn.innerText = "Verify Identity";
                         showNotification(res.message || "On-Premise Verification failed.", 'error');
                         return;
