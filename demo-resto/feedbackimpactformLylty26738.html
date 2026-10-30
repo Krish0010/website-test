@@ -146,7 +146,7 @@
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Tactile Star Rating Choreography (Hover restricted to desktop pointers so mobile never sticks) */
+        /* Tactile Star Rating Choreography */
         .star-container { display: flex; justify-content: center; gap: 10px; direction: rtl; }
         .star-svg {
             width: 44px;
@@ -210,7 +210,7 @@
             box-shadow: 0 0 25px rgba(239, 68, 68, 0.2);
         }
 
-        /* Strict View Visibility Lock so inactive sections NEVER leak below active cards */
+        /* Strict View Visibility Lock */
         .view-section:not(.active) { display: none !important; }
         .view-section.active { display: block; animation: view-reveal 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
         #view-success.active { display: flex !important; }
@@ -237,10 +237,10 @@
     <div class="ambient-orb orb-1"></div>
     <div class="ambient-orb orb-2"></div>
 
-    <!-- Celebration Confetti Canvas (Activates on Final Reward Screen) -->
+    <!-- Celebration Confetti Canvas -->
     <canvas id="reward-confetti" class="fixed inset-0 pointer-events-none z-50 hidden"></canvas>
 
-    <!-- Flagship Architectural Header (Consistent Left Axis, Zero Jumping, Zero Truncation) -->
+    <!-- Flagship Architectural Header -->
     <div class="w-full px-4 sm:px-6 pt-5 sm:pt-7 pb-2 flex flex-col gap-2.5 z-40 relative max-w-xl mx-auto shrink-0">
         <div class="flex justify-between items-center">
             <!-- 3D Pop-Out Brand Avatar + Precision Wordmark Lockup -->
@@ -305,7 +305,6 @@
                 <div class="space-y-3.5">
                     <div>
                         <label id="location-label" class="hidden block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 pl-1">Restaurant <span id="location-asterisk" class="text-brand-red">*</span></label>
-                        <!-- Multi-location dropdown wrapper (stays hidden when only 1 restaurant is configured so there is zero load flash) -->
                         <div id="resto-select-wrapper" class="hidden relative">
                             <select id="setup-resto" class="appearance-none cursor-pointer pr-10" onchange="validateSetup()">
                                 <option value="" disabled hidden>Select your restaurant...</option>
@@ -315,7 +314,6 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                             </div>
                         </div>
-                        <!-- Authoritative Restaurant Showcase Card (Visible immediately on load with zero layout shift) -->
                         <div id="resto-featured-card" class="flex items-center px-4 py-3.5 rounded-2xl bg-gradient-to-r from-brand-gold/[0.09] via-brand-gold/[0.03] to-white/[0.01] border border-brand-gold/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
                             <div class="flex items-center gap-3.5 min-w-0">
                                 <div class="w-10 h-10 rounded-xl bg-brand-gold/15 border border-brand-gold/35 flex items-center justify-center shrink-0 text-brand-gold shadow-[0_0_15px_rgba(232,192,100,0.15)]">
@@ -351,7 +349,6 @@
         <!-- VIEW 2: OTP VERIFICATION -->
         <div id="view-otp" class="view-section w-full shrink-0">
             <div class="glass-card rounded-3xl p-5 sm:p-8 mb-4 text-center relative overflow-hidden">
-                <!-- Vector Security Shield Badge -->
                 <div class="w-12 h-12 sm:w-14 sm:h-14 bg-brand-gold/10 border border-brand-gold/35 rounded-2xl flex items-center justify-center mx-auto mb-2.5 shadow-[0_0_25px_rgba(232,192,100,0.15)]">
                     <svg class="w-6 h-6 sm:w-7 sm:h-7 text-brand-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
                 </div>
@@ -409,7 +406,6 @@
             </div>
 
             <div id="state-done" class="hidden flex-col items-center w-full">
-                <!-- Generous top & bottom breathing room around the glowing Star Crest -->
                 <div class="w-22 h-22 sm:w-24 sm:h-24 bg-gradient-to-b from-brand-gold/20 to-brand-gold/5 rounded-3xl flex items-center justify-center mt-3 mb-7 border border-brand-gold/40 relative shadow-[0_0_40px_rgba(232,192,100,0.22)] p-5">
                     <div class="absolute inset-0 rounded-3xl bg-brand-gold/20 animate-ping opacity-25" style="animation-duration: 2.2s;"></div>
                     <svg class="w-11 h-11 text-brand-gold relative z-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.912 5.813a2 2 0 001.275 1.275L21 12l-5.813 1.912a2 2 0 00-1.275 1.275L12 21l-1.912-5.813a2 2 0 00-1.275-1.275L3 12l5.813-1.912a2 2 0 001.275-1.275L12 3z"/></svg>
@@ -418,7 +414,6 @@
                 <h2 class="text-3xl sm:text-4xl font-black text-white mb-2.5 tracking-tight">Thank You!</h2>
                 <p class="text-xs sm:text-sm text-gray-400 mb-8 leading-relaxed max-w-[280px] mx-auto text-center">We have received your feedback and successfully updated your loyalty status.</p>
 
-                <!-- The Digital Receipt Card -->
                 <div class="glass-card p-6 sm:p-7 rounded-3xl w-full max-w-sm text-left border-brand-gold/40 shadow-[0_0_30px_rgba(232,192,100,0.1)] relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand-gold to-transparent opacity-70"></div>
 
@@ -439,7 +434,6 @@
                     </div>
                 </div>
 
-                <!-- Positioned below the primary fold so the main viewport stays clean; visible when scrolling down -->
                 <div class="flex items-center justify-center gap-2 text-gray-400 bg-white/[0.03] px-5 py-3 rounded-full border border-white/10 shadow-inner mt-16 mb-8 opacity-80">
                     <svg class="w-4 h-4 text-success-green shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                     <span class="text-[10px] font-black uppercase tracking-[0.15em] pt-0.5">You may safely close this page</span>
@@ -466,11 +460,8 @@
         // ==========================================
         // ⚙️ CONFIGURATION
         // ==========================================
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx6OcCIN6tzgPCvuwk3NWfAdzOTKUy06ifHB3OsNEtY3KhHjP55ehKh0HSMvTEaDtsJ/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby0mHaNfjh7Z2Wt_du0cGcO5um86nmW-ZwQe2b-7cV-4XumTK57dulOyPxBdZBNr7rt/exec"; 
 
-        // 📍 ON-PREMISE GPS GEOFENCE CONFIGURATION
-        // Set enabled: true and paste the restaurant's Google Maps Latitude & Longitude.
-        // (Tester email testimpact7099@gmail.com automatically bypasses this so you can test from home!)
         // 📍 ON-PREMISE GPS GEOFENCE CONFIGURATION
         // Paste ANY Google Maps link for each restaurant (copied from browser address bar OR phone Share button).
         // (Tester email testimpact7099@gmail.com automatically bypasses this so you can test from home!)
@@ -478,7 +469,7 @@
             enabled: true,
             radiusMeters: 500, // 500m radius + indoor accuracy cushion prevents false blocks inside the restaurant
             locations: {
-                "Temp New": "https://maps.app.goo.gl/ae5HXerJgCmTStdi8" // <-- Paste your restaurant's Google Maps link here
+                "Temp New": "https://maps.app.goo.gl/SD73mHB1bGd9Vp1XA?g_st=ac" // <-- Paste your restaurant's Google Maps link here
             }
         };
 
@@ -549,7 +540,6 @@
         window.addEventListener('online', updateNetworkStatus);
         window.addEventListener('offline', updateNetworkStatus);
 
-        // Automatically close custom dish dropdown if user taps outside
         document.addEventListener('click', (e) => {
             if (State.view !== 'rating') return;
             const dropdown = document.getElementById(`custom-dropdown-${State.currentDishIndex}`);
@@ -749,7 +739,7 @@
         }
 
         // ==========================================
-        // OTP ENGINE 
+        // OTP & GEOFENCE ENGINE 
         // ==========================================
         function resetOtpUI() {
             const errEl = document.getElementById('otp-error');
@@ -801,7 +791,17 @@
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         }
 
-        // Extracts { lat, lng } from any Google Maps URL, coordinate string, or object
+        // Full-string hash so two different maps.app.goo.gl links NEVER collide in localStorage
+        function hashUrlKey(str) {
+            let h = 2166136261;
+            for (let i = 0; i < str.length; i++) {
+                h ^= str.charCodeAt(i);
+                h = Math.imul(h, 16777619);
+            }
+            return (h >>> 0).toString(16);
+        }
+
+        // Extracts { lat, lng } from any Google Maps URL, Android dropped pin, or coordinate string
         function extractCoordsFromMapInput(input) {
             if (!input) return null;
             if (typeof input === 'object' && typeof input.lat === 'number' && typeof input.lng === 'number') {
@@ -814,15 +814,19 @@
             let m = str.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
             if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
 
-            // 2. Viewport center in Google Maps URLs (@LAT,LNG)
-            m = str.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+            // 2. Android Google Maps Dropped Pin / Search URL (/maps/search/LAT,LNG or /maps/place/LAT,LNG)
+            m = str.match(/\/maps\/(?:search|place)\/(-?\d+\.\d+)(?:\s*,\s*|\s*%2C\s*|\+)\+?(-?\d+\.\d+)/i);
             if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
 
-            // 3. Query parameter in Google Maps URLs (?q=LAT,LNG or &ll=LAT,LNG or &query=LAT,LNG)
+            // 3. Viewport center in Google Maps URLs (@LAT,LNG)
+            m = str.match(/@(-?\d+\.\d+)(?:,|%2C)(-?\d+\.\d+)/i);
+            if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+
+            // 4. Query parameter in Google Maps URLs (?q=LAT,LNG or &ll=LAT,LNG or &query=LAT,LNG)
             m = str.match(/[?&](?:q|query|ll|center|daddr)=(-?\d+\.\d+)(?:,|%2C|\+|\s+)(-?\d+\.\d+)/i);
             if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
 
-            // 4. Raw "LAT, LNG" string
+            // 5. Raw "LAT, LNG" string
             m = str.match(/^(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)$/);
             if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
 
@@ -837,13 +841,13 @@
             const directCoords = extractCoordsFromMapInput(rawConfig);
             if (directCoords) return directCoords;
 
-            // If it's a shortened link (e.g., https://maps.app.goo.gl/...), check local cache or ask Code.gs to unshorten it
-            const cacheKey = "impact_geo_" + btoa(encodeURIComponent(String(rawConfig))).slice(0, 24);
+            // Unique hash of the full URL so changing the map link immediately uses a fresh cache key
+            const cacheKey = "impact_geo_v4_" + hashUrlKey(String(rawConfig).trim());
             try {
                 const cached = localStorage.getItem(cacheKey);
                 if (cached) {
                     const parsed = JSON.parse(cached);
-                    if (parsed && typeof parsed.lat === 'number') return parsed;
+                    if (parsed && typeof parsed.lat === 'number' && typeof parsed.lng === 'number') return parsed;
                 }
             } catch (e) {}
 
@@ -863,28 +867,33 @@
             return null;
         }
 
-        // On-Premise GPS Geofence Verifier (Blocks manipulators opening copied links from home)
+        // On-Premise GPS Geofence Verifier (Fail-Closed + Indoor Wi-Fi Drift Compensation)
         async function verifyOnPremiseLocation() {
             const email = (State.payload.email || "").toLowerCase().trim();
             const resto = State.payload.restaurant;
 
-            // Bypass if disabled or developer test account (testimpact7099@gmail.com)
+            // Bypass only if geofence is disabled OR using the official developer diagnostic email (testimpact7099@gmail.com)
             if (!VENUE_GEOFENCE.enabled || email.startsWith("testimpact7099")) {
                 return { allowed: true };
             }
 
-            const targetCoords = await getTargetVenueCoords(resto);
-            if (!targetCoords) {
-                return { allowed: true };
+            if (window.location.protocol === 'content:' || window.location.protocol === 'file:') {
+                return {
+                    allowed: false,
+                    message: "GPS Security Notice: Mobile browsers disable GPS inside local WhatsApp file previews (content://). Please open the live https:// website link."
+                };
             }
 
-            // Reuse verified session coordinates if already checked during this session
-            if (State.payload.gps && State.payload.gps.verified) {
-                return { allowed: true };
+            const targetCoords = await getTargetVenueCoords(resto);
+            if (!targetCoords) {
+                return {
+                    allowed: false,
+                    message: "Unable to resolve restaurant map link. Please ensure Code.gs is re-deployed with the latest version."
+                };
             }
 
             if (!navigator.geolocation) {
-                return { allowed: false, message: "Location services are not supported by this browser. Please open the link in Chrome or Safari at the restaurant." };
+                return { allowed: false, message: "Location services are not supported by this browser. Please open the link in Chrome or Safari." };
             }
 
             return new Promise((resolve) => {
@@ -894,34 +903,33 @@
                         const userLng = pos.coords.longitude;
                         const accuracy = pos.coords.accuracy || 0;
                         const rawDist = calculateDistanceMeters(userLat, userLng, targetCoords.lat, targetCoords.lng);
-                        // Subtract indoor GPS drift (up to 250m) so guests inside the building are never falsely blocked
-                        const effectiveDist = Math.max(0, rawDist - Math.min(accuracy, 250));
+
+                        // Compensate for indoor Wi-Fi/cell-tower accuracy radius (up to 1,500m when indoors)
+                        const accuracyCushion = Math.min(accuracy, 1500);
+                        const effectiveDist = Math.max(0, rawDist - accuracyCushion);
 
                         if (effectiveDist <= VENUE_GEOFENCE.radiusMeters) {
                             State.payload.gps = { lat: userLat, lng: userLng, accuracy: Math.round(accuracy), verified: true };
                             saveDraft();
                             resolve({ allowed: true });
                         } else {
+                            State.payload.gps = null;
+                            saveDraft();
+                            const distKm = (rawDist / 1000).toFixed(2);
                             resolve({
                                 allowed: false,
-                                message: `On-Premise Verification: You appear to be away from ${resto}. Please scan the QR code while dining at the restaurant.`
+                                message: `On-Premise Verification: You appear to be ${distKm} km away from ${resto}. Please scan the QR code while dining at the restaurant.`
                             });
                         }
                     },
                     (err) => {
-                        // If testing locally via WhatsApp content:// previewer where Android blocks geolocation, allow developer testing
-                        if (window.location.protocol === 'content:' || window.location.protocol === 'file:') {
-                            State.payload.gps = { lat: targetCoords.lat, lng: targetCoords.lng, accuracy: 10, verified: true };
-                            resolve({ allowed: true });
-                            return;
-                        }
                         if (err.code === 1) {
-                            resolve({ allowed: false, message: `Location permission is required to verify your visit at ${resto}. Please allow location access in your browser and try again.` });
+                            resolve({ allowed: false, message: `Location permission is required to verify your visit at ${resto}. Please allow location access in your browser settings.` });
                         } else {
-                            resolve({ allowed: false, message: "Unable to verify your location. Please ensure GPS/Location is turned on and try again." });
+                            resolve({ allowed: false, message: "Unable to detect your GPS location. Please turn on Location/GPS and try again." });
                         }
                     },
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 120000 }
+                    { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
                 );
             });
         }
@@ -939,7 +947,6 @@
             const btn = document.getElementById('btn-start');
             const btnResend = document.getElementById('btn-resend-otp');
 
-            // Clear any previous OTP error banner before requesting a new code
             document.getElementById('otp-error')?.classList.add('hidden');
 
             // 1. Verify On-Premise GPS Geofence before sending OTP
@@ -1464,7 +1471,6 @@
             const prevScore = State.payload.ratings[idx].rating;
             State.payload.ratings[idx].rating = score;
 
-            // If user changed star rating, remove quick chips that belong exclusively to other star tiers
             const commentEl = document.getElementById(`dish-comment-${idx}`);
             if (commentEl && prevScore > 0 && prevScore !== score) {
                 const allowedChips = new Set((STAR_SENTIMENTS[score]?.chips || []).map(c => c.toLowerCase()));
