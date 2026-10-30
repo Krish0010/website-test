@@ -2,327 +2,592 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IMPACT Partner Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0A0D14">
+    <title>IMPACT Partner Portal | FOODSTORYTVC</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    },
+                    colors: {
+                        obsidian: '#0A0D14',
+                        slate: {
+                            850: '#131824'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f5f5f4; }
-        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #16A34A; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @media screen and (max-width: 768px) { input { font-size: 16px !important; } }
+        .hidden { display: none !important; }
+        html, body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #F3F4F6;
+            color: #0F172A;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .tabular-nums { font-variant-numeric: tabular-nums; }
+
+        /* Subtle Architectural POS Dot Grid */
+        .pos-canvas-bg {
+            background-color: #F3F4F6;
+            background-image:
+                radial-gradient(at 50% 0%, rgba(16, 185, 129, 0.05) 0px, transparent 55%),
+                radial-gradient(#CBD5E1 1px, transparent 1px);
+            background-size: 100% 100%, 20px 20px;
+        }
+
+        /* Flagship White Terminal Card */
+        .terminal-shell {
+            background: #FFFFFF;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow:
+                0 25px 65px -15px rgba(15, 23, 42, 0.09),
+                0 4px 16px -2px rgba(15, 23, 42, 0.04),
+                inset 0 1px 0 0 rgba(255, 255, 255, 1);
+        }
+
+        /* Obsidian Header Surface */
+        .terminal-header {
+            background: linear-gradient(180deg, #0D111A 0%, #07090E 100%);
+            box-shadow: inset 0 -1px 0 0 rgba(255, 255, 255, 0.08);
+        }
+
+        /* Precision Spinner */
+        .loader {
+            border: 2.5px solid rgba(255, 255, 255, 0.25);
+            border-top-color: #FFFFFF;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            animation: spin 0.7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Hardware-Accelerated Spring Animations */
+        @keyframes spring-reveal {
+            0% { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.985); }
+            100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+        }
+        .anim-reveal {
+            animation: spring-reveal 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes shake-error {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        .anim-shake {
+            animation: shake-error 0.36s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+
+        /* Animated Checkmark Stroke */
+        @keyframes draw-check {
+            0% { stroke-dashoffset: 48; }
+            100% { stroke-dashoffset: 0; }
+        }
+        .check-path {
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: draw-check 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.12s forwards;
+        }
+
+        /* Tactile Button Transitions */
+        .btn-primary-dark {
+            background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-primary-dark:hover:not(:disabled) {
+            background: linear-gradient(180deg, #0F172A 0%, #020617 100%);
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+        }
+        .btn-primary-dark:active:not(:disabled) {
+            transform: translateY(0) scale(0.985);
+        }
+
+        .btn-redeem-emerald {
+            background: linear-gradient(180deg, #10B981 0%, #059669 100%);
+            box-shadow: 0 8px 20px -4px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-redeem-emerald:hover:not(:disabled) {
+            background: linear-gradient(180deg, #059669 0%, #047857 100%);
+            box-shadow: 0 10px 24px -4px rgba(16, 185, 129, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+        .btn-redeem-emerald:active:not(:disabled) {
+            transform: translateY(0) scale(0.985);
+        }
+
+        /* Clean Scrollbar for Modals */
+        .clean-scroll::-webkit-scrollbar { width: 5px; }
+        .clean-scroll::-webkit-scrollbar-track { background: transparent; }
+        .clean-scroll::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 9999px; }
+
+        @media screen and (max-width: 768px) {
+            input { font-size: 16px !important; }
+        }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 transition-all duration-500" id="app-body">
+<body class="pos-canvas-bg flex flex-col items-center justify-center min-h-[100dvh] p-3.5 sm:p-6 transition-colors duration-300" id="app-body">
 
-    <div class="w-full max-w-lg bg-white rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] overflow-hidden border border-gray-100 relative z-10 flex flex-col min-h-[500px]">
-        
-        <div class="bg-gray-900 text-white p-6 sm:p-8 text-center relative">
-            <div class="absolute top-4 right-4 flex items-center gap-2">
-                <button onclick="resetApp()" class="p-2 rounded-lg bg-white/5 hover:bg-white/20 text-gray-300 hover:text-white transition-all active:scale-95" title="Reset App (New Scan)">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"></path></svg>
-                </button>
-                <button onclick="toggleFullscreen()" id="fs-btn" class="p-2 rounded-lg bg-white/5 hover:bg-white/20 text-gray-300 hover:text-white transition-all active:scale-95 hidden sm:block" title="Toggle Fullscreen">
-                    <svg class="w-5 h-5" id="fs-icon-enter" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"></path></svg>
-                    <svg class="w-5 h-5 hidden" id="fs-icon-exit" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25"></path></svg>
-                </button>
+    <!-- MAIN POS TERMINAL SHELL -->
+    <div class="w-full max-w-[500px] terminal-shell rounded-3xl overflow-hidden relative z-10 flex flex-col min-h-[520px]">
+
+        <!-- OBSIDIAN ARCHITECTURAL HEADER -->
+        <div class="terminal-header text-white px-5 sm:px-7 pt-5 pb-5 relative">
+            <!-- Top Bar: Brand Identity + Utility Controls -->
+            <div class="flex items-center justify-between gap-2 mb-4">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="relative w-10 h-10 rounded-full border border-amber-400/50 bg-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(232,192,100,0.2)] overflow-hidden">
+                        <img src="https://res.cloudinary.com/dr6xhnhor/image/upload/v1781864406/big_size_Logo_without_background_new_ubp9mn.png" alt="FOODSTORYTVC" class="w-full h-full object-cover scale-110">
+                    </div>
+                    <div class="text-left min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-base sm:text-[17px] font-black tracking-[0.08em] text-white leading-none truncate">FOODSTORY<span class="text-amber-300">TVC</span></h1>
+                            <span id="pos-net-badge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                <span id="pos-net-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                <span id="pos-net-text">Live</span>
+                            </span>
+                        </div>
+                        <p class="text-[9.5px] text-slate-400 font-bold tracking-[0.18em] uppercase mt-1">IMPACT Partner POS Terminal</p>
+                    </div>
+                </div>
+
+                <!-- Action Icons: Reset | Lock Terminal | Fullscreen -->
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button onclick="resetApp()" class="p-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.14] border border-white/[0.08] text-slate-300 hover:text-white transition-all active:scale-95" title="Clear & Reset Scan">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"></path></svg>
+                    </button>
+                    <button onclick="lockTerminalManually()" class="p-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.14] border border-white/[0.08] text-slate-300 hover:text-amber-300 transition-all active:scale-95" title="Lock Terminal">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
+                    </button>
+                    <button onclick="toggleFullscreen()" id="fs-btn" class="p-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.14] border border-white/[0.08] text-slate-300 hover:text-white transition-all active:scale-95 hidden sm:flex" title="Toggle Fullscreen">
+                        <svg class="w-4 h-4" id="fs-icon-enter" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"></path></svg>
+                        <svg class="w-4 h-4 hidden" id="fs-icon-exit" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25"></path></svg>
+                    </button>
+                </div>
             </div>
 
-            <h1 class="text-xl sm:text-2xl font-extrabold tracking-widest mb-1 mt-2">FOODSTORYTVC</h1>
-            <p class="text-[10px] sm:text-xs text-green-500 font-bold tracking-[0.2em] uppercase">IMPACT Partner Portal</p>
-            
-            <!-- 🟢 UPGRADE: Symmetrical Tri-Pill Header (Location | Date | Time) -->
-            <div class="mt-5 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-                
+            <!-- Symmetrical Tri-Pill Telemetry Bar (Location | Date | Time) -->
+            <div class="grid grid-cols-3 gap-2 pt-1">
                 <!-- Location Pill -->
-                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800/80 border border-gray-700 shadow-inner">
-                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z"></path></svg>
-                    <p id="restaurant-name-display" class="text-gray-200 text-[11px] font-bold uppercase tracking-wider"></p>
-                </div>
-                
-                <!-- Date Pill -->
-                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800/80 border border-gray-700 shadow-inner">
-                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    <p id="live-date" class="text-gray-200 text-[11px] font-bold uppercase tracking-wider"></p>
+                <div class="flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] min-w-0">
+                    <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z"></path></svg>
+                    <p id="restaurant-name-display" class="text-slate-200 text-[10.5px] font-bold uppercase tracking-wider truncate"></p>
                 </div>
 
-                <!-- Time Pill (No Seconds) -->
-                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800/80 border border-gray-700 shadow-inner">
-                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <p class="text-[11px] font-bold tracking-wider uppercase flex items-center text-gray-200">
+                <!-- Date Pill -->
+                <div class="flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] tabular-nums">
+                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <p id="live-date" class="text-slate-200 text-[10.5px] font-bold uppercase tracking-wider whitespace-nowrap"></p>
+                </div>
+
+                <!-- Time Pill -->
+                <div class="flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl bg-white/[0.05] border border-white/[0.08] tabular-nums">
+                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <p class="text-[10.5px] font-bold tracking-wider uppercase flex items-center text-slate-200 whitespace-nowrap">
                         <span id="live-time-main"></span>
-                        <span id="live-time-ampm" class="ml-1 text-gray-400"></span>
+                        <span id="live-time-ampm" class="ml-1 text-slate-400"></span>
                     </p>
                 </div>
-
             </div>
         </div>
 
-        <div id="redemption-section" class="p-6 sm:p-8 pb-4">
-            <label for="discount-code" class="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">Enter Customer Code</label>
-            
-            <div class="relative flex items-center">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <span class="text-gray-400 font-bold text-lg">IMPACT-</span>
-                </div>
-                <input type="text" id="discount-code" placeholder="A1B2C" 
-                    class="w-full pl-[92px] pr-4 py-4 text-lg font-bold border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none uppercase transition-all tracking-widest" 
-                    autocomplete="off" inputmode="text">
+        <!-- MAIN REDEMPTION WORKSPACE -->
+        <div id="redemption-section" class="p-5 sm:p-7 pb-5 flex-1 flex flex-col">
+            <div class="flex items-center justify-between mb-2">
+                <label for="discount-code" class="text-[11px] font-extrabold text-slate-500 uppercase tracking-[0.12em]">Enter Customer Reward Code</label>
+                <span class="text-[10px] font-semibold text-slate-400">Milestone 3 of 3</span>
             </div>
-            
-            <button id="verify-btn" onclick="verifyCode()" class="mt-4 w-full bg-gray-900 text-white font-bold py-4 px-4 rounded-xl hover:bg-black active:scale-[0.98] transition-all flex justify-center items-center shadow-lg">
-                <span id="verify-text">Verify Code</span>
+
+            <!-- Tactile Monospace Input Bar -->
+            <div class="relative flex items-center group">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <span class="px-2.5 py-1.5 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-500 font-mono font-bold text-xs tracking-wider select-none">IMPACT-</span>
+                </div>
+                <input type="text" id="discount-code" placeholder="A1B2C3D4" maxlength="16"
+                    oninput="handleCodeInput(this)"
+                    class="w-full pl-[96px] pr-11 py-4 text-lg font-mono font-extrabold text-slate-900 bg-slate-50/70 focus:bg-white border-2 border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 outline-none uppercase transition-all tracking-[0.14em] placeholder:text-slate-300 placeholder:font-semibold"
+                    autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" inputmode="text">
+                <button type="button" id="clear-code-btn" onclick="clearCodeInput()" class="hidden absolute right-3.5 w-7 h-7 rounded-full bg-slate-200/80 hover:bg-slate-300 text-slate-600 flex items-center justify-center transition-all active:scale-90" title="Clear Code">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <button id="verify-btn" onclick="verifyCode()" class="mt-3.5 w-full btn-primary-dark text-white font-bold py-4 px-4 rounded-2xl flex justify-center items-center gap-2 text-sm tracking-wide">
+                <span id="verify-text" class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+                    Verify Code
+                </span>
                 <span id="verify-loader" class="loader hidden"></span>
             </button>
 
-            <div id="error-message" class="hidden mt-4 p-4 bg-red-50 text-red-700 rounded-xl text-xs font-bold border border-red-100 text-center uppercase tracking-tight"></div>
-            
-            <div id="result-card" class="hidden mt-6 border-t border-gray-100 pt-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <div class="bg-gray-50 rounded-2xl p-5 border border-gray-100">
-                    
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <p class="text-[10px] text-gray-400 uppercase font-black tracking-widest mb-1">Customer Offer</p>
-                            <p id="result-offer" class="text-xl font-extrabold text-gray-900 leading-tight"></p>
+            <!-- Inline Error Banner -->
+            <div id="error-message" class="hidden mt-4 p-3.5 bg-red-50/90 text-red-700 rounded-2xl text-xs font-bold border border-red-200/80 flex items-center justify-center gap-2 uppercase tracking-wide text-center"></div>
+
+            <!-- VERIFIED RESULT CARD -->
+            <div id="result-card" class="hidden mt-5 pt-5 border-t border-slate-100 anim-reveal">
+                <div class="bg-slate-50/80 rounded-2xl p-5 border border-slate-200/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+
+                    <!-- Offer Header + Status Badge -->
+                    <div class="flex justify-between items-start gap-3 mb-4">
+                        <div class="min-w-0">
+                            <p class="text-[10px] text-slate-400 uppercase font-extrabold tracking-[0.14em] mb-1">Unlocked Customer Offer</p>
+                            <p id="result-offer" class="text-lg sm:text-xl font-black text-slate-900 leading-snug break-words"></p>
                         </div>
-                        <span id="result-badge" class="px-3 py-1 rounded-lg text-[10px] font-black tracking-tighter"></span>
+                        <span id="result-badge" class="px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase shrink-0"></span>
                     </div>
 
-                    <div id="status-warning" class="hidden mb-4 p-3 rounded-lg text-[10px] font-bold leading-relaxed shadow-inner border"></div>
-                    
-                    <div class="mb-6 space-y-4">
-                        <div>
-                            <p class="text-[10px] text-gray-400 uppercase font-black tracking-widest mb-1">Customer Email</p>
-                            <p id="result-customer" class="text-sm font-semibold text-gray-700 break-all"></p>
+                    <!-- Status Warning Banner (Used / Voided / Expired / Spam) -->
+                    <div id="status-warning" class="hidden mb-4 p-3.5 rounded-xl text-[11px] font-semibold leading-relaxed border"></div>
+
+                    <!-- Audit Warning Banner (From Code.gs 3-Visit Star Bill Audit) -->
+                    <div id="audit-warning-box" class="hidden mb-4 p-3.5 rounded-xl text-[11px] font-semibold leading-relaxed bg-amber-50 border border-amber-200/90 text-amber-900 flex items-start gap-2.5">
+                        <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+                        <div id="audit-warning-text" class="flex-1"></div>
+                    </div>
+
+                    <!-- Customer & Bill Metadata Grid -->
+                    <div class="space-y-3 mb-4">
+                        <div class="bg-white px-3.5 py-2.5 rounded-xl border border-slate-200/70 flex items-center justify-between gap-2">
+                            <span class="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider shrink-0">Verified Guest</span>
+                            <p id="result-customer" class="text-xs font-bold text-slate-700 truncate"></p>
                         </div>
-                        
-                        <div class="bg-gray-200/50 p-3 rounded-xl border border-gray-200 flex justify-between items-center">
+
+                        <div id="bill-meta-card" class="bg-white p-3.5 rounded-xl border border-slate-200/80 flex justify-between items-center transition-colors duration-300">
                             <div>
-                                <p class="text-[9px] text-gray-500 uppercase font-bold tracking-wider mb-1">Bill Number Check</p>
+                                <p class="text-[9.5px] text-slate-400 uppercase font-extrabold tracking-wider mb-0.5">Receipt Bill Check</p>
                                 <div class="flex items-center gap-2">
-                                    <p id="result-bill" class="text-base font-black text-gray-900"></p>
-                                    <button id="inline-typo-btn" onclick="openTypoModal()" class="hidden text-[9px] bg-blue-100 text-blue-700 hover:bg-blue-200 px-2 py-1 rounded uppercase font-bold tracking-wider transition-colors">
-                                        ✏️ Edit
+                                    <p id="result-bill" class="text-base font-mono font-black text-slate-900 tabular-nums"></p>
+                                    <button id="inline-typo-btn" onclick="openTypoModal()" class="hidden inline-flex items-center gap-1 text-[10px] bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200/80 px-2.5 py-1 rounded-lg uppercase font-extrabold tracking-wider transition-all active:scale-95">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"/></svg>
+                                        Edit
                                     </button>
                                 </div>
                             </div>
                             <div class="text-right">
-                                <p class="text-[9px] text-gray-500 uppercase font-bold tracking-wider mb-1">Submitted On</p>
-                                <p id="result-date" class="text-xs font-semibold text-gray-600"></p>
+                                <p class="text-[9.5px] text-slate-400 uppercase font-extrabold tracking-wider mb-0.5">Unlocked On</p>
+                                <p id="result-date" class="text-xs font-bold text-slate-600 tabular-nums"></p>
                             </div>
                         </div>
                     </div>
-                    
-                    <div id="action-buttons" class="mt-6 flex flex-col items-center gap-3">
-                        <button id="redeem-btn" onclick="redeemCode()" class="w-full bg-green-600 text-white font-bold py-4 px-4 rounded-xl shadow-md hover:bg-green-700 active:scale-[0.98] transition-all flex justify-center items-center">
-                            <span id="redeem-text">Confirm Redemption</span>
-                            <span id="redeem-loader" class="loader hidden" style="border-top-color: white;"></span>
+
+                    <!-- 3-Visit Loyalty Audit Trail (Populated dynamically from Code.gs data.loyaltyTrail) -->
+                    <div id="loyalty-trail-container" class="hidden mb-5">
+                        <div class="flex items-center justify-between mb-1.5 px-0.5">
+                            <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-400">3-Visit Loyalty Audit Trail</span>
+                            <span class="text-[9.5px] font-bold text-emerald-600">3/3 Verified</span>
+                        </div>
+                        <div id="loyalty-trail-list" class="grid grid-cols-3 gap-2"></div>
+                    </div>
+
+                    <!-- Primary Redemption & Anti-Abuse Controls -->
+                    <div id="action-buttons" class="mt-5 flex flex-col items-center gap-3">
+                        <button id="redeem-btn" onclick="redeemCode()" class="w-full btn-redeem-emerald text-white font-extrabold py-4 px-4 rounded-2xl flex justify-center items-center gap-2 text-sm tracking-wide">
+                            <span id="redeem-text" class="flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                                Confirm Redemption
+                            </span>
+                            <span id="redeem-loader" class="loader hidden"></span>
                         </button>
 
-                        <button id="spam-btn" onclick="markAsSpam()" class="mt-2 text-[10px] font-bold text-gray-400 hover:text-red-500 uppercase tracking-wider transition-colors flex items-center justify-center gap-1">
-                            🚫 Flag as Fake / Spam
+                        <button id="spam-btn" onclick="markAsSpam()" class="mt-1 py-1.5 px-3 rounded-lg text-[10.5px] font-bold text-slate-400 hover:text-red-600 hover:bg-red-50/70 uppercase tracking-wider transition-all flex items-center justify-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                            Flag as Fake / Spam
                         </button>
                     </div>
 
-                    <div id="undo-container" class="mt-6 hidden text-center bg-gray-50 border border-gray-200 rounded-xl p-4">
-                        <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-3">Code killed & User Blacklisted.</p>
-                        <button id="undo-btn" onclick="undoSpam()" class="bg-gray-900 text-white text-xs font-bold py-3 px-6 rounded-lg hover:bg-gray-800 transition-all flex justify-center items-center mx-auto shadow-md">
-                            <span id="undo-text">Undo (<span id="undo-timer">60</span>s)</span>
-                            <span id="undo-loader" class="loader hidden" style="border-top-color: white; width: 12px; height: 12px; border-width: 2px;"></span>
+                    <!-- 60-Second Undo Spam Container -->
+                    <div id="undo-container" class="mt-4 hidden text-center bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+                        <p class="text-[10.5px] text-slate-500 uppercase font-extrabold tracking-wider mb-3">Code Revoked & Guest Blacklisted</p>
+                        <button id="undo-btn" onclick="undoSpam()" class="btn-primary-dark text-white text-xs font-bold py-3 px-6 rounded-xl transition-all flex justify-center items-center gap-2 mx-auto tabular-nums">
+                            <span id="undo-text">Undo Blacklist (<span id="undo-timer">60</span>s)</span>
+                            <span id="undo-loader" class="loader hidden" style="width: 14px; height: 14px; border-width: 2px;"></span>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="border-t border-gray-100 bg-gray-50 py-3 flex justify-center gap-8 mt-auto">
-            <button onclick="openHelpModal()" class="text-[9px] text-gray-500 hover:text-gray-900 font-bold tracking-widest uppercase transition-colors flex items-center gap-1">
-                ❓ Staff Help
+        <!-- FOOTER BAR: STAFF PROTOCOL & MANAGER ACCESS -->
+        <div class="border-t border-slate-100 bg-slate-50/80 px-6 py-3.5 flex justify-between items-center mt-auto">
+            <button onclick="openHelpModal()" class="text-[10.5px] text-slate-500 hover:text-slate-900 font-extrabold tracking-wider uppercase transition-colors inline-flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-slate-200/50">
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"/></svg>
+                Staff Protocol
             </button>
-            <button onclick="openOverrideModal()" class="text-[9px] text-gray-400 hover:text-gray-900 font-bold tracking-widest uppercase transition-colors flex items-center gap-1">
-                🔒 Manager Access
+            <div class="h-3.5 w-px bg-slate-200"></div>
+            <button onclick="openOverrideModal()" class="text-[10.5px] text-slate-500 hover:text-slate-900 font-extrabold tracking-wider uppercase transition-colors inline-flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-slate-200/50">
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+                Manager Override
             </button>
         </div>
     </div>
 
-    <!-- 🟢 MODAL: STAFF SOP HELP -->
-    <div id="help-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
-        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl transform scale-90 transition-transform duration-300 relative flex flex-col max-h-[85vh]">
-            <button onclick="closeHelpModal()" class="absolute top-4 right-5 text-gray-400 hover:text-gray-800 text-3xl font-bold transition-colors leading-none z-10">&times;</button>
-            
-            <div class="text-center mb-4 mt-2">
-                <h3 class="text-xl font-extrabold text-gray-900 tracking-tight">IMPACT Cheat Sheet</h3>
-                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Staff Protocol</p>
+    <!-- MODAL 1: STAFF SOP PROTOCOL CHEAT SHEET -->
+    <div id="help-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-slate-100 transform scale-95 transition-transform duration-300 relative flex flex-col max-h-[85vh]">
+            <button onclick="closeHelpModal()" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+
+            <div class="text-left mb-4">
+                <span class="text-[10px] text-emerald-600 font-extrabold uppercase tracking-[0.16em]">Standard Operating Procedure</span>
+                <h3 class="text-xl font-black text-slate-900 tracking-tight mt-0.5">Counter Verification Guide</h3>
             </div>
 
-            <div class="overflow-y-auto pr-2 space-y-4 text-sm text-gray-700">
-                <div class="bg-purple-50 p-3 rounded-xl border border-purple-100">
-                    <p class="font-bold text-purple-900 text-[11px] uppercase mb-1">1. The Loyalty Rule</p>
-                    <p class="text-xs text-purple-800">Customers earn 1 point per visit. Points are invisible and tracked automatically. <strong>You only scan a code when they unlock a secret reward on their final visit.</strong></p>
-                </div>
-                
-                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                    <p class="font-bold text-gray-900 text-[11px] uppercase mb-1">2. The Visual Check</p>
-                    <p class="text-xs">If the offer says "Valid Today Only," the customer MUST hand you today's physical paper receipt. Ensure the Bill Number on the screen matches the paper.</p>
+            <div class="overflow-y-auto clean-scroll pr-1 space-y-3 text-xs text-slate-600 leading-relaxed">
+                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+                    <p class="font-extrabold text-slate-900 text-[11px] uppercase tracking-wider mb-1">1. The 3-Visit Loyalty Rule</p>
+                    <p>Guests earn 1 star per visit automatically. You only verify and redeem a code when they unlock an <strong class="text-slate-900">IMPACT-</strong> reward on their 3rd visit.</p>
                 </div>
 
-                <div class="bg-blue-50 p-3 rounded-xl border border-blue-100">
-                    <p class="font-bold text-blue-900 text-[11px] uppercase mb-1">3. Fixing Typos (Blue Button)</p>
-                    <p class="text-xs text-blue-800">If the bill number on the screen is slightly different from the receipt, click <strong>✏️ Edit</strong> to correct it before hitting Redeem.</p>
+                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+                    <p class="font-extrabold text-slate-900 text-[11px] uppercase tracking-wider mb-1">2. Physical Receipt Check</p>
+                    <p>If an offer states <strong>"Valid Today Only,"</strong> verify that the 4-digit Bill Number on screen matches the guest's physical paper receipt.</p>
                 </div>
 
-                <div class="bg-green-50 p-3 rounded-xl border border-green-100">
-                    <p class="font-bold text-green-900 text-[11px] uppercase mb-1">4. Redeeming (Green Button)</p>
-                    <p class="text-xs text-green-800">Once you click <strong>Confirm Redemption</strong>, use a pen to draw an 'X' on their physical receipt so they cannot use it again.</p>
+                <div class="bg-blue-50/70 p-3.5 rounded-2xl border border-blue-200/70">
+                    <p class="font-extrabold text-blue-950 text-[11px] uppercase tracking-wider mb-1">3. Fixing Honest Typos (Edit Button)</p>
+                    <p class="text-blue-900">If the guest mistyped a digit of their bill number, tap <strong>Edit</strong> next to the bill number to update it before redeeming.</p>
                 </div>
 
-                <div class="bg-red-50 p-3 rounded-xl border border-red-100">
-                    <p class="font-bold text-red-900 text-[11px] uppercase mb-1">5. Flag as Spam (Red Button)</p>
-                    <p class="text-xs text-red-800">Only use this if a customer is showing a fake/forged receipt or causing a severe dispute. This will permanently ban them.</p>
+                <div class="bg-emerald-50/70 p-3.5 rounded-2xl border border-emerald-200/70">
+                    <p class="font-extrabold text-emerald-950 text-[11px] uppercase tracking-wider mb-1">4. Confirming Redemption</p>
+                    <p class="text-emerald-900">After tapping <strong>Confirm Redemption</strong>, mark an <strong>'X'</strong> on the guest's physical receipt so it cannot be reused.</p>
                 </div>
 
-                <div class="bg-orange-50 p-3 rounded-xl border border-orange-100">
-                    <p class="font-bold text-orange-900 text-[11px] uppercase mb-1">6. Voided or Used Errors</p>
-                    <p class="text-xs text-orange-800">If the screen says Used or Voided, tell the customer: <em>"Our system shows this receipt has already claimed a reward today."</em> If they argue, call a Manager.</p>
+                <div class="bg-red-50/70 p-3.5 rounded-2xl border border-red-200/70">
+                    <p class="font-extrabold text-red-950 text-[11px] uppercase tracking-wider mb-1">5. Flagging Fake / Spam</p>
+                    <p class="text-red-900">Only use <strong>Flag as Fake / Spam</strong> if a guest presents a forged receipt or abuses the system. This blacklists their email.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="typo-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
-        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center relative">
-            <button onclick="closeTypoModal()" class="absolute top-4 right-5 text-gray-400 hover:text-gray-800 text-2xl font-bold">&times;</button>
-            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
-                <span class="text-xl">✏️</span>
+    <!-- MODAL 2: FIX BILL TYPO -->
+    <div id="typo-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-3xl p-6 sm:p-7 max-w-sm w-full shadow-2xl border border-slate-100 transform scale-95 transition-transform duration-300 text-center relative">
+            <button onclick="closeTypoModal()" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-2xl bg-blue-50 border border-blue-200/80 text-blue-600 mb-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"/></svg>
             </div>
-            <h3 class="text-xl font-extrabold text-gray-900 mb-1 tracking-tight">Correct Bill Number</h3>
-            <p class="text-[10px] text-gray-500 font-medium mb-6 uppercase tracking-wider">Fix an honest typo</p>
+            <h3 class="text-xl font-black text-slate-900 mb-1 tracking-tight">Correct Bill Number</h3>
+            <p class="text-[11px] text-slate-500 font-medium mb-5">Enter the 4 digits from the physical receipt</p>
 
-            <div class="space-y-4 text-left">
-                <div>
-                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">True Bill Number from Receipt</label>
-                    <input type="text" id="typo-new-bill" placeholder="e.g. 1005" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-center">
-                </div>
+            <div class="text-left">
+                <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">True Receipt Number (4 Digits)</label>
+                <input type="text" id="typo-new-bill" placeholder="e.g. 1005" inputmode="numeric" maxlength="4"
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4)"
+                    class="w-full p-3.5 bg-slate-50 focus:bg-white border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 outline-none font-mono font-extrabold text-lg text-center tracking-widest tabular-nums">
             </div>
 
-            <div id="typo-error" class="hidden mt-3 text-red-600 text-[10px] font-bold uppercase tracking-wider bg-red-50 p-2 rounded-lg border border-red-100"></div>
+            <div id="typo-error" class="hidden mt-3 text-red-600 text-[10.5px] font-bold uppercase tracking-wider bg-red-50 p-2.5 rounded-xl border border-red-200"></div>
 
-            <button id="typo-btn" onclick="executeTypoFix()" class="mt-6 w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 active:scale-[0.98] transition-all flex justify-center items-center shadow-lg">
+            <button id="typo-btn" onclick="executeTypoFix()" class="mt-5 w-full bg-blue-600 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-blue-700 active:scale-[0.98] transition-all flex justify-center items-center shadow-md text-sm">
                 <span id="typo-text">Save Correction</span>
-                <span id="typo-loader" class="loader hidden" style="border-top-color: white; width: 16px; height: 16px; border-width: 2px;"></span>
+                <span id="typo-loader" class="loader hidden" style="width: 16px; height: 16px; border-width: 2px;"></span>
             </button>
         </div>
     </div>
 
-    <div id="override-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
-        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center relative">
-            <button onclick="closeOverrideModal()" class="absolute top-4 right-5 text-gray-400 hover:text-gray-800 text-2xl font-bold">&times;</button>
-            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 mb-4">
-                <span class="text-xl">🛡️</span>
-            </div>
-            <h3 class="text-xl font-extrabold text-gray-900 mb-1 tracking-tight">Full Override</h3>
-            <p class="text-[10px] text-gray-500 font-medium mb-6 uppercase tracking-wider">Generate a completely new code</p>
+    <!-- MODAL 3: MANAGER OVERRIDE -->
+    <div id="override-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-3xl p-6 sm:p-7 max-w-sm w-full shadow-2xl border border-slate-100 transform scale-95 transition-transform duration-300 text-center relative">
+            <button onclick="closeOverrideModal()" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
 
-            <div class="space-y-4 text-left">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-2xl bg-slate-100 border border-slate-200 text-slate-800 mb-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+            </div>
+            <h3 class="text-xl font-black text-slate-900 mb-1 tracking-tight">Manager Override</h3>
+            <p class="text-[11px] text-slate-500 font-medium mb-5">Issue an instant replacement reward code</p>
+
+            <div class="space-y-3.5 text-left">
                 <div>
-                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">Secret Passphrase</label>
-                    <input type="password" id="override-pin" placeholder="Enter Manager Key" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-900 outline-none text-center font-bold">
+                    <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">Manager Passphrase <span class="text-red-500">*</span></label>
+                    <input type="password" id="override-pin" placeholder="Enter Manager PIN" class="w-full p-3 bg-slate-50 focus:bg-white border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-slate-900/10 focus:border-slate-900 outline-none text-center font-bold">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">True Bill Number</label>
-                    <input type="text" id="override-bill" placeholder="e.g. 1005" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-900 outline-none font-bold text-center">
+                    <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">True Bill Number (4 Digits) <span class="text-red-500">*</span></label>
+                    <input type="text" id="override-bill" placeholder="e.g. 1005" inputmode="numeric" maxlength="4"
+                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4)"
+                        class="w-full p-3 bg-slate-50 focus:bg-white border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-slate-900/10 focus:border-slate-900 outline-none font-mono font-bold text-center tracking-widest tabular-nums">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">Customer Email (Optional)</label>
-                    <input type="email" id="override-email" placeholder="customer@email.com" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-900 outline-none text-sm text-center">
+                    <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1">Customer Email (Optional)</label>
+                    <input type="email" id="override-email" placeholder="customer@email.com" class="w-full p-3 bg-slate-50 focus:bg-white border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-slate-900/10 focus:border-slate-900 outline-none text-sm text-center font-medium">
                 </div>
             </div>
 
-            <div id="override-error" class="hidden mt-3 text-red-600 text-[10px] font-bold uppercase tracking-wider bg-red-50 p-2 rounded-lg border border-red-100"></div>
+            <div id="override-error" class="hidden mt-3 text-red-600 text-[10.5px] font-bold uppercase tracking-wider bg-red-50 p-2.5 rounded-xl border border-red-200"></div>
 
-            <div id="override-success" class="hidden mt-4 bg-green-50 border border-green-200 rounded-xl p-4">
-                <p class="text-[10px] text-green-700 font-bold uppercase tracking-wider mb-1">New Code Generated:</p>
-                <p id="override-new-code" class="text-lg font-black text-green-700 tracking-widest select-all"></p>
-                <p class="text-[9px] text-green-600 mt-2">Code is copied to the portal automatically. Close to redeem.</p>
+            <div id="override-success" class="hidden mt-4 bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+                <p class="text-[10px] text-emerald-700 font-extrabold uppercase tracking-wider mb-1">Replacement Code Ready</p>
+                <p id="override-new-code" class="text-base font-mono font-black text-emerald-800 tracking-wider select-all"></p>
+                <button type="button" onclick="closeOverrideAndVerify()" class="mt-3 w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-sm">
+                    Load & Verify New Code &rarr;
+                </button>
             </div>
 
-            <button id="override-btn" onclick="generateOverride()" class="mt-6 w-full bg-gray-900 text-white font-bold py-3 px-4 rounded-xl hover:bg-black active:scale-[0.98] transition-all flex justify-center items-center shadow-lg">
+            <button id="override-btn" onclick="generateOverride()" class="mt-5 w-full btn-primary-dark text-white font-bold py-3.5 px-4 rounded-xl flex justify-center items-center text-sm">
                 <span id="override-text">Authorize Override</span>
-                <span id="override-loader" class="loader hidden" style="border-top-color: white; width: 16px; height: 16px; border-width: 2px;"></span>
+                <span id="override-loader" class="loader hidden" style="width: 16px; height: 16px; border-width: 2px;"></span>
             </button>
         </div>
     </div>
 
-    <div id="success-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-md transition-opacity duration-300 opacity-0">
-        <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center relative">
-            
-            <button onclick="closeModal()" class="absolute top-4 right-5 text-gray-400 hover:text-gray-800 text-3xl font-bold transition-colors leading-none">&times;</button>
-            
-            <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-6 shadow-inner mt-2">
-                <svg class="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+    <!-- MODAL 4: REDEMPTION SUCCESS -->
+    <div id="success-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/75 backdrop-blur-md transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-3xl p-7 sm:p-8 max-w-sm w-full shadow-2xl border border-slate-100 transform scale-95 transition-transform duration-300 text-center relative">
+            <button onclick="closeModal()" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+
+            <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-emerald-50 border-4 border-emerald-100 mb-5 mt-1">
+                <svg class="h-10 w-10 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                    <path class="check-path" stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
             </div>
-            <h3 class="text-2xl font-extrabold text-gray-900 mb-2 tracking-tight">Success!</h3>
-            <p class="text-sm text-gray-500 font-medium mb-8">The customer's offer has been securely redeemed and recorded.</p>
-            <button onclick="resetAppFromSuccess()" class="w-full bg-gray-900 text-white font-bold py-4 px-4 rounded-xl hover:bg-black active:scale-[0.98] transition-all tracking-wider uppercase text-sm shadow-lg flex items-center justify-center gap-2">
-                Scan Next Customer
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg>
+            <h3 class="text-2xl font-black text-slate-900 mb-1.5 tracking-tight">Redemption Complete</h3>
+            <p class="text-xs text-slate-500 font-medium mb-6 leading-relaxed">The reward has been logged to the loyalty ledger. Please mark an <strong>'X'</strong> on the physical receipt.</p>
+
+            <button onclick="resetAppFromSuccess()" class="w-full btn-primary-dark text-white font-bold py-4 px-4 rounded-2xl tracking-wider uppercase text-xs flex items-center justify-center gap-2">
+                <span>Scan Next Customer</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg>
             </button>
         </div>
     </div>
 
-    <div id="warning-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
-        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 text-center">
-            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4 border-4 border-red-50">
-                <svg class="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+    <!-- MODAL 5: SPAM / BLACKLIST CONFIRMATION -->
+    <div id="warning-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-3xl p-6 sm:p-7 max-w-sm w-full shadow-2xl border border-slate-100 transform scale-95 transition-transform duration-300 text-center">
+            <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-2xl bg-red-50 border border-red-200 text-red-600 mb-4">
+                <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
             </div>
-            <h3 class="text-xl font-extrabold text-gray-900 mb-2 tracking-tight">Wait, are you sure?</h3>
-            <p class="text-xs text-gray-500 font-medium mb-6">This will permanently kill the code and blacklist the user.</p>
-            
-            <div class="text-left mb-6">
-                <label class="block text-[10px] font-black text-gray-500 uppercase tracking-wider mb-1">Reason for Blacklisting (Required)</label>
-                <input type="text" id="spam-reason" placeholder="e.g., Fake receipt, argumentative..." class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-sm font-medium">
-                <div id="spam-error" class="hidden mt-2 text-red-600 text-[10px] font-bold uppercase tracking-wider bg-red-50 p-2 rounded border border-red-100 text-center">Please provide a reason.</div>
+            <h3 class="text-xl font-black text-slate-900 mb-1 tracking-tight">Revoke & Blacklist?</h3>
+            <p class="text-xs text-slate-500 font-medium mb-5">This permanently voids the reward code and restricts the customer's email.</p>
+
+            <div class="text-left mb-5">
+                <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Reason for Flagging (Required)</label>
+                <input type="text" id="spam-reason" placeholder="e.g., Forged receipt, invalid bill..." class="w-full p-3.5 bg-slate-50 focus:bg-white border-2 border-slate-200 rounded-xl focus:ring-4 focus:ring-red-500/10 focus:border-red-600 outline-none text-sm font-medium">
+                <div id="spam-error" class="hidden mt-2 text-red-600 text-[10px] font-bold uppercase tracking-wider bg-red-50 p-2 rounded-lg border border-red-200 text-center">Please enter a brief reason.</div>
             </div>
 
-            <div class="flex gap-3">
-                <button onclick="closeWarningModal()" class="w-1/2 bg-gray-100 text-gray-700 font-bold py-3 px-4 rounded-xl hover:bg-gray-200 active:scale-[0.98] transition-all tracking-wider text-sm">Cancel</button>
-                <button id="confirm-spam-btn" onclick="executeSpamAction()" class="w-1/2 bg-red-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-red-700 active:scale-[0.98] transition-all tracking-wider text-sm flex justify-center items-center shadow-md">
-                    <span id="confirm-spam-text">Kill Code</span>
-                    <span id="confirm-spam-loader" class="loader hidden" style="border-top-color: white; width: 16px; height: 16px; border-width: 2px;"></span>
+            <div class="flex gap-2.5">
+                <button onclick="closeWarningModal()" class="w-1/2 bg-slate-100 text-slate-700 font-bold py-3.5 px-4 rounded-xl hover:bg-slate-200 active:scale-[0.98] transition-all text-xs uppercase tracking-wider">Cancel</button>
+                <button id="confirm-spam-btn" onclick="executeSpamAction()" class="w-1/2 bg-red-600 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-red-700 active:scale-[0.98] transition-all text-xs uppercase tracking-wider flex justify-center items-center shadow-md">
+                    <span id="confirm-spam-text">Revoke Code</span>
+                    <span id="confirm-spam-loader" class="loader hidden" style="width: 15px; height: 15px; border-width: 2px;"></span>
                 </button>
             </div>
         </div>
     </div>
 
-<!-- 🟢 MODAL: INITIAL DEVICE AUTHENTICATION (LOCK SCREEN) -->
-    <div id="auth-modal" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4 bg-gray-900/95 backdrop-blur-xl transition-opacity duration-300">
-        <div class="bg-white p-8 rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.6)] w-full max-w-sm flex flex-col items-center text-center border border-gray-100 transform transition-transform duration-300 scale-100" id="auth-box">
-            <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-5 shadow-inner border border-blue-100">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
+    <!-- MODAL 6: INITIAL DEVICE AUTHENTICATION (POS LOCK SCREEN) -->
+    <div id="auth-modal" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl transition-opacity duration-300">
+        <div class="bg-white p-7 sm:p-8 rounded-3xl shadow-[0_30px_70px_rgba(0,0,0,0.5)] w-full max-w-sm flex flex-col items-center text-center border border-slate-100 transform transition-transform duration-300 scale-100" id="auth-box">
+            <div class="w-14 h-14 bg-slate-900 text-amber-300 rounded-2xl flex items-center justify-center mb-4 shadow-md border border-slate-800">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
             </div>
-            <h2 class="font-black text-2xl text-gray-900 tracking-tight mb-2">Terminal Locked</h2>
-            <p class="text-xs text-gray-500 font-medium mb-6 leading-relaxed px-2">Please enter the staff passcode to activate this device for redemptions.</p>
-            
-            <input type="password" id="staff-auth-pin" placeholder="Enter Passcode" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-4 font-black text-center tracking-[0.3em] text-gray-900 outline-none focus:border-blue-500 focus:bg-white transition-all mb-4" autocomplete="off">
-            
-            <div id="auth-error" class="hidden w-full mb-4 text-red-600 text-[10px] font-bold uppercase tracking-wider bg-red-50 p-3 rounded-xl border border-red-100"></div>
+            <span class="text-[10px] font-extrabold uppercase tracking-[0.18em] text-emerald-600 mb-1">Authorized Staff Only</span>
+            <h2 class="font-black text-2xl text-slate-900 tracking-tight mb-1.5">Terminal Locked</h2>
+            <p class="text-xs text-slate-500 font-medium mb-6 leading-relaxed px-2">Enter your restaurant staff passcode to unlock this redemption terminal.</p>
 
-            <button id="auth-submit-btn" onclick="saveStaffAuth()" class="w-full py-4 bg-gray-900 text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-black transition-colors shadow-lg active:scale-[0.98] flex justify-center items-center">
+            <input type="password" id="staff-auth-pin" placeholder="••••••••" class="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl px-4 py-4 font-mono font-black text-lg text-center tracking-[0.3em] text-slate-900 outline-none focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/10 transition-all mb-4" autocomplete="off">
+
+            <div id="auth-error" class="hidden w-full mb-4 text-red-600 text-[10.5px] font-bold uppercase tracking-wider bg-red-50 p-3 rounded-xl border border-red-200"></div>
+
+            <button id="auth-submit-btn" onclick="saveStaffAuth()" class="w-full py-4 btn-primary-dark text-white rounded-2xl font-extrabold uppercase tracking-widest text-xs flex justify-center items-center">
                 <span id="auth-submit-text">Unlock Terminal</span>
-                <span id="auth-loader" class="loader hidden" style="border-top-color: white; width: 16px; height: 16px; border-width: 2px;"></span>
+                <span id="auth-loader" class="loader hidden" style="width: 16px; height: 16px; border-width: 2px;"></span>
             </button>
         </div>
     </div>
 
     <script>
-        // 🔴 IMPORTANT: Replace this with your newly deployed Web App URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwAz4-8NdrrsaKuteoZzWBfofg2NoofKx_g8gBu0kagmsU-MSACfMwiwoH8A7E2hwQ/exec"; 
+        // ==========================================
+        // ⚙️ CONFIGURATION (Synced with index.html & Code.gs)
+        // ==========================================
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwGJeglurTsWxovbL3JHYV55m0xY4zPrf6G59H6UTkEYgZaofRY_Lv5bH0WnJKJyT-9/exec"; 
         const RESTAURANT_NAME = "Temp New"; 
 
         let currentlyVerifiedCode = "";
         let undoInterval;
+        let pendingOverrideAutoVerify = false;
 
-        // 🟢 NEW: BOOT UP AUTH CHECK
+        function triggerHaptic(type = 'light') {
+            if (navigator.vibrate) {
+                if (type === 'light') navigator.vibrate(10);
+                if (type === 'heavy') navigator.vibrate([25, 45, 25]);
+            }
+        }
+
+        // Live Connectivity Monitor
+        function updatePosNetworkStatus() {
+            const badge = document.getElementById('pos-net-badge');
+            const dot = document.getElementById('pos-net-dot');
+            const txt = document.getElementById('pos-net-text');
+            if (!badge || !dot || !txt) return;
+            if (navigator.onLine) {
+                badge.className = "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                dot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse";
+                txt.innerText = "Live";
+            } else {
+                badge.className = "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-red-500/15 text-red-400 border border-red-500/30";
+                dot.className = "w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse";
+                txt.innerText = "Offline";
+            }
+        }
+        window.addEventListener('online', updatePosNetworkStatus);
+        window.addEventListener('offline', updatePosNetworkStatus);
+
+        // Input sanitization & clear button visibility
+        function handleCodeInput(el) {
+            let v = el.value.toUpperCase().replace(/\s+/g, '');
+            if (v.startsWith("IMPACT-")) {
+                v = v.slice(7);
+            }
+            el.value = v;
+            const clearBtn = document.getElementById('clear-code-btn');
+            if (clearBtn) {
+                if (v.length > 0) clearBtn.classList.remove('hidden');
+                else clearBtn.classList.add('hidden');
+            }
+        }
+
+        function clearCodeInput() {
+            triggerHaptic('light');
+            const input = document.getElementById('discount-code');
+            input.value = '';
+            document.getElementById('clear-code-btn')?.classList.add('hidden');
+            document.getElementById('error-message')?.classList.add('hidden');
+            input.focus();
+        }
+
+        // Boot-Up Auth Check
         function checkStaffAuth() {
             const token = localStorage.getItem('impact_staff_token');
             const authModal = document.getElementById('auth-modal');
@@ -330,9 +595,10 @@
             
             if (!token) {
                 authModal.classList.remove('hidden');
-                // Use a tiny timeout to ensure the browser paints the flexbox before animating opacity
                 setTimeout(() => {
                     authModal.classList.remove('opacity-0');
+                    authBox.classList.remove('scale-95');
+                    authBox.classList.add('scale-100');
                     document.getElementById('staff-auth-pin').focus();
                 }, 10);
             } else {
@@ -340,11 +606,19 @@
             }
         }
 
+        function lockTerminalManually() {
+            triggerHaptic('light');
+            localStorage.removeItem('impact_staff_token');
+            document.getElementById('auth-error').classList.add('hidden');
+            checkStaffAuth();
+        }
+
         function saveStaffAuth() {
             const pin = document.getElementById('staff-auth-pin').value.trim();
             const errorDiv = document.getElementById('auth-error');
             
             if (!pin) {
+                triggerHaptic('heavy');
                 errorDiv.innerText = "Passcode is required to continue.";
                 errorDiv.classList.remove('hidden');
                 return;
@@ -352,7 +626,6 @@
             
             toggleLoading('auth-submit-btn', 'auth-submit-text', 'auth-loader', true);
             
-            // Save to browser memory
             localStorage.setItem('impact_staff_token', pin);
             errorDiv.classList.add('hidden');
             document.getElementById('staff-auth-pin').value = '';
@@ -360,7 +633,6 @@
             const authModal = document.getElementById('auth-modal');
             const authBox = document.getElementById('auth-box');
             
-            // Smooth fade out
             authModal.classList.add('opacity-0');
             authBox.classList.remove('scale-100');
             authBox.classList.add('scale-95');
@@ -368,24 +640,23 @@
             setTimeout(() => {
                 authModal.classList.add('hidden');
                 toggleLoading('auth-submit-btn', 'auth-submit-text', 'auth-loader', false);
-                document.getElementById('discount-code').focus(); // Auto-focus the scanner input!
-            }, 300);
+                document.getElementById('discount-code').focus();
+            }, 280);
         }
 
-        // 🛡️ THE SECURE POST HELPER
+        // Secure POST Helper
         async function securePost(paramsObj) {
             let staffToken = localStorage.getItem('impact_staff_token');
-            if (!staffToken) {
+            if (!staffToken && paramsObj.action !== 'override') {
                 checkStaffAuth(); 
                 throw new Error("Terminal Locked"); 
             }
             
-            paramsObj.staff_auth = staffToken; 
+            paramsObj.staff_auth = staffToken || ""; 
             const formData = new URLSearchParams(paramsObj);
             
-            // 🟢 UX FIX: 12-Second Network Timeout for POS Terminals
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 12000);
+            const timeoutId = setTimeout(() => controller.abort(), 14000);
             
             try {
                 const response = await fetch(SCRIPT_URL, { 
@@ -397,12 +668,12 @@
                 clearTimeout(timeoutId);
                 const data = await response.json();
                 
-                // 🟢 SECURITY BOUNCER: Handle backend rejection gracefully
                 if (data.success === false && data.message === "Unauthorized API Request.") {
+                    triggerHaptic('heavy');
                     localStorage.removeItem('impact_staff_token');
                     checkStaffAuth();
                     const authErrorDiv = document.getElementById('auth-error');
-                    authErrorDiv.innerText = "Invalid or Revoked Passcode.";
+                    authErrorDiv.innerText = "Invalid or Revoked Staff Passcode.";
                     authErrorDiv.classList.remove('hidden');
                     throw new Error("Invalid Staff Passcode"); 
                 }
@@ -420,7 +691,6 @@
                     return { success: false, message: "Deployment mismatch. Update Web App URL." };
                 }
 
-                // If it's our own thrown error, pass it up.
                 if (err.message === "Invalid Staff Passcode" || err.message === "Terminal Locked") {
                     throw err;
                 }
@@ -429,22 +699,20 @@
             }
         }
 
-        // 🟢 NEW: Tri-Pill Live Clock Engine (Seconds Removed for UX Clarity)
+        // Tri-Pill Live Clock Engine
         function updateLiveClock() {
             const now = new Date();
             const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }).replace(/ /g, '-').toUpperCase();
             
-            // Extract Time and AM/PM cleanly
             let hours = now.getHours();
             const minutes = now.getMinutes().toString().padStart(2, '0');
             const ampm = hours >= 12 ? 'PM' : 'AM';
             
             hours = hours % 12;
-            hours = hours ? hours : 12; // Handle midnight (0) as 12
+            hours = hours ? hours : 12;
             
             const timeMainStr = `${hours}:${minutes}`;
             
-            // Inject into the DOM
             const dateEl = document.getElementById('live-date');
             const timeMainEl = document.getElementById('live-time-main');
             const timeAmPmEl = document.getElementById('live-time-ampm');
@@ -455,11 +723,10 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            // 🟢 FIRE THE LIVE CLOCK ENGINE
+            updatePosNetworkStatus();
             updateLiveClock();
             setInterval(updateLiveClock, 1000);
 
-            // 🟢 FIRE THE LOCK SCREEN CHECK IMMEDIATELY
             checkStaffAuth();
 
             document.getElementById('restaurant-name-display').innerText = RESTAURANT_NAME;
@@ -475,14 +742,13 @@
             document.getElementById('spam-reason').addEventListener('keypress', function (e) { if (e.key === 'Enter') executeSpamAction(); });
         });
 
-
-function openHelpModal() {
+        function openHelpModal() {
             const modal = document.getElementById('help-modal');
             const modalBox = modal.querySelector('div');
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
-                modalBox.classList.remove('scale-90');
+                modalBox.classList.remove('scale-95');
                 modalBox.classList.add('scale-100');
             }, 10);
         }
@@ -492,8 +758,8 @@ function openHelpModal() {
             const modalBox = modal.querySelector('div');
             modal.classList.add('opacity-0');
             modalBox.classList.remove('scale-100');
-            modalBox.classList.add('scale-90');
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            modalBox.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 280);
         }
 
         function openTypoModal() {
@@ -506,7 +772,7 @@ function openHelpModal() {
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
-                modalBox.classList.remove('scale-90');
+                modalBox.classList.remove('scale-95');
                 modalBox.classList.add('scale-100');
                 document.getElementById('typo-new-bill').focus();
             }, 10);
@@ -517,16 +783,17 @@ function openHelpModal() {
             const modalBox = modal.querySelector('div');
             modal.classList.add('opacity-0');
             modalBox.classList.remove('scale-100');
-            modalBox.classList.add('scale-90');
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            modalBox.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 280);
         }
 
         async function executeTypoFix() {
             const newBill = document.getElementById('typo-new-bill').value.trim();
             const errorDiv = document.getElementById('typo-error');
 
-            if (!newBill) {
-                errorDiv.innerText = "New Bill Number is required.";
+            if (newBill.length !== 4) {
+                triggerHaptic('heavy');
+                errorDiv.innerText = "Please enter all 4 digits of the receipt.";
                 errorDiv.classList.remove('hidden');
                 return;
             }
@@ -538,12 +805,14 @@ function openHelpModal() {
                 const data = await securePost({ action: 'fix_typo', newBillNumber: newBill, code: currentlyVerifiedCode });
 
                 if (data.success) {
+                    triggerHaptic('light');
                     closeTypoModal();
                     document.getElementById('result-bill').innerText = "#" + data.newBill;
-                    const billBox = document.getElementById('result-bill').parentElement.parentElement;
-                    billBox.classList.add('bg-blue-100', 'border-blue-300');
-                    setTimeout(() => billBox.classList.remove('bg-blue-100', 'border-blue-300'), 1500);
+                    const billBox = document.getElementById('bill-meta-card');
+                    billBox.classList.add('bg-blue-50', 'border-blue-300');
+                    setTimeout(() => billBox.classList.remove('bg-blue-50', 'border-blue-300'), 1600);
                 } else {
+                    triggerHaptic('heavy');
                     errorDiv.innerText = data.message;
                     errorDiv.classList.remove('hidden');
                 }
@@ -556,10 +825,15 @@ function openHelpModal() {
         }
 
         function showSuccessModal() {
+            triggerHaptic('light');
             const modal = document.getElementById('success-modal');
             const modalBox = modal.querySelector('div');
             modal.classList.remove('hidden');
-            setTimeout(() => { modal.classList.remove('opacity-0'); modalBox.classList.remove('scale-90'); modalBox.classList.add('scale-100'); }, 10);
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalBox.classList.remove('scale-95');
+                modalBox.classList.add('scale-100');
+            }, 10);
         }
 
         function closeModal() {
@@ -567,11 +841,12 @@ function openHelpModal() {
             const modalBox = modal.querySelector('div');
             modal.classList.add('opacity-0');
             modalBox.classList.remove('scale-100');
-            modalBox.classList.add('scale-90');
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            modalBox.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 280);
         }
 
         function openOverrideModal() {
+            pendingOverrideAutoVerify = false;
             const modal = document.getElementById('override-modal');
             const modalBox = modal.querySelector('div');
             
@@ -585,11 +860,16 @@ function openHelpModal() {
 
             const overrideBtn = document.getElementById('override-btn');
             overrideBtn.disabled = false;
-            overrideBtn.className = "mt-6 w-full bg-gray-900 text-white font-bold py-3 px-4 rounded-xl hover:bg-black active:scale-[0.98] transition-all flex justify-center items-center shadow-lg";
+            overrideBtn.className = "mt-5 w-full btn-primary-dark text-white font-bold py-3.5 px-4 rounded-xl flex justify-center items-center text-sm";
             document.getElementById('override-text').innerText = "Authorize Override";
 
             modal.classList.remove('hidden');
-            setTimeout(() => { modal.classList.remove('opacity-0'); modalBox.classList.remove('scale-90'); modalBox.classList.add('scale-100'); document.getElementById('override-pin').focus(); }, 10);
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalBox.classList.remove('scale-95');
+                modalBox.classList.add('scale-100');
+                document.getElementById('override-pin').focus();
+            }, 10);
         }
 
         function closeOverrideModal() {
@@ -597,8 +877,19 @@ function openHelpModal() {
             const modalBox = modal.querySelector('div');
             modal.classList.add('opacity-0');
             modalBox.classList.remove('scale-100');
-            modalBox.classList.add('scale-90');
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            modalBox.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                if (pendingOverrideAutoVerify) {
+                    pendingOverrideAutoVerify = false;
+                    verifyCode();
+                }
+            }, 280);
+        }
+
+        function closeOverrideAndVerify() {
+            pendingOverrideAutoVerify = true;
+            closeOverrideModal();
         }
 
         async function generateOverride() {
@@ -608,9 +899,11 @@ function openHelpModal() {
             const errorDiv = document.getElementById('override-error');
             const successDiv = document.getElementById('override-success');
 
-            if (!pin || !bill) {
-                errorDiv.innerText = "Passphrase and True Bill Number are required.";
-                errorDiv.classList.remove('hidden'); return;
+            if (!pin || bill.length !== 4) {
+                triggerHaptic('heavy');
+                errorDiv.innerText = "Manager PIN and 4-digit Bill Number are required.";
+                errorDiv.classList.remove('hidden');
+                return;
             }
 
             errorDiv.classList.add('hidden');
@@ -618,20 +911,32 @@ function openHelpModal() {
             toggleLoading('override-btn', 'override-text', 'override-loader', true);
 
             try {
-                const data = await securePost({ action: 'override', pin: pin, billNumber: bill, restaurant: RESTAURANT_NAME, email: email, oldCode: currentlyVerifiedCode });
+                const data = await securePost({
+                    action: 'override',
+                    pin: pin,
+                    billNumber: bill,
+                    restaurant: RESTAURANT_NAME,
+                    email: email,
+                    oldCode: currentlyVerifiedCode
+                });
 
                 if (data.success) {
+                    triggerHaptic('light');
                     document.getElementById('override-new-code').innerText = data.newCode;
                     successDiv.classList.remove('hidden');
                     
                     let rawCodeOnly = data.newCode.replace("IMPACT-", "");
-                    document.getElementById('discount-code').value = rawCodeOnly;
+                    const codeInput = document.getElementById('discount-code');
+                    codeInput.value = rawCodeOnly;
+                    handleCodeInput(codeInput);
+                    pendingOverrideAutoVerify = true;
 
                     const overrideBtn = document.getElementById('override-btn');
                     overrideBtn.disabled = true;
-                    overrideBtn.className = "mt-6 w-full bg-gray-400 text-white font-bold py-3 px-4 rounded-xl flex justify-center items-center cursor-not-allowed";
-                    document.getElementById('override-text').innerText = "Override Complete ✓";
+                    overrideBtn.className = "mt-5 w-full bg-slate-200 text-slate-500 font-bold py-3.5 px-4 rounded-xl flex justify-center items-center cursor-not-allowed text-sm";
+                    document.getElementById('override-text').innerText = "Override Authorized ✓";
                 } else {
+                    triggerHaptic('heavy');
                     errorDiv.innerText = data.message;
                     errorDiv.classList.remove('hidden');
                 }
@@ -650,7 +955,6 @@ function openHelpModal() {
             
             if (!rawInput) return;
             
-            // 🟢 UX FIX: Automatically strip "IMPACT-" if the cashier accidentally types it
             if (rawInput.startsWith("IMPACT-")) {
                 rawInput = rawInput.replace("IMPACT-", "");
                 document.getElementById('discount-code').value = rawInput; 
@@ -665,8 +969,13 @@ function openHelpModal() {
             try {
                 const data = await securePost({ code: fullCode, restaurant: RESTAURANT_NAME, action: 'verify' });
 
-                if (data.success) showResultCard(data.data, fullCode);
-                else showError(data.message);
+                if (data.success) {
+                    triggerHaptic('light');
+                    showResultCard(data.data, fullCode);
+                } else {
+                    triggerHaptic('heavy');
+                    showError(data.message);
+                }
             } catch (err) {
                 if (err.message !== "Invalid Staff Passcode" && err.message !== "Terminal Locked") {
                     showError("Connection Error. Try again.");
@@ -686,18 +995,21 @@ function openHelpModal() {
                 const data = await securePost({ code: currentlyVerifiedCode, restaurant: RESTAURANT_NAME, action: 'redeem' });
 
                 if (data.success) {
-                    document.getElementById('result-badge').innerText = "REDEEMED";
-                    document.getElementById('result-badge').className = "px-3 py-1 rounded-lg text-[10px] font-black bg-gray-200 text-gray-500";
+                    const badge = document.getElementById('result-badge');
+                    badge.innerText = "REDEEMED";
+                    badge.className = "px-3 py-1 rounded-full text-[10px] font-black bg-slate-200 text-slate-600 shrink-0";
                     document.getElementById('action-buttons').classList.add('hidden'); 
                     document.getElementById('inline-typo-btn').classList.add('hidden'); 
                     
                     const warningBox = document.getElementById('status-warning');
-                    warningBox.className = "mb-4 p-3 rounded-lg text-[10px] font-bold leading-relaxed shadow-inner border bg-gray-100 border-gray-300 text-gray-700";
-                    warningBox.innerHTML = '⚠️ <span class="uppercase tracking-wider">Already Claimed:</span> This reward has already been scanned and redeemed. It cannot be used again.';
+                    warningBox.className = "mb-4 p-3.5 rounded-xl text-[11px] font-semibold leading-relaxed border bg-slate-100 border-slate-200 text-slate-700 block";
+                    warningBox.innerHTML = '<strong class="uppercase tracking-wider">Redeemed Just Now:</strong> This reward has been claimed and logged to the database.';
                     
                     showSuccessModal();
                     document.getElementById('discount-code').value = '';
+                    document.getElementById('clear-code-btn')?.classList.add('hidden');
                 } else {
+                    triggerHaptic('heavy');
                     showError(data.message);
                 }
             } catch (err) {
@@ -718,7 +1030,7 @@ function openHelpModal() {
             modal.classList.remove('hidden');
             setTimeout(() => { 
                 modal.classList.remove('opacity-0'); 
-                modalBox.classList.remove('scale-90'); 
+                modalBox.classList.remove('scale-95'); 
                 modalBox.classList.add('scale-100'); 
                 document.getElementById('spam-reason').focus();
             }, 10);
@@ -729,8 +1041,8 @@ function openHelpModal() {
             const modalBox = modal.querySelector('div');
             modal.classList.add('opacity-0');
             modalBox.classList.remove('scale-100');
-            modalBox.classList.add('scale-90');
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            modalBox.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 280);
         }
 
         async function executeSpamAction() {
@@ -738,6 +1050,7 @@ function openHelpModal() {
             const spamError = document.getElementById('spam-error');
             
             if (!reasonInput) {
+                triggerHaptic('heavy');
                 spamError.classList.remove('hidden');
                 return;
             }
@@ -756,16 +1069,17 @@ function openHelpModal() {
                 });
 
                 if (data.success) {
+                    triggerHaptic('light');
                     closeWarningModal();
                     const badge = document.getElementById('result-badge');
-                    badge.innerText = "FLAGGED AS SPAM";
-                    badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-red-900 text-red-100 border border-red-950";
+                    badge.innerText = "FLAGGED SPAM";
+                    badge.className = "px-3 py-1 rounded-full text-[10px] font-black bg-red-900 text-red-100 shrink-0";
                     document.getElementById('action-buttons').classList.add('hidden'); 
                     document.getElementById('inline-typo-btn').classList.add('hidden'); 
                     
                     const warningBox = document.getElementById('status-warning');
-                    warningBox.className = "mb-4 p-3 rounded-lg text-[10px] font-bold leading-relaxed shadow-inner border bg-red-50 border-red-200 text-red-800";
-                    warningBox.innerHTML = '🚫 <span class="uppercase tracking-wider">Security Flag:</span> This code was flagged manually by staff. The user is now restricted.';
+                    warningBox.className = "mb-4 p-3.5 rounded-xl text-[11px] font-semibold leading-relaxed border bg-red-50 border-red-200 text-red-800 block";
+                    warningBox.innerHTML = '<strong class="uppercase tracking-wider">Security Flag Active:</strong> This code was revoked by staff and the customer email is now restricted.';
 
                     startUndoTimer(); 
                 } else {
@@ -792,7 +1106,10 @@ function openHelpModal() {
             undoInterval = setInterval(() => {
                 timeLeft--;
                 undoTimerSpan.innerText = timeLeft;
-                if (timeLeft <= 0) { clearInterval(undoInterval); undoContainer.classList.add('hidden'); }
+                if (timeLeft <= 0) {
+                    clearInterval(undoInterval);
+                    undoContainer.classList.add('hidden');
+                }
             }, 1000);
         }
 
@@ -805,9 +1122,10 @@ function openHelpModal() {
                 const data = await securePost({ code: currentlyVerifiedCode, restaurant: RESTAURANT_NAME, action: 'undo_spam' });
 
                 if (data.success) {
+                    triggerHaptic('light');
                     const badge = document.getElementById('result-badge');
                     badge.innerText = "VALID OFFER";
-                    badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-green-100 text-green-700 border border-green-200";
+                    badge.className = "px-3 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0";
                     document.getElementById('undo-container').classList.add('hidden'); 
                     document.getElementById('action-buttons').classList.remove('hidden'); 
                     document.getElementById('inline-typo-btn').classList.remove('hidden'); 
@@ -826,134 +1144,197 @@ function openHelpModal() {
 
         function showResultCard(data, code) {
             currentlyVerifiedCode = code;
-            document.getElementById('result-offer').innerText = data.offer;
-            document.getElementById('result-customer').innerText = data.customer;
+            document.getElementById('result-offer').innerText = data.offer || "Verified Reward";
+            document.getElementById('result-customer').innerText = data.customer || "N/A";
             document.getElementById('result-bill').innerText = data.billNumber && data.billNumber !== "N/A" ? "#" + data.billNumber : "N/A";
             
             let formattedDate = "N/A";
             if (data.dateSubmitted && data.dateSubmitted !== "N/A") {
                 const d = new Date(data.dateSubmitted);
-                if (!isNaN(d.getTime())) { formattedDate = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }); } 
-                else { formattedDate = data.dateSubmitted; }
+                if (!isNaN(d.getTime())) {
+                    formattedDate = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                } else {
+                    formattedDate = data.dateSubmitted;
+                }
             }
             document.getElementById('result-date').innerText = formattedDate;
+
+            // Render 3-Visit Loyalty Audit Trail from Code.gs
+            const trailContainer = document.getElementById('loyalty-trail-container');
+            const trailList = document.getElementById('loyalty-trail-list');
+            if (Array.isArray(data.loyaltyTrail) && data.loyaltyTrail.length > 0) {
+                trailList.innerHTML = data.loyaltyTrail.map(item => {
+                    const isReward = item.type === 'Reward';
+                    const pillStyle = isReward
+                        ? 'bg-emerald-50/90 border-emerald-200 text-emerald-900'
+                        : 'bg-white border-slate-200/80 text-slate-700';
+                    const badgeLabel = isReward ? 'Visit 3 • Reward' : `Visit ${item.step} • Star`;
+                    return `
+                        <div class="p-2.5 rounded-xl border ${pillStyle} text-left">
+                            <p class="text-[9px] font-extrabold uppercase tracking-wider opacity-70 truncate">${badgeLabel}</p>
+                            <p class="text-xs font-mono font-black mt-0.5 tabular-nums">#${item.bill || 'N/A'}</p>
+                        </div>
+                    `;
+                }).join('');
+                trailContainer.classList.remove('hidden');
+            } else {
+                trailContainer.classList.add('hidden');
+            }
+
+            // Render Suspicious Star Bill Audit Warning from Code.gs
+            const auditBox = document.getElementById('audit-warning-box');
+            const auditText = document.getElementById('audit-warning-text');
+            if (data.auditWarning && data.auditWarning.trim() !== "") {
+                auditText.innerText = data.auditWarning;
+                auditBox.classList.remove('hidden');
+            } else {
+                auditBox.classList.add('hidden');
+            }
             
             const badge = document.getElementById('result-badge');
             const actionButtons = document.getElementById('action-buttons');
             const warningBox = document.getElementById('status-warning');
             const inlineTypoBtn = document.getElementById('inline-typo-btn');
             
-            warningBox.className = "hidden mb-4 p-3 rounded-lg text-[10px] font-bold leading-relaxed shadow-inner border";
+            warningBox.className = "hidden mb-4 p-3.5 rounded-xl text-[11px] font-semibold leading-relaxed border";
 
-            const status = data.status.toLowerCase();
+            const status = (data.status || "").toString().toLowerCase();
             
             if (status === 'valid') {
-                badge.innerText = "VALID OFFER"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-green-100 text-green-700 border border-green-200"; 
+                badge.innerText = "VALID OFFER";
+                badge.className = "px-3 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0"; 
                 actionButtons.classList.remove('hidden'); 
                 inlineTypoBtn.classList.remove('hidden'); 
             } else if (status === 'redeemed') {
-                badge.innerText = "USED ALREADY"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-gray-100 text-gray-500 border border-gray-200";
-                warningBox.classList.add('bg-gray-100', 'border-gray-300', 'text-gray-700', '!block');
-                warningBox.innerHTML = '⚠️ <span class="uppercase tracking-wider">Already Claimed:</span> This reward has already been scanned and redeemed at the counter. It cannot be used again.'; 
+                badge.innerText = "USED ALREADY";
+                badge.className = "px-3 py-1 rounded-full text-[10px] font-black bg-slate-200 text-slate-600 border border-slate-300 shrink-0";
+                warningBox.classList.add('bg-slate-100', 'border-slate-200', 'text-slate-700', '!block');
+                warningBox.innerHTML = '<strong class="uppercase tracking-wider">Already Claimed:</strong> This reward has already been scanned and redeemed at the counter. It cannot be used again.'; 
                 actionButtons.classList.add('hidden'); 
                 inlineTypoBtn.classList.add('hidden'); 
             } else if (status === 'spam') {
-                badge.innerText = "FLAGGED AS SPAM"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-red-900 text-red-100 border border-red-950";
+                badge.innerText = "FLAGGED SPAM";
+                badge.className = "px-3 py-1 rounded-full text-[10px] font-black bg-red-900 text-red-100 shrink-0";
                 warningBox.classList.add('bg-red-50', 'border-red-200', 'text-red-800', '!block');
-                warningBox.innerHTML = '🚫 <span class="uppercase tracking-wider">Security Flag:</span> This code was flagged by the automated anti-abuse system or manually by staff.'; 
+                warningBox.innerHTML = '<strong class="uppercase tracking-wider">Security Flag:</strong> This code was flagged by the automated anti-abuse firewall or manually by staff.'; 
                 actionButtons.classList.add('hidden');
                 inlineTypoBtn.classList.add('hidden'); 
             } else if (status === 'voided') {
-                badge.innerText = "VOIDED"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-orange-100 text-orange-700 border border-orange-300";
-                warningBox.classList.add('bg-orange-50', 'border-orange-200', 'text-orange-800', '!block');
-                warningBox.innerHTML = '⚠️ <span class="uppercase tracking-wider">Duplicate Bill Detected:</span> A newer code was already generated for this exact receipt.'; 
+                badge.innerText = "VOIDED";
+                badge.className = "px-3 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-300 shrink-0";
+                warningBox.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-900', '!block');
+                warningBox.innerHTML = '<strong class="uppercase tracking-wider">Duplicate Bill Detected:</strong> A newer code was issued for this receipt, voiding this earlier code.'; 
                 actionButtons.classList.add('hidden'); 
                 inlineTypoBtn.classList.add('hidden'); 
             } else if (status === 'overridden') { 
-                badge.innerText = "OVERRIDDEN"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-purple-100 text-purple-700 border border-purple-300";
-                warningBox.classList.add('bg-purple-50', 'border-purple-200', 'text-purple-800', '!block');
-                warningBox.innerHTML = '🛡️ <span class="uppercase tracking-wider">Manager Override:</span> This code was manually replaced by a manager due to a typo or dispute, rendering this original code invalid.'; 
+                badge.innerText = "OVERRIDDEN";
+                badge.className = "px-3 py-1 rounded-full text-[10px] font-black bg-purple-100 text-purple-800 border border-purple-200 shrink-0";
+                warningBox.classList.add('bg-purple-50', 'border-purple-200', 'text-purple-900', '!block');
+                warningBox.innerHTML = '<strong class="uppercase tracking-wider">Manager Override:</strong> This code was replaced by a manager and is no longer valid.'; 
                 actionButtons.classList.add('hidden'); 
                 inlineTypoBtn.classList.add('hidden'); 
+            } else if (status === 'point' || status === 'cooldown') {
+                badge.innerText = "LOYALTY STAR";
+                badge.className = "px-3 py-1 rounded-full text-[10px] font-black bg-blue-100 text-blue-800 border border-blue-200 shrink-0";
+                warningBox.classList.add('bg-blue-50', 'border-blue-200', 'text-blue-900', '!block');
+                warningBox.innerHTML = '<strong class="uppercase tracking-wider">Milestone In Progress:</strong> This is a loyalty star entry, not an unlocked 3rd-visit reward.';
+                actionButtons.classList.add('hidden');
+                inlineTypoBtn.classList.add('hidden');
             } else {
-                badge.innerText = "EXPIRED"; badge.className = "px-3 py-1 rounded-lg text-[10px] font-black bg-red-100 text-red-700 border border-red-200";
+                badge.innerText = "EXPIRED";
+                badge.className = "px-3 py-1 rounded-full text-[10px] font-black bg-red-100 text-red-700 border border-red-200 shrink-0";
                 warningBox.classList.add('bg-red-50', 'border-red-200', 'text-red-800', '!block');
-                warningBox.innerHTML = '⏰ <span class="uppercase tracking-wider">Offer Expired:</span> This code has passed its validity window and can no longer be redeemed.'; 
+                warningBox.innerHTML = '<strong class="uppercase tracking-wider">Offer Expired:</strong> This code has passed its validity window and can no longer be redeemed.'; 
                 actionButtons.classList.add('hidden'); 
                 inlineTypoBtn.classList.add('hidden'); 
             }
 
             clearInterval(undoInterval);
-            document.getElementById('undo-container').classList.add('hidden'); document.getElementById('warning-modal').classList.add('hidden');
-            document.getElementById('result-card').classList.remove('hidden');
+            document.getElementById('undo-container').classList.add('hidden');
+            document.getElementById('warning-modal').classList.add('hidden');
             
-            if(status === 'valid') { document.getElementById('redeem-btn').focus(); }
+            const resultCard = document.getElementById('result-card');
+            resultCard.classList.remove('hidden');
+            resultCard.classList.remove('anim-reveal');
+            void resultCard.offsetWidth;
+            resultCard.classList.add('anim-reveal');
+            
+            if (status === 'valid') {
+                document.getElementById('redeem-btn').focus();
+            }
         }
 
         function showError(message) {
-            const errorMsg = document.getElementById('error-message'); errorMsg.innerText = message; errorMsg.classList.remove('hidden');
+            const errorMsg = document.getElementById('error-message');
+            errorMsg.innerText = message;
+            errorMsg.classList.remove('hidden', 'anim-shake');
+            void errorMsg.offsetWidth;
+            errorMsg.classList.add('anim-shake');
         }
 
-       function toggleLoading(btnId, textId, loaderId, isLoading) {
-            const btnText = document.getElementById(textId); const loader = document.getElementById(loaderId); const btn = document.getElementById(btnId);
+        function toggleLoading(btnId, textId, loaderId, isLoading) {
+            const btnText = document.getElementById(textId);
+            const loader = document.getElementById(loaderId);
+            const btn = document.getElementById(btnId);
             if (isLoading) { 
-                btnText.classList.add('hidden'); loader.classList.remove('hidden'); btn.disabled = true; 
-                // 🟢 UX FIX: Prevent impatient cashier refreshes mid-transaction
+                btnText.classList.add('hidden');
+                loader.classList.remove('hidden');
+                btn.disabled = true; 
                 window.onbeforeunload = () => "Transaction in progress. Please do not refresh.";
             } else { 
-                btnText.classList.remove('hidden'); loader.classList.add('hidden'); btn.disabled = false; 
+                btnText.classList.remove('hidden');
+                loader.classList.add('hidden');
+                btn.disabled = false; 
                 window.onbeforeunload = null;
             }
         }
 
-        // 🟢 POS UX FIX: Seamless "Next Customer" Reset (No browser refresh required)
         function resetApp() {
-            // Fade out the results to make it feel smooth
+            triggerHaptic('light');
             const resultCard = document.getElementById('result-card');
-            resultCard.classList.remove('slide-in-from-bottom-2');
-            resultCard.classList.add('opacity-0', 'scale-95');
+            resultCard.style.opacity = '0';
+            resultCard.style.transform = 'translateY(6px)';
+            resultCard.style.transition = 'all 0.18s ease';
             
             setTimeout(() => {
-                // Clear UI states
+                currentlyVerifiedCode = "";
                 document.getElementById('discount-code').value = '';
+                document.getElementById('clear-code-btn')?.classList.add('hidden');
                 document.getElementById('error-message').classList.add('hidden');
-                document.getElementById('result-card').classList.add('hidden');
+                resultCard.classList.add('hidden');
+                resultCard.style.opacity = '';
+                resultCard.style.transform = '';
+                resultCard.style.transition = '';
                 document.getElementById('undo-container').classList.add('hidden');
                 clearInterval(undoInterval);
                 
-                // Reset animation classes for next time
-                resultCard.classList.remove('opacity-0', 'scale-95');
-                resultCard.classList.add('slide-in-from-bottom-2');
-                
-                // Auto-focus the scanner input instantly for the cashier
                 document.getElementById('discount-code').focus();
-            }, 200);
+            }, 180);
         }
 
         function resetAppFromSuccess() {
             closeModal();
             setTimeout(() => {
                 resetApp();
-            }, 300); // Wait for success modal to finish animating out before wiping data
+            }, 280);
         }
 
-        // 🟢 POS UX FIX: Native Fullscreen API
         function toggleFullscreen() {
             const elem = document.documentElement;
             const iconEnter = document.getElementById('fs-icon-enter');
             const iconExit = document.getElementById('fs-icon-exit');
 
             if (!document.fullscreenElement) {
-                if (elem.requestFullscreen) { elem.requestFullscreen(); }
-                else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen(); } // Safari
-                else if (elem.msRequestFullscreen) { elem.msRequestFullscreen(); } // IE11
+                if (elem.requestFullscreen) elem.requestFullscreen();
+                else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+                else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
                 
                 iconEnter.classList.add('hidden');
                 iconExit.classList.remove('hidden');
             } else {
-                if (document.exitFullscreen) { document.exitFullscreen(); }
-                else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
-                else if (document.msExitFullscreen) { document.msExitFullscreen(); }
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                else if (document.msExitFullscreen) document.msExitFullscreen();
                 
                 iconEnter.classList.remove('hidden');
                 iconExit.classList.add('hidden');
