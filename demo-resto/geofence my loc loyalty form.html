@@ -240,6 +240,57 @@
     <!-- Celebration Confetti Canvas -->
     <canvas id="reward-confetti" class="fixed inset-0 pointer-events-none z-50 hidden"></canvas>
 
+    <!-- 📍 2-STAGE LOCATION PRIVACY & RECOVERY MODAL (Prevents accidental "Never Allow" & guides recovery) -->
+    <div id="geo-permission-modal" class="fixed inset-0 z-[9998] hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="glass-card rounded-3xl p-6 sm:p-7 w-full max-w-sm text-center border-brand-gold/40 shadow-[0_25px_60px_rgba(0,0,0,0.95)] anim-slide-next">
+            <!-- Icon Badge -->
+            <div id="geo-modal-badge" class="w-14 h-14 rounded-2xl bg-brand-gold/15 border border-brand-gold/40 flex items-center justify-center mx-auto mb-3.5 text-brand-gold shadow-[0_0_25px_rgba(232,192,100,0.2)]">
+                <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+
+            <!-- Privacy Trust Pill -->
+            <div class="inline-flex items-center gap-1.5 bg-success-green/10 border border-success-green/30 rounded-full px-3 py-0.5 mb-2.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-success-green"></span>
+                <span class="text-[9px] font-black uppercase tracking-widest text-success-green">100% Privacy Protected</span>
+            </div>
+
+            <h3 id="geo-modal-title" class="text-xl font-black text-white mb-2 tracking-tight">Quick Visit Check</h3>
+            <p id="geo-modal-desc" class="text-xs sm:text-[13px] text-gray-300 font-medium leading-relaxed mb-4">
+                To keep reviews 100% genuine, please tap <strong class="text-brand-gold">"Allow"</strong> on the next prompt to confirm you're at the restaurant.
+            </p>
+
+            <!-- Zero-Storage Privacy Guarantee Box -->
+            <div class="bg-white/[0.03] border border-white/10 rounded-2xl p-3 mb-4 text-left flex items-start gap-2.5">
+                <svg class="w-4 h-4 text-brand-gold shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <p class="text-[11px] text-gray-400 leading-snug font-medium">
+                    <strong class="text-gray-200">Zero Location Storage:</strong> Your location is only checked for 1 second to verify genuine dining and is <strong class="text-brand-gold">never saved or tracked</strong>.
+                </p>
+            </div>
+
+            <!-- Step-by-Step Browser Unblock Guide (Shown only if user previously clicked "Don't Allow" / "Never Allow") -->
+            <div id="geo-unblock-steps" class="hidden bg-brand-gold/[0.07] border border-brand-gold/30 rounded-2xl p-3.5 mb-4 text-left space-y-2">
+                <p class="text-[10px] font-black uppercase tracking-wider text-brand-gold">How to enable location in 2 taps:</p>
+                <div class="flex items-start gap-2 text-[11.5px] text-gray-200 font-medium leading-snug">
+                    <span class="w-4 h-4 rounded-full bg-brand-gold text-black font-black text-[10px] flex items-center justify-center shrink-0 mt-0.5">1</span>
+                    <span>Tap the <strong class="text-brand-gold">Tune / Lock icon</strong> on the left side of your browser's address bar at the top.</span>
+                </div>
+                <div class="flex items-start gap-2 text-[11.5px] text-gray-200 font-medium leading-snug">
+                    <span class="w-4 h-4 rounded-full bg-brand-gold text-black font-black text-[10px] flex items-center justify-center shrink-0 mt-0.5">2</span>
+                    <span>Tap <strong class="text-brand-gold">Permissions</strong> &rarr; turn on <strong class="text-brand-gold">Location</strong>, then tap Retry below.</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-2.5">
+                <button id="geo-modal-primary-btn" type="button" class="w-full py-3.5 rounded-xl font-black uppercase tracking-widest text-xs btn-gold-ignite active:scale-95 transition-all">
+                    Continue & Allow Location
+                </button>
+                <button id="geo-modal-cancel-btn" type="button" class="w-full py-2.5 rounded-xl font-bold uppercase tracking-widest text-[10px] text-gray-400 hover:text-white transition-colors">
+                    Not Now
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Flagship Architectural Header -->
     <div class="w-full px-4 sm:px-6 pt-5 sm:pt-7 pb-2 flex flex-col gap-2.5 z-40 relative max-w-xl mx-auto shrink-0">
         <div class="flex justify-between items-center">
@@ -460,7 +511,7 @@
         // ==========================================
         // ⚙️ CONFIGURATION
         // ==========================================
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby0mHaNfjh7Z2Wt_du0cGcO5um86nmW-ZwQe2b-7cV-4XumTK57dulOyPxBdZBNr7rt/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzLuH0VsO0UYF4NbtQdY8Erjyix-Xua6M3uT2dhiNCukWqovNkUn0JhAsUSjcuQ5do/exec"; 
 
         // 📍 ON-PREMISE GPS GEOFENCE CONFIGURATION
         // Paste ANY Google Maps link for each restaurant (copied from browser address bar OR phone Share button).
@@ -469,7 +520,7 @@
             enabled: true,
             radiusMeters: 500, // 500m radius + indoor accuracy cushion prevents false blocks inside the restaurant
             locations: {
-                "Temp New": "https://maps.app.goo.gl/zYHaJNF7WJrHphu2A?g_st=aw" // <-- Paste your restaurant's Google Maps link here
+                "Temp New": "https://maps.app.goo.gl/GYGiutUtyMBaG9uW7" // <-- Paste your restaurant's Google Maps link here
             }
         };
 
@@ -810,23 +861,18 @@
             const str = String(input).trim();
             if (!str) return null;
 
-            // 1. Exact building pin in Google Maps URLs (!3dLAT!4dLNG)
             let m = str.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
             if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
 
-            // 2. Android Google Maps Dropped Pin / Search URL (/maps/search/LAT,LNG or /maps/place/LAT,LNG)
             m = str.match(/\/maps\/(?:search|place)\/(-?\d+\.\d+)(?:\s*,\s*|\s*%2C\s*|\+)\+?(-?\d+\.\d+)/i);
             if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
 
-            // 3. Viewport center in Google Maps URLs (@LAT,LNG)
             m = str.match(/@(-?\d+\.\d+)(?:,|%2C)(-?\d+\.\d+)/i);
             if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
 
-            // 4. Query parameter in Google Maps URLs (?q=LAT,LNG or &ll=LAT,LNG or &query=LAT,LNG)
             m = str.match(/[?&](?:q|query|ll|center|daddr)=(-?\d+\.\d+)(?:,|%2C|\+|\s+)(-?\d+\.\d+)/i);
             if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
 
-            // 5. Raw "LAT, LNG" string
             m = str.match(/^(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)$/);
             if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
 
@@ -841,8 +887,8 @@
             const directCoords = extractCoordsFromMapInput(rawConfig);
             if (directCoords) return directCoords;
 
-            // Unique hash of the full URL so changing the map link immediately uses a fresh cache key
-            const cacheKey = "impact_geo_v4_" + hashUrlKey(String(rawConfig).trim());
+            // Bumped to v5 so any old cached US-center coordinates (14879 km) are immediately cleared
+            const cacheKey = "impact_geo_v5_" + hashUrlKey(String(rawConfig).trim());
             try {
                 const cached = localStorage.getItem(cacheKey);
                 if (cached) {
@@ -867,7 +913,53 @@
             return null;
         }
 
-        // On-Premise GPS Geofence Verifier (Fail-Closed + Indoor Wi-Fi Drift Compensation)
+        // Opens the Pre-Permission Trust Modal or the Blocked-Permission Recovery Modal
+        function promptLocationModal(mode, resto) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('geo-permission-modal');
+                const titleEl = document.getElementById('geo-modal-title');
+                const descEl = document.getElementById('geo-modal-desc');
+                const stepsEl = document.getElementById('geo-unblock-steps');
+                const primaryBtn = document.getElementById('geo-modal-primary-btn');
+                const cancelBtn = document.getElementById('geo-modal-cancel-btn');
+
+                if (mode === 'pre_prompt') {
+                    titleEl.innerText = "Confirm Your Visit";
+                    descEl.innerHTML = `To guarantee 100% genuine reviews from real guests at <strong class="text-brand-gold">${resto}</strong>, please tap <strong class="text-brand-gold">"Allow"</strong> on the next prompt.`;
+                    stepsEl.classList.add('hidden');
+                    primaryBtn.innerText = "Continue & Allow Location";
+                } else {
+                    titleEl.innerText = "Location Access Needed";
+                    descEl.innerHTML = `Location access is required to verify your visit at <strong class="text-brand-gold">${resto}</strong>. We only check this once to keep reviews genuine and <strong class="text-white">never store your location</strong>.`;
+                    stepsEl.classList.remove('hidden');
+                    primaryBtn.innerText = "Try Requesting Location Again";
+                }
+
+                modal.classList.remove('hidden');
+
+                primaryBtn.onclick = () => {
+                    modal.classList.add('hidden');
+                    resolve(true);
+                };
+                cancelBtn.onclick = () => {
+                    modal.classList.add('hidden');
+                    resolve(false);
+                };
+            });
+        }
+
+        // Raw browser geolocation call wrapped in a Promise
+        function requestBrowserGPS() {
+            return new Promise((resolve) => {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => resolve({ ok: true, pos: pos }),
+                    (err) => resolve({ ok: false, err: err }),
+                    { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+                );
+            });
+        }
+
+        // On-Premise GPS Geofence Verifier (With Pre-Permission Trust Modal & Multi-Retry Recovery)
         async function verifyOnPremiseLocation() {
             const email = (State.payload.email || "").toLowerCase().trim();
             const resto = State.payload.restaurant;
@@ -896,42 +988,78 @@
                 return { allowed: false, message: "Location services are not supported by this browser. Please open the link in Chrome or Safari." };
             }
 
-            return new Promise((resolve) => {
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        const userLat = pos.coords.latitude;
-                        const userLng = pos.coords.longitude;
-                        const accuracy = pos.coords.accuracy || 0;
-                        const rawDist = calculateDistanceMeters(userLat, userLng, targetCoords.lat, targetCoords.lng);
+            // Check current browser permission state if supported
+            let permState = 'prompt';
+            if (navigator.permissions && navigator.permissions.query) {
+                try {
+                    const status = await navigator.permissions.query({ name: 'geolocation' });
+                    permState = status.state; // 'granted', 'prompt', or 'denied'
+                } catch (e) {}
+            }
 
-                        // Compensate for indoor Wi-Fi/cell-tower accuracy radius (up to 1,500m when indoors)
-                        const accuracyCushion = Math.min(accuracy, 1500);
-                        const effectiveDist = Math.max(0, rawDist - accuracyCushion);
+            // Stage 1: If permission hasn't been granted yet, show our friendly Privacy Reassurance Modal first
+            if (permState === 'prompt') {
+                const userReady = await promptLocationModal('pre_prompt', resto);
+                if (!userReady) {
+                    return { allowed: false, silentCancel: true };
+                }
+            } else if (permState === 'denied') {
+                // If already denied earlier, show the Recovery Modal with 2-tap unblock instructions & Retry button
+                const wantRetry = await promptLocationModal('recovery', resto);
+                if (!wantRetry) {
+                    return { allowed: false, silentCancel: true };
+                }
+            }
 
-                        if (effectiveDist <= VENUE_GEOFENCE.radiusMeters) {
-                            State.payload.gps = { lat: userLat, lng: userLng, accuracy: Math.round(accuracy), verified: true };
-                            saveDraft();
-                            resolve({ allowed: true });
-                        } else {
-                            State.payload.gps = null;
-                            saveDraft();
-                            const distKm = (rawDist / 1000).toFixed(2);
-                            resolve({
-                                allowed: false,
-                                message: `On-Premise Verification: You appear to be ${distKm} km away from ${resto}. Please scan the QR code while dining at the restaurant.`
-                            });
+            // Stage 2: Request actual GPS coordinates (allows up to 3 interactive retries if denied/dismissed)
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                const gpsRes = await requestBrowserGPS();
+
+                if (gpsRes.ok) {
+                    const pos = gpsRes.pos;
+                    const userLat = pos.coords.latitude;
+                    const userLng = pos.coords.longitude;
+                    const accuracy = pos.coords.accuracy || 0;
+                    const rawDist = calculateDistanceMeters(userLat, userLng, targetCoords.lat, targetCoords.lng);
+
+                    // Compensate for indoor Wi-Fi/cell-tower accuracy radius (up to 1,500m when indoors)
+                    const accuracyCushion = Math.min(accuracy, 1500);
+                    const effectiveDist = Math.max(0, rawDist - accuracyCushion);
+
+                    if (effectiveDist <= VENUE_GEOFENCE.radiusMeters) {
+                        State.payload.gps = { lat: userLat, lng: userLng, accuracy: Math.round(accuracy), verified: true };
+                        saveDraft();
+                        return { allowed: true };
+                    } else {
+                        State.payload.gps = null;
+                        saveDraft();
+                        const distKm = (rawDist / 1000).toFixed(2);
+                        return {
+                            allowed: false,
+                            message: `On-Premise Verification: You appear to be ${distKm} km away from ${resto}. Please scan the QR code while dining at the restaurant.`
+                        };
+                    }
+                } else {
+                    const err = gpsRes.err;
+                    if (err && err.code === 1) {
+                        // User tapped "Don't Allow" — show the Recovery Modal with privacy reassurance & 2-tap unblock guide
+                        const retryAgain = await promptLocationModal('recovery', resto);
+                        if (!retryAgain) {
+                            return { allowed: false, silentCancel: true };
                         }
-                    },
-                    (err) => {
-                        if (err.code === 1) {
-                            resolve({ allowed: false, message: `Location permission is required to verify your visit at ${resto}. Please allow location access in your browser settings.` });
-                        } else {
-                            resolve({ allowed: false, message: "Unable to detect your GPS location. Please turn on Location/GPS and try again." });
-                        }
-                    },
-                    { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
-                );
-            });
+                    } else {
+                        return {
+                            allowed: false,
+                            message: "Unable to detect your GPS location. Please turn on Location/GPS on your phone and try again."
+                        };
+                    }
+                }
+            }
+
+            return {
+                allowed: false,
+                message: `Location permission is required to verify your visit at ${resto}.`
+            };
         }
 
         async function requestOTP() {
@@ -956,7 +1084,9 @@
             if (!geoCheck.allowed) {
                 btn.classList.remove('animate-pulse');
                 btn.innerText = "Verify Identity";
-                showNotification(geoCheck.message, "error");
+                if (!geoCheck.silentCancel && geoCheck.message) {
+                    showNotification(geoCheck.message, "error");
+                }
                 return;
             }
 
