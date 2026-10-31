@@ -84,11 +84,11 @@
 
         /* Hardware-Accelerated Spring Animations */
         @keyframes spring-reveal {
-            0% { opacity: 0; transform: translate3d(0, 12px, 0) scale(0.985); }
+            0% { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.985); }
             100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
         }
         .anim-reveal {
-            animation: spring-reveal 0.36s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: spring-reveal 0.34s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         @keyframes shake-error {
@@ -152,25 +152,25 @@
 <body class="portal-canvas-bg flex flex-col items-center justify-center min-h-[100dvh] p-3.5 sm:p-6 transition-colors duration-300" id="app-body">
 
     <!-- MAIN PARTNER PORTAL SHELL -->
-    <div class="w-full max-w-[500px] portal-shell rounded-3xl overflow-hidden relative z-10 flex flex-col min-h-[510px]">
+    <div class="w-full max-w-[480px] portal-shell rounded-3xl overflow-hidden relative z-10 flex flex-col my-auto">
 
-        <!-- OBSIDIAN ARCHITECTURAL HEADER (Zero Truncation on Mobile & Desktop) -->
-        <div class="portal-header text-white px-5 sm:px-7 pt-5 pb-5 relative">
+        <!-- OBSIDIAN ARCHITECTURAL HEADER (Responsive across 360px Mobile & Widescreen Desktop) -->
+        <div class="portal-header text-white px-4 sm:px-6 pt-4 sm:pt-5 pb-4 sm:pb-5 relative">
             <!-- Top Row: Brand Identity + Utility Controls -->
-            <div class="flex items-center justify-between gap-2 mb-4">
-                <div class="flex items-center gap-3 min-w-0">
-                    <div class="relative w-10 h-10 rounded-full border border-amber-400/50 bg-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(232,192,100,0.2)] overflow-hidden">
+            <div class="flex items-center justify-between gap-2 mb-3.5">
+                <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                    <div class="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-amber-400/50 bg-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(232,192,100,0.2)] overflow-hidden">
                         <img src="https://res.cloudinary.com/dr6xhnhor/image/upload/v1781864406/big_size_Logo_without_background_new_ubp9mn.png" alt="FOODSTORYTVC" class="w-full h-full object-cover scale-110">
                     </div>
                     <div class="text-left min-w-0">
                         <div class="flex items-center gap-2">
-                            <h1 class="text-[15px] sm:text-[17px] font-black tracking-[0.06em] text-white leading-none whitespace-nowrap">FOODSTORY<span class="text-amber-300">TVC</span></h1>
-                            <span id="pos-net-badge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8.5px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
+                            <h1 class="text-[14.5px] sm:text-[16.5px] font-black tracking-[0.06em] text-white leading-none whitespace-nowrap">FOODSTORY<span class="text-amber-300">TVC</span></h1>
+                            <span id="pos-net-badge" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
                                 <span id="pos-net-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                                 <span id="pos-net-text">Online</span>
                             </span>
                         </div>
-                        <p class="text-[9.5px] text-slate-400 font-bold tracking-[0.14em] uppercase mt-1 whitespace-nowrap">IMPACT Partner Portal</p>
+                        <p class="text-[9px] sm:text-[9.5px] text-slate-400 font-bold tracking-[0.14em] uppercase mt-1 whitespace-nowrap">IMPACT Partner Portal</p>
                     </div>
                 </div>
 
@@ -189,54 +189,55 @@
                 </div>
             </div>
 
-            <!-- Telemetry Bar: Full-Clarity Location + Date + Time (Never Truncates Restaurant Name) -->
-            <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+            <!-- Adaptive Telemetry Grid:
+                 Mobile (<640px): Restaurant spans full top row (zero truncation!) + Date & Time split 50/50 below.
+                 Desktop (>=640px): Symmetrical single-row 3-pill bar. -->
+            <div class="grid grid-cols-2 sm:flex sm:items-center gap-1.5 sm:gap-2">
                 <!-- Location Pill -->
-                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/[0.08] min-w-0 flex-1">
+                <div class="col-span-2 sm:flex-1 flex items-center justify-center sm:justify-start gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/[0.08] min-w-0">
                     <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z"></path></svg>
                     <p id="restaurant-name-display" class="text-slate-100 text-[10.5px] font-bold uppercase tracking-wider truncate"></p>
                 </div>
 
-                <!-- Date & Time Group -->
-                <div class="flex items-center gap-1.5 shrink-0">
-                    <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/[0.05] border border-white/[0.08] tabular-nums">
-                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        <p id="live-date" class="text-slate-200 text-[10.5px] font-bold uppercase tracking-wider whitespace-nowrap"></p>
-                    </div>
+                <!-- Date Pill -->
+                <div class="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/[0.05] border border-white/[0.08] tabular-nums shrink-0">
+                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <p id="live-date" class="text-slate-200 text-[10.5px] font-bold uppercase tracking-wider whitespace-nowrap"></p>
+                </div>
 
-                    <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/[0.05] border border-white/[0.08] tabular-nums">
-                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <p class="text-[10.5px] font-bold tracking-wider uppercase flex items-center text-slate-200 whitespace-nowrap">
-                            <span id="live-time-main"></span>
-                            <span id="live-time-ampm" class="ml-1 text-slate-400"></span>
-                        </p>
-                    </div>
+                <!-- Time Pill -->
+                <div class="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/[0.05] border border-white/[0.08] tabular-nums shrink-0">
+                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <p class="text-[10.5px] font-bold tracking-wider uppercase flex items-center text-slate-200 whitespace-nowrap">
+                        <span id="live-time-main"></span>
+                        <span id="live-time-ampm" class="ml-1 text-slate-400"></span>
+                    </p>
                 </div>
             </div>
         </div>
 
         <!-- MAIN REDEMPTION WORKSPACE -->
-        <div id="redemption-section" class="p-5 sm:p-7 pb-5 flex-1 flex flex-col">
+        <div id="redemption-section" class="p-4 sm:p-6 flex-1 flex flex-col">
+            <!-- Single-Line Non-Wrapping Input Label -->
             <div class="flex items-center justify-between mb-2">
-                <label for="discount-code" class="text-[11px] font-extrabold text-slate-500 uppercase tracking-[0.12em]">Enter Customer Reward Code</label>
-                <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200/70 px-2 py-0.5 rounded-md">Counter Verification</span>
+                <label for="discount-code" class="text-[10.5px] sm:text-[11px] font-extrabold text-slate-500 uppercase tracking-[0.11em] whitespace-nowrap">Enter Customer Reward Code</label>
             </div>
 
-            <!-- Tactile Monospace Input Bar (Anti-Autofill Hardened) -->
+            <!-- Tactile Monospace Input Bar -->
             <div class="relative flex items-center group">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <span class="px-2.5 py-1.5 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-500 font-mono font-bold text-xs tracking-wider select-none">IMPACT-</span>
                 </div>
                 <input type="text" id="discount-code" name="impact_reward_code_entry" placeholder="A1B2C3D4" maxlength="16"
                     oninput="handleCodeInput(this)"
-                    class="w-full pl-[96px] pr-11 py-4 text-lg font-mono font-extrabold text-slate-900 bg-slate-50/70 focus:bg-white border-2 border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 outline-none uppercase transition-all tracking-[0.14em] placeholder:text-slate-300 placeholder:font-semibold"
+                    class="w-full pl-[92px] pr-10 py-3.5 sm:py-4 text-lg font-mono font-extrabold text-slate-900 bg-slate-50/70 focus:bg-white border-2 border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 outline-none uppercase transition-all tracking-[0.12em] placeholder:text-slate-300 placeholder:font-semibold"
                     autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" inputmode="text">
-                <button type="button" id="clear-code-btn" onclick="clearCodeInput()" class="hidden absolute right-3.5 w-7 h-7 rounded-full bg-slate-200/80 hover:bg-slate-300 text-slate-600 flex items-center justify-center transition-all active:scale-90" title="Clear Code">
+                <button type="button" id="clear-code-btn" onclick="clearCodeInput()" class="hidden absolute right-3 w-7 h-7 rounded-full bg-slate-200/80 hover:bg-slate-300 text-slate-600 flex items-center justify-center transition-all active:scale-90" title="Clear Code">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
 
-            <button type="button" id="verify-btn" onclick="verifyCode()" class="mt-3.5 w-full btn-primary-dark text-white font-bold py-4 px-4 rounded-2xl flex justify-center items-center gap-2 text-sm tracking-wide">
+            <button type="button" id="verify-btn" onclick="verifyCode()" class="mt-3 w-full btn-primary-dark text-white font-bold py-3.5 sm:py-4 px-4 rounded-2xl flex justify-center items-center gap-2 text-sm tracking-wide">
                 <span id="verify-text" class="flex items-center gap-2">
                     <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
                     Verify Code
@@ -245,67 +246,67 @@
             </button>
 
             <!-- Inline Error Banner -->
-            <div id="error-message" class="hidden mt-4 p-3.5 bg-red-50/90 text-red-700 rounded-2xl text-xs font-bold border border-red-200/80 flex items-center justify-center gap-2 uppercase tracking-wide text-center"></div>
+            <div id="error-message" class="hidden mt-3.5 p-3.5 bg-red-50/90 text-red-700 rounded-2xl text-xs font-bold border border-red-200/80 flex items-center justify-center gap-2 uppercase tracking-wide text-center"></div>
 
             <!-- VERIFIED RESULT CARD -->
-            <div id="result-card" class="hidden mt-5 pt-5 border-t border-slate-100 anim-reveal">
-                <div class="bg-slate-50/80 rounded-2xl p-5 border border-slate-200/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+            <div id="result-card" class="hidden mt-4 pt-4 border-t border-slate-100 anim-reveal">
+                <div class="bg-slate-50/80 rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
 
-                    <!-- Offer Header + Status Badge -->
-                    <div class="flex justify-between items-start gap-3 mb-4">
-                        <div class="min-w-0">
-                            <p class="text-[10px] text-slate-400 uppercase font-extrabold tracking-[0.14em] mb-1">Unlocked Customer Offer</p>
-                            <p id="result-offer" class="text-lg sm:text-xl font-black text-slate-900 leading-snug break-words"></p>
+                    <!-- Offer Header + Status Badge (Smart Non-Breaking Date Formatting) -->
+                    <div class="flex justify-between items-start gap-2.5 mb-3.5">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[9.5px] text-slate-400 uppercase font-extrabold tracking-[0.13em] mb-1">Unlocked Customer Offer</p>
+                            <div id="result-offer" class="text-[17px] sm:text-xl font-black text-slate-900 leading-snug break-words"></div>
                         </div>
-                        <span id="result-badge" class="px-3 py-1 rounded-full text-[10px] font-black tracking-wider uppercase shrink-0"></span>
+                        <span id="result-badge" class="px-2.5 py-1 rounded-full text-[9.5px] font-black tracking-wider uppercase shrink-0 whitespace-nowrap mt-0.5"></span>
                     </div>
 
                     <!-- Status Warning Banner (Used / Voided / Expired / Spam) -->
-                    <div id="status-warning" class="hidden mb-4 p-3.5 rounded-xl text-[11px] font-semibold leading-relaxed border"></div>
+                    <div id="status-warning" class="hidden mb-3.5 p-3 rounded-xl text-[11px] font-semibold leading-relaxed border"></div>
 
                     <!-- Audit Warning Banner (From Code.gs 3-Visit Star Bill Audit) -->
-                    <div id="audit-warning-box" class="hidden mb-4 p-3.5 rounded-xl text-[11px] font-semibold leading-relaxed bg-amber-50 border border-amber-200/90 text-amber-900 flex items-start gap-2.5">
+                    <div id="audit-warning-box" class="hidden mb-3.5 p-3 rounded-xl text-[11px] font-semibold leading-relaxed bg-amber-50 border border-amber-200/90 text-amber-900 flex items-start gap-2.5">
                         <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
                         <div id="audit-warning-text" class="flex-1"></div>
                     </div>
 
-                    <!-- Customer & Bill Metadata Grid -->
-                    <div class="space-y-3 mb-4">
-                        <div class="bg-white px-3.5 py-2.5 rounded-xl border border-slate-200/70 flex items-center justify-between gap-2">
-                            <span class="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider shrink-0">Verified Guest</span>
-                            <p id="result-customer" class="text-xs font-bold text-slate-700 truncate"></p>
+                    <!-- Customer & Bill Metadata Grid (Zero Email Truncation on Mobile) -->
+                    <div class="space-y-2.5 mb-3.5">
+                        <div class="bg-white px-3.5 py-2.5 rounded-xl border border-slate-200/70 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-2 text-left">
+                            <span class="text-[9.5px] text-slate-400 uppercase font-extrabold tracking-wider shrink-0">Verified Guest</span>
+                            <p id="result-customer" class="text-xs font-bold text-slate-800 break-all sm:truncate"></p>
                         </div>
 
-                        <div id="bill-meta-card" class="bg-white p-3.5 rounded-xl border border-slate-200/80 flex justify-between items-center transition-colors duration-300">
-                            <div>
-                                <p class="text-[9.5px] text-slate-400 uppercase font-extrabold tracking-wider mb-0.5">Receipt Bill Check</p>
+                        <div id="bill-meta-card" class="bg-white px-3.5 py-2.5 rounded-xl border border-slate-200/80 flex justify-between items-center gap-2 transition-colors duration-300">
+                            <div class="min-w-0">
+                                <p class="text-[9.5px] text-slate-400 uppercase font-extrabold tracking-wider mb-0.5 whitespace-nowrap">Receipt Bill Check</p>
                                 <div class="flex items-center gap-2">
-                                    <p id="result-bill" class="text-base font-mono font-black text-slate-900 tabular-nums"></p>
-                                    <button type="button" id="inline-typo-btn" onclick="openTypoModal()" class="hidden inline-flex items-center gap-1 text-[10px] bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200/80 px-2.5 py-1 rounded-lg uppercase font-extrabold tracking-wider transition-all active:scale-95">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"/></svg>
+                                    <p id="result-bill" class="text-base font-mono font-black text-slate-900 tabular-nums whitespace-nowrap"></p>
+                                    <button type="button" id="inline-typo-btn" onclick="openTypoModal()" class="hidden inline-flex items-center gap-1 text-[9.5px] bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200/80 px-2 py-0.5 rounded-md uppercase font-extrabold tracking-wider transition-all active:scale-95 whitespace-nowrap">
+                                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"/></svg>
                                         Edit
                                     </button>
                                 </div>
                             </div>
-                            <div class="text-right">
-                                <p class="text-[9.5px] text-slate-400 uppercase font-extrabold tracking-wider mb-0.5">Unlocked On</p>
-                                <p id="result-date" class="text-xs font-bold text-slate-600 tabular-nums"></p>
+                            <div class="text-right shrink-0">
+                                <p class="text-[9.5px] text-slate-400 uppercase font-extrabold tracking-wider mb-0.5 whitespace-nowrap">Unlocked On</p>
+                                <p id="result-date" class="text-[11.5px] sm:text-xs font-bold text-slate-600 tabular-nums whitespace-nowrap"></p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 3-Visit Loyalty Audit Trail (Zero Truncation Layout + Synced with Typo Fix) -->
-                    <div id="loyalty-trail-container" class="hidden mb-5">
+                    <!-- 3-Visit Loyalty Audit Trail (3-Line Vertical Stack Per Card — Zero Wrapping on 360px Screens) -->
+                    <div id="loyalty-trail-container" class="hidden mb-4">
                         <div class="flex items-center justify-between mb-1.5 px-0.5">
-                            <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-400">3-Visit Loyalty Audit Trail</span>
-                            <span class="text-[9.5px] font-bold text-emerald-600">3/3 Verified</span>
+                            <span class="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-400 whitespace-nowrap">3-Visit Loyalty Audit Trail</span>
+                            <span class="text-[9.5px] font-bold text-emerald-600 whitespace-nowrap">3/3 Verified</span>
                         </div>
                         <div id="loyalty-trail-list" class="grid grid-cols-3 gap-2"></div>
                     </div>
 
                     <!-- Primary Redemption & Anti-Abuse Controls -->
-                    <div id="action-buttons" class="mt-5 flex flex-col items-center gap-3">
-                        <button type="button" id="redeem-btn" onclick="redeemCode()" class="w-full btn-redeem-emerald text-white font-extrabold py-4 px-4 rounded-2xl flex justify-center items-center gap-2 text-sm tracking-wide">
+                    <div id="action-buttons" class="mt-4 flex flex-col items-center gap-2.5">
+                        <button type="button" id="redeem-btn" onclick="redeemCode()" class="w-full btn-redeem-emerald text-white font-extrabold py-3.5 sm:py-4 px-4 rounded-2xl flex justify-center items-center gap-2 text-sm tracking-wide">
                             <span id="redeem-text" class="flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
                                 Confirm Redemption
@@ -313,16 +314,16 @@
                             <span id="redeem-loader" class="loader hidden"></span>
                         </button>
 
-                        <button type="button" id="spam-btn" onclick="markAsSpam()" class="mt-1 py-1.5 px-3 rounded-lg text-[10.5px] font-bold text-slate-400 hover:text-red-600 hover:bg-red-50/70 uppercase tracking-wider transition-all flex items-center justify-center gap-1.5">
+                        <button type="button" id="spam-btn" onclick="markAsSpam()" class="py-1 px-3 rounded-lg text-[10px] font-bold text-slate-400 hover:text-red-600 hover:bg-red-50/70 uppercase tracking-wider transition-all flex items-center justify-center gap-1.5">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
                             Flag as Fake / Spam
                         </button>
                     </div>
 
                     <!-- 60-Second Undo Spam Container -->
-                    <div id="undo-container" class="mt-4 hidden text-center bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-                        <p class="text-[10.5px] text-slate-500 uppercase font-extrabold tracking-wider mb-3">Code Revoked & Guest Blacklisted</p>
-                        <button type="button" id="undo-btn" onclick="undoSpam()" class="btn-primary-dark text-white text-xs font-bold py-3 px-6 rounded-xl transition-all flex justify-center items-center gap-2 mx-auto tabular-nums">
+                    <div id="undo-container" class="mt-3.5 hidden text-center bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm">
+                        <p class="text-[10px] text-slate-500 uppercase font-extrabold tracking-wider mb-2.5">Code Revoked & Guest Blacklisted</p>
+                        <button type="button" id="undo-btn" onclick="undoSpam()" class="btn-primary-dark text-white text-xs font-bold py-2.5 px-5 rounded-xl transition-all flex justify-center items-center gap-2 mx-auto tabular-nums">
                             <span id="undo-text">Undo Blacklist (<span id="undo-timer">60</span>s)</span>
                             <span id="undo-loader" class="loader hidden" style="width: 14px; height: 14px; border-width: 2px;"></span>
                         </button>
@@ -332,14 +333,14 @@
         </div>
 
         <!-- FOOTER BAR: STAFF PROTOCOL & MANAGER ACCESS -->
-        <div class="border-t border-slate-100 bg-slate-50/80 px-6 py-3.5 flex justify-between items-center mt-auto">
-            <button type="button" onclick="openHelpModal()" class="text-[10.5px] text-slate-500 hover:text-slate-900 font-extrabold tracking-wider uppercase transition-colors inline-flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-slate-200/50">
-                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"/></svg>
+        <div class="border-t border-slate-100 bg-slate-50/80 px-4 sm:px-6 py-3 flex justify-between items-center mt-auto">
+            <button type="button" onclick="openHelpModal()" class="text-[10px] sm:text-[10.5px] text-slate-500 hover:text-slate-900 font-extrabold tracking-wider uppercase transition-colors inline-flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-slate-200/50 whitespace-nowrap">
+                <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"/></svg>
                 Staff Protocol
             </button>
             <div class="h-3.5 w-px bg-slate-200"></div>
-            <button type="button" onclick="openOverrideModal()" class="text-[10.5px] text-slate-500 hover:text-slate-900 font-extrabold tracking-wider uppercase transition-colors inline-flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-slate-200/50">
-                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+            <button type="button" onclick="openOverrideModal()" class="text-[10px] sm:text-[10.5px] text-slate-500 hover:text-slate-900 font-extrabold tracking-wider uppercase transition-colors inline-flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-slate-200/50 whitespace-nowrap">
+                <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
                 Manager Override
             </button>
         </div>
@@ -418,7 +419,7 @@
 
     <!-- MODAL 3: MANAGER OVERRIDE (Zero Password-Popup Architecture) -->
     <div id="override-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
-        <div class="bg-white rounded-3xl p-6 sm:p-7 max-w-sm w-full shadow-2xl border border-slate-100 transform scale-95 transition-transform duration-300 text-center relative">
+        <div class="bg-white rounded-3xl p-6 sm:p-7 max-w-sm w-full shadow-2xl border border-slate-100 transform scale-95 transition-transform duration-300 text-center relative max-h-[90dvh] overflow-y-auto clean-scroll">
             <button type="button" onclick="closeOverrideModal()" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
@@ -506,11 +507,11 @@
 
             <div class="text-left mb-5">
                 <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">Tap a quick reason or type below</label>
-                <div class="flex flex-wrap gap-1.5 mb-2.5">
-                    <button type="button" onclick="setSpamReasonChip('Fake Receipt')" class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-red-50 hover:text-red-700 text-slate-700 border border-slate-200 transition-colors">Fake Receipt</button>
-                    <button type="button" onclick="setSpamReasonChip('Bill Mismatch')" class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-red-50 hover:text-red-700 text-slate-700 border border-slate-200 transition-colors">Bill Mismatch</button>
-                    <button type="button" onclick="setSpamReasonChip('Duplicate Claim')" class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-red-50 hover:text-red-700 text-slate-700 border border-slate-200 transition-colors">Duplicate Claim</button>
-                    <button type="button" onclick="setSpamReasonChip('Staff Test')" class="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-red-50 hover:text-red-700 text-slate-700 border border-slate-200 transition-colors">Staff Test</button>
+                <div class="grid grid-cols-2 gap-1.5 mb-2.5">
+                    <button type="button" onclick="setSpamReasonChip('Fake Receipt')" class="text-[10.5px] font-bold py-1.5 px-2.5 rounded-lg bg-slate-100 hover:bg-red-50 hover:text-red-700 text-slate-700 border border-slate-200 transition-colors text-center whitespace-nowrap">Fake Receipt</button>
+                    <button type="button" onclick="setSpamReasonChip('Bill Mismatch')" class="text-[10.5px] font-bold py-1.5 px-2.5 rounded-lg bg-slate-100 hover:bg-red-50 hover:text-red-700 text-slate-700 border border-slate-200 transition-colors text-center whitespace-nowrap">Bill Mismatch</button>
+                    <button type="button" onclick="setSpamReasonChip('Duplicate Claim')" class="text-[10.5px] font-bold py-1.5 px-2.5 rounded-lg bg-slate-100 hover:bg-red-50 hover:text-red-700 text-slate-700 border border-slate-200 transition-colors text-center whitespace-nowrap">Duplicate Claim</button>
+                    <button type="button" onclick="setSpamReasonChip('Staff Test')" class="text-[10.5px] font-bold py-1.5 px-2.5 rounded-lg bg-slate-100 hover:bg-red-50 hover:text-red-700 text-slate-700 border border-slate-200 transition-colors text-center whitespace-nowrap">Staff Test</button>
                 </div>
                 <input type="text" id="spam-reason" name="spam_flag_reason_note" placeholder="e.g., Forged receipt, invalid bill..."
                     autocomplete="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other"
@@ -608,11 +609,11 @@
             const txt = document.getElementById('pos-net-text');
             if (!badge || !dot || !txt) return;
             if (navigator.onLine) {
-                badge.className = "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8.5px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0";
+                badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-extrabold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0";
                 dot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse";
                 txt.innerText = "Online";
             } else {
-                badge.className = "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8.5px] font-extrabold uppercase tracking-wider bg-red-500/15 text-red-400 border border-red-500/30 shrink-0";
+                badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-extrabold uppercase tracking-wider bg-red-500/15 text-red-400 border border-red-500/30 shrink-0";
                 dot.className = "w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse";
                 txt.innerText = "Offline";
             }
@@ -672,7 +673,6 @@
         function lockTerminalManually() {
             triggerHaptic('light');
             localStorage.removeItem('impact_staff_token');
-            // Clear any visible customer card behind the lock screen for privacy
             currentlyVerifiedCode = "";
             document.getElementById('discount-code').value = '';
             document.getElementById('clear-code-btn')?.classList.add('hidden');
@@ -682,7 +682,7 @@
             checkStaffAuth();
         }
 
-        // Live Server-Verified Unlock: Verifies STAFF_SECRET against Code.gs before unlocking the screen!
+        // Live Server-Verified Unlock: Verifies STAFF_SECRET against Code.gs before unlocking the screen
         async function saveStaffAuth() {
             const pinInput = document.getElementById('staff-auth-pin');
             const pin = pinInput.value.trim();
@@ -720,7 +720,6 @@
                 clearTimeout(timeoutId);
                 const data = await response.json();
 
-                // If Code.gs rejected the STAFF_SECRET, block unlock right here inside the Lock Screen!
                 if (data.success === false && (data.message === "Unauthorized API Request." || (data.message && data.message.includes("System locked")))) {
                     triggerHaptic('heavy');
                     toggleLoading('auth-submit-btn', 'auth-submit-text', 'auth-loader', false);
@@ -735,7 +734,6 @@
                     return;
                 }
 
-                // Passcode accepted by Code.gs!
                 triggerHaptic('light');
                 localStorage.setItem('impact_staff_token', pin);
                 pinInput.value = '';
@@ -814,7 +812,7 @@
             }
         }
 
-        // Tri-Pill Live Clock Engine
+        // Live Clock Engine
         function updateLiveClock() {
             const now = new Date();
             const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }).replace(/ /g, '-').toUpperCase();
@@ -924,7 +922,7 @@
                     closeTypoModal();
                     document.getElementById('result-bill').innerText = "#" + data.newBill;
 
-                    // Sync Visit 3 Reward card inside the 3-Visit Loyalty Audit Trail immediately!
+                    // Sync Visit 3 Reward card inside the 3-Visit Loyalty Audit Trail immediately
                     const rewardTrailBillEl = document.getElementById('loyalty-trail-reward-bill');
                     if (rewardTrailBillEl) {
                         rewardTrailBillEl.innerText = "#" + data.newBill;
@@ -1121,12 +1119,12 @@
                 if (data.success) {
                     const badge = document.getElementById('result-badge');
                     badge.innerText = "REDEEMED";
-                    badge.className = "px-3 py-1 rounded-full text-[10px] font-black bg-slate-200 text-slate-600 shrink-0";
+                    badge.className = "px-2.5 py-1 rounded-full text-[9.5px] font-black bg-slate-200 text-slate-600 shrink-0 whitespace-nowrap mt-0.5";
                     document.getElementById('action-buttons').classList.add('hidden'); 
                     document.getElementById('inline-typo-btn').classList.add('hidden'); 
                     
                     const warningBox = document.getElementById('status-warning');
-                    warningBox.className = "mb-4 p-3.5 rounded-xl text-[11px] font-semibold leading-relaxed border bg-slate-100 border-slate-200 text-slate-700 block";
+                    warningBox.className = "mb-3.5 p-3 rounded-xl text-[11px] font-semibold leading-relaxed border bg-slate-100 border-slate-200 text-slate-700 block";
                     warningBox.innerHTML = '<strong class="uppercase tracking-wider">Redeemed Just Now:</strong> This reward has been claimed and logged to the database.';
                     
                     showSuccessModal();
@@ -1196,12 +1194,12 @@
                     closeWarningModal();
                     const badge = document.getElementById('result-badge');
                     badge.innerText = "FLAGGED SPAM";
-                    badge.className = "px-3 py-1 rounded-full text-[10px] font-black bg-red-900 text-red-100 shrink-0";
+                    badge.className = "px-2.5 py-1 rounded-full text-[9.5px] font-black bg-red-900 text-red-100 shrink-0 whitespace-nowrap mt-0.5";
                     document.getElementById('action-buttons').classList.add('hidden'); 
                     document.getElementById('inline-typo-btn').classList.add('hidden'); 
                     
                     const warningBox = document.getElementById('status-warning');
-                    warningBox.className = "mb-4 p-3.5 rounded-xl text-[11px] font-semibold leading-relaxed border bg-red-50 border-red-200 text-red-800 block";
+                    warningBox.className = "mb-3.5 p-3 rounded-xl text-[11px] font-semibold leading-relaxed border bg-red-50 border-red-200 text-red-800 block";
                     warningBox.innerHTML = '<strong class="uppercase tracking-wider">Security Flag Active:</strong> This code was revoked by staff and the customer email is now restricted.';
 
                     startUndoTimer(); 
@@ -1248,7 +1246,7 @@
                     triggerHaptic('light');
                     const badge = document.getElementById('result-badge');
                     badge.innerText = "VALID OFFER";
-                    badge.className = "px-3 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0";
+                    badge.className = "px-2.5 py-1 rounded-full text-[9.5px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0 whitespace-nowrap mt-0.5";
                     document.getElementById('undo-container').classList.add('hidden'); 
                     document.getElementById('action-buttons').classList.remove('hidden'); 
                     document.getElementById('inline-typo-btn').classList.remove('hidden'); 
@@ -1265,9 +1263,19 @@
             }
         }
 
+        // Safely formats offer text so parenthetical dates like (28-Oct-26) never split mid-date across two lines
+        function formatOfferWithNonBreakingDates(rawOffer) {
+            const safeStr = (rawOffer || "Verified Reward")
+                .toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+            return safeStr.replace(/\(\s*([^)]+?)\s*\)/g, '<span class="inline-block whitespace-nowrap text-slate-600 font-extrabold">($1)</span>');
+        }
+
         function showResultCard(data, code) {
             currentlyVerifiedCode = code;
-            document.getElementById('result-offer').innerText = data.offer || "Verified Reward";
+            document.getElementById('result-offer').innerHTML = formatOfferWithNonBreakingDates(data.offer);
             document.getElementById('result-customer').innerText = data.customer || "N/A";
             const currentBillStr = data.billNumber && data.billNumber !== "N/A" ? data.billNumber.toString().trim() : "N/A";
             document.getElementById('result-bill').innerText = currentBillStr !== "N/A" ? "#" + currentBillStr : "N/A";
@@ -1283,14 +1291,12 @@
             }
             document.getElementById('result-date').innerText = formattedDate;
 
-            // Render 3-Visit Loyalty Audit Trail (Fixes ordering when re-verifying Spam/Voided/Expired codes & eliminates text truncation)
+            // Render 3-Visit Loyalty Audit Trail (3-Line Vertical Micro-Stack: Zero Wrapping on Any Screen Size)
             const trailContainer = document.getElementById('loyalty-trail-container');
             const trailList = document.getElementById('loyalty-trail-list');
             if (Array.isArray(data.loyaltyTrail) && data.loyaltyTrail.length > 0) {
                 let normalizedTrail = data.loyaltyTrail.slice();
 
-                // If the current code was flagged Spam/Voided/Expired, Code.gs omits it from customerHistory;
-                // ensure the trail's final slot always reflects this reward code's bill number.
                 const lastItem = normalizedTrail[normalizedTrail.length - 1];
                 if (lastItem && lastItem.type !== 'Reward' && currentBillStr !== "N/A") {
                     const starItems = normalizedTrail.filter(x => x.type === 'Star').slice(-2);
@@ -1307,19 +1313,16 @@
                         ? 'bg-emerald-50/90 border-emerald-200 text-emerald-950'
                         : 'bg-white border-slate-200/80 text-slate-800';
                     const pillBadge = isReward
-                        ? `<span class="text-[8.5px] font-black uppercase px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700">✓ Reward</span>`
-                        : `<span class="text-[8.5px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700">★ Star</span>`;
+                        ? `<span class="inline-flex items-center text-[8.5px] font-black uppercase px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-700 whitespace-nowrap">✓ Reward</span>`
+                        : `<span class="inline-flex items-center text-[8.5px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 whitespace-nowrap">★ Star</span>`;
                     const billIdAttr = isReward ? 'id="loyalty-trail-reward-bill"' : '';
-                    // Always keep the 3rd-visit reward card bill synced with data.billNumber
                     const displayBill = (isReward && currentBillStr !== "N/A") ? currentBillStr : (item.bill || 'N/A');
 
                     return `
-                        <div class="p-2.5 rounded-xl border ${cardStyle} text-left flex flex-col justify-between">
-                            <div class="flex items-center justify-between gap-1 mb-1">
-                                <span class="text-[9px] font-extrabold uppercase tracking-wider opacity-60">Visit ${stepNum}</span>
-                                ${pillBadge}
-                            </div>
-                            <p ${billIdAttr} class="text-xs font-mono font-black tabular-nums">#${displayBill}</p>
+                        <div class="p-2.5 rounded-xl border ${cardStyle} text-left flex flex-col items-start justify-between gap-1 min-w-0">
+                            <span class="text-[9px] font-extrabold uppercase tracking-wider opacity-60 whitespace-nowrap leading-none">Visit ${stepNum}</span>
+                            <p ${billIdAttr} class="text-xs sm:text-[13px] font-mono font-black tabular-nums whitespace-nowrap leading-tight">#${displayBill}</p>
+                            ${pillBadge}
                         </div>
                     `;
                 }).join('');
@@ -1343,53 +1346,53 @@
             const warningBox = document.getElementById('status-warning');
             const inlineTypoBtn = document.getElementById('inline-typo-btn');
             
-            warningBox.className = "hidden mb-4 p-3.5 rounded-xl text-[11px] font-semibold leading-relaxed border";
+            warningBox.className = "hidden mb-3.5 p-3 rounded-xl text-[11px] font-semibold leading-relaxed border";
 
             const status = (data.status || "").toString().toLowerCase();
             
             if (status === 'valid') {
                 badge.innerText = "VALID OFFER";
-                badge.className = "px-3 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0"; 
+                badge.className = "px-2.5 py-1 rounded-full text-[9.5px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0 whitespace-nowrap mt-0.5"; 
                 actionButtons.classList.remove('hidden'); 
                 inlineTypoBtn.classList.remove('hidden'); 
             } else if (status === 'redeemed') {
                 badge.innerText = "USED ALREADY";
-                badge.className = "px-3 py-1 rounded-full text-[10px] font-black bg-slate-200 text-slate-600 border border-slate-300 shrink-0";
+                badge.className = "px-2.5 py-1 rounded-full text-[9.5px] font-black bg-slate-200 text-slate-600 border border-slate-300 shrink-0 whitespace-nowrap mt-0.5";
                 warningBox.classList.add('bg-slate-100', 'border-slate-200', 'text-slate-700', '!block');
                 warningBox.innerHTML = '<strong class="uppercase tracking-wider">Already Claimed:</strong> This reward has already been scanned and redeemed at the counter. It cannot be used again.'; 
                 actionButtons.classList.add('hidden'); 
                 inlineTypoBtn.classList.add('hidden'); 
             } else if (status === 'spam') {
                 badge.innerText = "FLAGGED SPAM";
-                badge.className = "px-3 py-1 rounded-full text-[10px] font-black bg-red-900 text-red-100 shrink-0";
+                badge.className = "px-2.5 py-1 rounded-full text-[9.5px] font-black bg-red-900 text-red-100 shrink-0 whitespace-nowrap mt-0.5";
                 warningBox.classList.add('bg-red-50', 'border-red-200', 'text-red-800', '!block');
                 warningBox.innerHTML = '<strong class="uppercase tracking-wider">Security Flag:</strong> This code was flagged by the automated anti-abuse firewall or manually by staff.'; 
                 actionButtons.classList.add('hidden');
                 inlineTypoBtn.classList.add('hidden'); 
             } else if (status === 'voided') {
                 badge.innerText = "VOIDED";
-                badge.className = "px-3 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-300 shrink-0";
+                badge.className = "px-2.5 py-1 rounded-full text-[9.5px] font-black bg-amber-100 text-amber-800 border border-amber-300 shrink-0 whitespace-nowrap mt-0.5";
                 warningBox.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-900', '!block');
                 warningBox.innerHTML = '<strong class="uppercase tracking-wider">Duplicate Bill Detected:</strong> A newer code was issued for this receipt, voiding this earlier code.'; 
                 actionButtons.classList.add('hidden'); 
                 inlineTypoBtn.classList.add('hidden'); 
             } else if (status === 'overridden') { 
                 badge.innerText = "OVERRIDDEN";
-                badge.className = "px-3 py-1 rounded-full text-[10px] font-black bg-purple-100 text-purple-800 border border-purple-200 shrink-0";
+                badge.className = "px-2.5 py-1 rounded-full text-[9.5px] font-black bg-purple-100 text-purple-800 border border-purple-200 shrink-0 whitespace-nowrap mt-0.5";
                 warningBox.classList.add('bg-purple-50', 'border-purple-200', 'text-purple-900', '!block');
                 warningBox.innerHTML = '<strong class="uppercase tracking-wider">Manager Override:</strong> This code was replaced by a manager and is no longer valid.'; 
                 actionButtons.classList.add('hidden'); 
                 inlineTypoBtn.classList.add('hidden'); 
             } else if (status === 'point' || status === 'cooldown') {
                 badge.innerText = "LOYALTY STAR";
-                badge.className = "px-3 py-1 rounded-full text-[10px] font-black bg-blue-100 text-blue-800 border border-blue-200 shrink-0";
+                badge.className = "px-2.5 py-1 rounded-full text-[9.5px] font-black bg-blue-100 text-blue-800 border border-blue-200 shrink-0 whitespace-nowrap mt-0.5";
                 warningBox.classList.add('bg-blue-50', 'border-blue-200', 'text-blue-900', '!block');
                 warningBox.innerHTML = '<strong class="uppercase tracking-wider">Milestone In Progress:</strong> This is a loyalty star entry, not an unlocked 3rd-visit reward.';
                 actionButtons.classList.add('hidden');
                 inlineTypoBtn.classList.add('hidden');
             } else {
                 badge.innerText = "EXPIRED";
-                badge.className = "px-3 py-1 rounded-full text-[10px] font-black bg-red-100 text-red-700 border border-red-200 shrink-0";
+                badge.className = "px-2.5 py-1 rounded-full text-[9.5px] font-black bg-red-100 text-red-700 border border-red-200 shrink-0 whitespace-nowrap mt-0.5";
                 warningBox.classList.add('bg-red-50', 'border-red-200', 'text-red-800', '!block');
                 warningBox.innerHTML = '<strong class="uppercase tracking-wider">Offer Expired:</strong> This code has passed its validity window and can no longer be redeemed.'; 
                 actionButtons.classList.add('hidden'); 
